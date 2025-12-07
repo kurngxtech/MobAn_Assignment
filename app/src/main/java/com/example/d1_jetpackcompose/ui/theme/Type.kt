@@ -1,28 +1,50 @@
-// ui/theme/Type.kt
+// File: ui/theme/Type.kt
 
 package com.example.d1_jetpackcompose.ui.theme
 
-// Import yang hilang DITAMBAHKAN di sini:
 import androidx.compose.material3.Typography
-import androidx.compose.ui.text.TextStyle // <-- INI YANG HILANG!
-import androidx.compose.ui.text.font.FontFamily // <-- INI YANG HILANG!
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp // <-- Perlu untuk ukuran font (sp)
+import androidx.compose.ui.unit.sp
+import com.example.d1_jetpackcompose.R // Pastikan import R benar
 
-// 💡 PASTIKAN kamu membuat file ini (atau gunakan Alt+Enter)
+// Definisikan custom font family Anda menggunakan ID resource yang sekarang valid
+val outfitFontFamily = FontFamily(
+    Font(R.font.outfit_regular)
+)
+
+val robotoFontFamily = FontFamily(
+    Font(R.font.roboto_regular)
+)
+
+val robotoFontFamilyItalic = FontFamily(
+    Font(R.font.roboto_italic)
+)
 
 val SmartFitTypography = Typography(
-    // Contoh: Customisasi style Judul/Headline
     headlineLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+        fontFamily = robotoFontFamily, // Sekarang ini akan menunjuk ke font yang benar
         fontWeight = FontWeight.Bold,
         fontSize = 32.sp
     ),
-    // Contoh: Customisasi style Body Text
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
+
+    headlineMedium = TextStyle(
+        fontFamily = robotoFontFamily, // Sekarang ini akan menunjuk ke font yang benar
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp
+        fontSize = 32.sp
+    ),
+
+    bodyLarge = TextStyle(
+        fontFamily = robotoFontFamily, // Gunakan juga untuk body, misalnya
+        fontWeight = FontWeight.Medium,
+        fontSize = 13.sp
     )
-    // Kamu bisa tambahkan style lain (misalnya titleMedium, labelSmall, dll.)
+)
+
+val buttonLoginStyle = TextStyle (
+    fontFamily = robotoFontFamily,
+    fontWeight = FontWeight.Medium,
+    fontSize = 16.sp
 )
