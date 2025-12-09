@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.D1_JetpackCompose">
         <activity
-            android:name="com.example.d1_jetpackcompose.BelajarLayoutActivity"
+            android:name="com.example.d1_jetpackcompose.ui.navigation.BelajarLayoutActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.D1_JetpackCompose">

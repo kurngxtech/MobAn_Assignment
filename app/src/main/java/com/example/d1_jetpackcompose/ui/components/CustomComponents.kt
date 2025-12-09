@@ -26,7 +26,7 @@ import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
 
 
 /**
- * Komponen Composable untuk tombol dengan sudut membulat.
+ * Komponen Composable untuk tombol Start Now.
  *  */
 @Composable
 fun RoundedStartNowButton(

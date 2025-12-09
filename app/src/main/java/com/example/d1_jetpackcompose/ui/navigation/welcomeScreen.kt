@@ -1,12 +1,9 @@
-package com.example.d1_jetpackcompose // Assuming this is your package
+package com.example.d1_jetpackcompose.ui.navigation // Assuming this is your package
 
-import android.icu.number.Scale.none
 import android.os.Bundle
-import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,10 +26,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTypography
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.components.RoundedStartNowButton
-
 
 class BelajarLayoutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,9 +38,8 @@ class BelajarLayoutActivity : ComponentActivity() {
             SmartFitTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
                 ) {
-                    BasicLayout("Bagus Kurniawan")
+                    BasicLayout()
                 }
             }
         }
@@ -51,7 +47,7 @@ class BelajarLayoutActivity : ComponentActivity() {
 }
 
 @Composable
-fun BasicLayout(name: String, modifier: Modifier = Modifier) {
+fun BasicLayout(modifier: Modifier = Modifier) {
     val backgroundImagePainter = painterResource(R.drawable.background_login)
 
     Box(
@@ -174,6 +170,6 @@ fun BasicLayout(name: String, modifier: Modifier = Modifier) {
 @Composable
 private fun BasicLayoutPreview() {
     SmartFitTheme {
-        BasicLayout("Bagus Kurniawan")
+        BasicLayout()
     }
 }

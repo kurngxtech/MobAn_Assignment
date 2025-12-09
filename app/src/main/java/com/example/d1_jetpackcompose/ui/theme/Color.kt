@@ -5,6 +5,8 @@ package com.example.d1_jetpackcompose.ui.theme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.background
 
 // Warna Utama (Custom SmartFit)
 val WhiteFog = Color(0xFFF5F5F5)        // Putih Kabut Pegunungan
@@ -12,7 +14,6 @@ val GrayRoad = Color(0xFF757575) // Abu-abu Jalan Raya
 
 val DefaultButtonBackgroundColor = Color(0xFF4F6A4E) // Warna biru (mengganti #4f6af4e menjadi Color)
 val PressedButtonBackgroundColor = Color(0xFF2f402f)
-
 // Skema Warna Terang (Light Theme)
 val LightColorScheme = lightColorScheme(
     primary = DefaultButtonBackgroundColor,
