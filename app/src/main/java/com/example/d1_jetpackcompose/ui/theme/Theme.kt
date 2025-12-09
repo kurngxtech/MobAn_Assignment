@@ -5,6 +5,9 @@ package com.example.d1_jetpackcompose.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.MaterialTheme // <-- Kontrak Google
+import androidx.compose.ui.input.key.Key.Companion.D
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 
 @Composable
 fun SmartFitTheme(
@@ -22,7 +25,6 @@ fun SmartFitTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = SmartFitTypography, // dari Type.kt
-        // shapes = SmartFitShapes,       // jika kamu membuat Shape.kt
         content = content // Membungkus NavGraph dan seluruh aplikasi
     )
 }

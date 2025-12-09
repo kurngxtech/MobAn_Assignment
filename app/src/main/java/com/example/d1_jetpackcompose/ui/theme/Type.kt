@@ -10,15 +10,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.d1_jetpackcompose.R // Pastikan import R benar
 
-// Definisikan custom font family Anda menggunakan ID resource yang sekarang valid
+// source font family
 val outfitFontFamily = FontFamily(
     Font(R.font.outfit_regular)
 )
-
 val robotoFontFamily = FontFamily(
     Font(R.font.roboto_regular)
 )
-
 val robotoFontFamilyItalic = FontFamily(
     Font(R.font.roboto_italic)
 )

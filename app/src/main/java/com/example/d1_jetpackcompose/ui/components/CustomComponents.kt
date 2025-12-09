@@ -1,5 +1,7 @@
 package com.example.d1_jetpackcompose.ui.components
 
+import android.R.attr.onClick
+import android.R.attr.text
 import android.R.color.white
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,6 +19,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.d1_jetpackcompose.ui.theme.DefaultButtonBackgroundColor
@@ -29,7 +32,7 @@ import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
  * Komponen Composable untuk tombol Start Now.
  *  */
 @Composable
-fun RoundedStartNowButton(
+fun RoundedButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -70,12 +73,54 @@ fun RoundedStartNowButton(
     }
 }
 
+@Composable
+fun GeneralButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    text: String
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val targetBackgroundColor = if (isPressed) {
+        PressedButtonBackgroundColor
+    } else {
+        DefaultButtonBackgroundColor
+    }
+
+    val backgroundColor by animateColorAsState(
+        targetValue = targetBackgroundColor,
+        label = "backgroundColorAnimation"
+    )
+
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth() // Mengisi lebar penuh
+            .height(48.dp), // Tinggi standar atau sesuai kebutuhan
+        shape = RoundedCornerShape(50), // Bentuk bulat sempurna
+        colors = ButtonDefaults.buttonColors(
+            containerColor = backgroundColor, // Gunakan warna yang sudah dianimasikan/ditentukan
+            contentColor = Color.White // Warna teks
+        ),
+        interactionSource = interactionSource // Terapkan InteractionSource
+    ) {
+        Text(
+            text = text,
+            style = buttonLoginStyle,
+            color = Color.Black,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewRoundedStartNowButton() {
     // Contoh penggunaan dalam Preview
-    RoundedStartNowButton(
-        onClick = { /* Lakukan sesuatu saat diklik */ },
-        modifier = Modifier.padding(16.dp)
+    GeneralButton(
+        onClick = {},
+        modifier = Modifier.padding(20.dp),
+        text = "Start Now"
     )
 }

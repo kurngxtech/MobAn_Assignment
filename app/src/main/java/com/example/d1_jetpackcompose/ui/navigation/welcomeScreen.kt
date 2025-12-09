@@ -27,9 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.d1_jetpackcompose.R
+import com.example.d1_jetpackcompose.ui.components.RoundedButton
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTypography
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
-import com.example.d1_jetpackcompose.ui.components.RoundedStartNowButton
 
 class BelajarLayoutActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -133,7 +133,7 @@ fun BasicLayout(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                RoundedStartNowButton(
+                RoundedButton(
                     onClick = {},
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
