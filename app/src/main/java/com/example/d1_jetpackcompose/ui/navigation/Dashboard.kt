@@ -1,7 +1,5 @@
 package com.example.d1_jetpackcompose.ui.navigation
 
-import android.R.attr.fontFamily
-import android.R.attr.text
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,10 +14,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -113,9 +108,18 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .fillMaxHeight(0.038f)
+                            .padding(horizontal = 10.dp)
+                            .padding(top = 10.dp)
+                            .fillMaxHeight(0.038f),
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.Center
                     ) {
-
+                        Image (
+                            painter = painterResource(R.drawable.settings_icon),
+                            contentDescription = "Settings",
+                            modifier = Modifier
+                                .size(25.dp)
+                        )
                     }
 
                     // Main Content Wrapper
@@ -140,7 +144,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier
-                                    .padding(bottom = 10.dp)
+                                    .padding(bottom = 0.dp)
                             )
                             Text(
                                 text = "SMARTFIT",
@@ -168,7 +172,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                 Card(
                                     shape = smartFitShape(25.dp),
                                     colors = CardDefaults.cardColors(
-                                        containerColor = colorStartDark,
+                                        containerColor = colorStartDark.copy(alpha = 0.6f),
                                         contentColor = colorEnd
                                     ),
                                     modifier = Modifier
@@ -297,7 +301,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                     Card(
                                         shape = smartFitShape(25.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = colorStartDark,
+                                            containerColor = colorStartDark.copy(alpha = 0.6f),
                                             contentColor = colorEnd
                                         ),
                                         modifier = Modifier
@@ -355,7 +359,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                     Card(
                                         shape = smartFitShape(25.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = colorStartDark,
+                                            containerColor = colorStartDark.copy(alpha = 0.6f),
                                             contentColor = colorEnd
                                         ),
                                         modifier = Modifier
@@ -425,7 +429,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                     Card(
                                         shape = smartFitShape(25.dp),
                                         colors = CardDefaults.cardColors(
-                                            containerColor = colorStartDark,
+                                            containerColor = colorStartDark.copy(alpha = 0.7f),
                                             contentColor = colorEnd
                                         ),
                                         modifier = Modifier
@@ -510,7 +514,7 @@ fun BubbleNavigationBar() {
     Card(
         shape = MaterialTheme.shapes.extraLarge, // Bentuk pil atau sangat bulat
         colors = CardDefaults.cardColors(
-            containerColor = colorStartDark,
+            containerColor = colorStartDark.copy(alpha = 0.7f),
             contentColor = colorEnd
         ),
         modifier = Modifier
@@ -521,16 +525,17 @@ fun BubbleNavigationBar() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(
+                modifier = Modifier
+                    .clickable{
+
+                },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.clickable{
-
-                }
             ) {
                 Image(painter = painterResource(R.drawable.home_icon), contentDescription = "Home")
                 Text(
@@ -539,6 +544,7 @@ fun BubbleNavigationBar() {
                     fontFamily = robotoFontFamily,
                 )
             }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -556,6 +562,7 @@ fun BubbleNavigationBar() {
                     fontFamily = robotoFontFamily,
                 )
             }
+
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),

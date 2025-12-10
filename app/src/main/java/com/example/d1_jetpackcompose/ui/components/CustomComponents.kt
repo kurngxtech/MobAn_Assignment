@@ -1,12 +1,8 @@
 package com.example.d1_jetpackcompose.ui.components
 
-import android.R.attr.onClick
-import android.R.attr.text
-import android.R.color.white
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,9 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.d1_jetpackcompose.ui.theme.DefaultButtonBackgroundColor
-import com.example.d1_jetpackcompose.ui.theme.PressedButtonBackgroundColor
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTypography
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
 
 
@@ -43,9 +37,9 @@ fun RoundedButton(
 
     // 2. Tentukan warna background berdasarkan keadaan isPressed
     val targetBackgroundColor = if (isPressed) {
-        PressedButtonBackgroundColor
+        SmartFitColors.SecondaryGreen
     } else {
-        DefaultButtonBackgroundColor
+        SmartFitColors.MainGreen
     }
 
     // Gunakan animateColorAsState untuk transisi warna yang halus (opsional, tapi disarankan)
@@ -84,9 +78,9 @@ fun GeneralButton(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     val targetBackgroundColor = if (isPressed) {
-        PressedButtonBackgroundColor
+        SmartFitColors.SecondaryGreen
     } else {
-        DefaultButtonBackgroundColor
+        SmartFitColors.MainGreen
     }
 
     val backgroundColor by animateColorAsState(

@@ -5,20 +5,39 @@ package com.example.d1_jetpackcompose.ui.theme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.foundation.background
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.MainGreen
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.SecondaryGreen
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.WhiteFog
 
 // Warna Utama (Custom SmartFit)
-val WhiteFog = Color(0xFFF5F5F5)        // Putih Kabut Pegunungan
-val GrayRoad = Color(0xFF757575) // Abu-abu Jalan Raya
+object SmartFitColors {
+    // Kategori: Warna Dasar & Netral
+    val WhiteFog = Color(0xFFF5F5F5)
+    val GrayRoad = Color(0xFF757575)
+    val PureBlack = Color(0xFF000000)
+    val PureWhite = Color(0xFFFFFFFF)
 
-val DefaultButtonBackgroundColor = Color(0xFF4F6A4E) // Warna biru (mengganti #4f6af4e menjadi Color)
-val PressedButtonBackgroundColor = Color(0xFF2f402f)
+    // Kategori: Warna Branding Utama (Hijau)
+    val PrimaryGreen = Color(0xFF4F6A4E)
+    val PressedGreen = Color(0xFF2f402f)
+    val LightGreenAccent = Color(0xFF81C784)
+
+    // Kategori: Warna Status & Notifikasi
+    val ErrorRed = Color(0xFFB00020)
+    val SuccessGreen = Color(0xFF00C853)
+    val WarningOrange = Color(0xFFFFA000)
+
+    val TextPrimary = Color.Black
+    val TextSecondary = GrayRoad
+    val MainGreen = Color(0xFF4F6A4E) // Warna biru (mengganti #4f6af4e menjadi Color)
+    val SecondaryGreen = Color(0xFF2f402f)
+}
+
 // Skema Warna Terang (Light Theme)
 val LightColorScheme = lightColorScheme(
-    primary = DefaultButtonBackgroundColor,
+    primary = MainGreen,
     onPrimary = Color.White,
-    secondary = PressedButtonBackgroundColor,
+    secondary = SecondaryGreen,
     background = WhiteFog,
     surface = WhiteFog,
     onSurface = Color.Black
@@ -29,7 +48,7 @@ val LightColorScheme = lightColorScheme(
 val DarkColorScheme = darkColorScheme(
     primary = Color(0xFF81C784), // Versi terang dari PrimaryGreen untuk latar belakang gelap
     onPrimary = Color.Black,
-    secondary = PressedButtonBackgroundColor,
+    secondary = SecondaryGreen,
     background = Color(0xFF121212), // Sangat gelap
     surface = Color(0xFF1E1E1E),
     onSurface = Color.White
