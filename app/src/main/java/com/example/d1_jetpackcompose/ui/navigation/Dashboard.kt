@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,16 +54,15 @@ class DashboardActivity : ComponentActivity() {
     }
 }
 
+val colorStartDark = Color(0xFF000000)
+val colorStartLight = Color(0xFFDAE0E0)
+val colorEnd = Color(0xFF4F6A4E)
+
 @Composable
 fun DashboardLayout(modifier: Modifier = Modifier) {
     val homeLogo = painterResource(R.drawable.home_icon)
     val activityLog = painterResource(R.drawable.activity_log_logo)
     val profileLogo = painterResource(R.drawable.profile_logo)
-
-    val colorStartDark = Color(0xFF000000)
-    val colorStartLight = Color(0xFFDAE0E0)
-    val colorEnd = Color(0xFF4F6A4E)
-
     val gradientDarkMode = Brush.verticalGradient(
         colors = listOf(colorStartDark, colorEnd),
     )
@@ -77,215 +77,340 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
     ) {
         Image(
             painter = painterResource(R.drawable.darkmode_background),
-            contentDescription = "Background Overlay", // Deskripsi untuk aksesibilitas
-            modifier = Modifier.fillMaxSize(), // Pastikan gambar mengisi seluruh Box
-            contentScale = ContentScale.Crop, // Agar gambar menutupi semua area tanpa distorsi
-            alpha = 0.30f // Atur opacity di sini (0.0f = transparan, 1.0f = solid)
+            contentDescription = "Background Overlay",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop,
+            alpha = 0.30f
         )
-
-        // The outest wrapper
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-
-            // Settings wrapper
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.038f)
-            ) {
-
+        Scaffold(
+            containerColor = Color.Transparent,
+            bottomBar = {
+                BubbleNavigationBar()
             }
-
-            // Main Content Wrapper
-            Column(
+        ) { innerPadding ->
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .padding(horizontal = 20.dp)
+                    .padding(innerPadding)
+                    .fillMaxSize()
             ) {
 
-                // Title Wrapper
+                // The outest wrapper
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.15f)
-                        .padding(horizontal = 15.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                        .fillMaxSize()
                 ) {
-                    Text(
-                        text = "Welcome to",
-                        fontFamily = robotoFontFamily,
-                        color = Color(0xFF4F6A4E),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
+
+                    // Settings wrapper
+                    Column(
                         modifier = Modifier
-                            .padding(bottom = 10.dp)
-                    )
-                    Text(
-                        text = "SMARTFIT",
-                        fontFamily = robotoFontFamily,
-                        color = Color(0xFF4F6A4E),
-                        fontSize = 64.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
-                }
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.038f)
+                    ) {
 
-                Spacer(modifier = Modifier.size(10.dp))
+                    }
 
-                // Card 1 Wrapper
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.28f)
-                ) {
-                    Card(
-                        shape = smartFitShape(30.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = colorStartDark,
-                            contentColor = colorEnd
-                        ),
+                    // Main Content Wrapper
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .fillMaxHeight()
+                            .padding(horizontal = 20.dp)
                     ) {
+                        // Title Wrapper
                         Column(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(vertical = 10.dp)
-                                .padding(horizontal = 12.dp)
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.15f)
+                                .padding(horizontal = 15.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
-                            Row(
+                            Text(
+                                text = "Welcome to",
+                                fontFamily = robotoFontFamily,
+                                color = Color(0xFF4F6A4E),
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(0.7f),
-                                horizontalArrangement = Arrangement.SpaceAround,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .padding(vertical = 17.dp)
-                                        .fillMaxWidth(0.33f)
-                                ) {
-                                    Text(
-                                        text = "Step Count",
-                                        fontSize = 20.sp,
-                                        fontFamily = robotoFontFamily,
-                                    )
+                                    .padding(bottom = 10.dp)
+                            )
+                            Text(
+                                text = "SMARTFIT",
+                                fontFamily = robotoFontFamily,
+                                color = Color(0xFF4F6A4E),
+                                fontSize = 64.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
 
-                                    Text(
-                                        text = "300",
-                                        fontSize = 40.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        fontFamily = robotoFontFamily,
-                                    )
-                                }
+                        Spacer(modifier = Modifier.size(10.dp))
 
-                                Spacer(modifier = Modifier.size(10.dp))
-
-                                Column {
-                                    Image(
-                                        painter = painterResource(R.drawable.walk_icon),
-                                        contentDescription = "SmartFit Logo",
-                                        modifier = Modifier
-                                            .size(96.dp)
-                                            .fillMaxWidth(0.33f)
-                                    )
-                                }
-
-                                Spacer(modifier = Modifier.size(10.dp))
-
-                                Column {
-                                    Column {
-                                        Text(
-                                            text = "Calories Burned",
-                                            fontSize = 14.sp,
-                                            fontFamily = robotoFontFamily,
-                                            textAlign = TextAlign.End,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                        )
-
-                                        Text(
-                                            text = "150 Cal",
-                                            fontSize = 24.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = robotoFontFamily,
-                                            textAlign = TextAlign.End,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                        )
-                                    }
-
-                                    Column {
-                                        Text(
-                                            text = "Distance",
-                                            fontSize = 14.sp,
-                                            fontFamily = robotoFontFamily,
-                                            textAlign = TextAlign.End,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                        )
-
-                                        Text(
-                                            text = "99 Km",
-                                            fontSize = 24.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            fontFamily = robotoFontFamily,
-                                            textAlign = TextAlign.End,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                        )
-                                    }
-                                }
-                            }
-
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.95f),
+                            verticalArrangement = Arrangement.spacedBy(30.dp)
+                        ) {
+                            // Card 1 Wrapper
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .fillMaxHeight()
+                                    .weight(1f)
                             ) {
-                                GeneralButton(
-                                    onClick = {},
+                                Card(
+                                    shape = smartFitShape(30.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = colorStartDark,
+                                        contentColor = colorEnd
+                                    ),
                                     modifier = Modifier
-                                        .padding(top = 5.dp),
-                                    "Start Your Journey"
-                                )
+                                        .fillMaxWidth()
+                                        .fillMaxHeight()
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(vertical = 10.dp)
+                                            .padding(horizontal = 12.dp)
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight(0.7f),
+                                            horizontalArrangement = Arrangement.SpaceAround,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .padding(vertical = 17.dp)
+                                                    .fillMaxWidth(0.33f)
+                                            ) {
+                                                Text(
+                                                    text = "Step Count",
+                                                    fontSize = 20.sp,
+                                                    fontFamily = robotoFontFamily,
+                                                )
+
+                                                Text(
+                                                    text = "300",
+                                                    fontSize = 40.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontFamily = robotoFontFamily,
+                                                )
+                                            }
+
+                                            Spacer(modifier = Modifier.size(10.dp))
+
+                                            Column {
+                                                Image(
+                                                    painter = painterResource(R.drawable.walk_icon),
+                                                    contentDescription = "SmartFit Logo",
+                                                    modifier = Modifier
+                                                        .size(96.dp)
+                                                        .fillMaxWidth(0.33f)
+                                                )
+                                            }
+
+                                            Spacer(modifier = Modifier.size(10.dp))
+
+                                            Column {
+                                                Column {
+                                                    Text(
+                                                        text = "Calories Burned",
+                                                        fontSize = 14.sp,
+                                                        fontFamily = robotoFontFamily,
+                                                        textAlign = TextAlign.End,
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                    )
+
+                                                    Text(
+                                                        text = "150 Cal",
+                                                        fontSize = 24.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontFamily = robotoFontFamily,
+                                                        textAlign = TextAlign.End,
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                    )
+                                                }
+
+                                                Column {
+                                                    Text(
+                                                        text = "Distance",
+                                                        fontSize = 14.sp,
+                                                        fontFamily = robotoFontFamily,
+                                                        textAlign = TextAlign.End,
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                    )
+
+                                                    Text(
+                                                        text = "99 Km",
+                                                        fontSize = 24.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontFamily = robotoFontFamily,
+                                                        textAlign = TextAlign.End,
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight()
+                                        ) {
+                                            GeneralButton(
+                                                onClick = {},
+                                                modifier = Modifier
+                                                    .padding(top = 5.dp),
+                                                "Start Your Journey"
+                                            )
+                                        }
+
+                                    }
+                                }
                             }
 
-                        }
-                    }
+                            // Card 2 & 3 Wrapper
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight()
+                                ) {
+                                    Card(
+                                        shape = smartFitShape(30.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = colorStartDark,
+                                            contentColor = colorEnd
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .weight(1f)
+                                    ) {
 
-                }
-                Spacer(modifier = Modifier.size(45.dp))
+                                    }
 
-                // Card 2 & 3 Wrapper
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(0.35f)
-                ) {
-                    Row (
+                                    Spacer(modifier = Modifier.size(20.dp))
 
-                    ) {
-                        Column (
+                                    Card(
+                                        shape = smartFitShape(30.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = colorStartDark,
+                                            contentColor = colorEnd
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .weight(1f)
+                                    ) {
 
-                        ) {
+                                    }
+                                }
+                            }
 
-                        }
+                            // Card 4 wrapper
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .fillMaxHeight()
+                                ) {
+                                    Card(
+                                        shape = smartFitShape(30.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = colorStartDark,
+                                            contentColor = colorEnd
+                                        ),
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .fillMaxWidth()
+                                    ) {
 
-                        Column (
-
-                        ) {
-
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
         }
     }
+}
 
+@Composable
+fun BubbleNavigationBar() {
+    // Di sinilah Anda mendesain navigasi "mengambang" Anda.
+    // Kita gunakan Card untuk mendapatkan efek bubble/mengambang.
+    Card(
+        shape = MaterialTheme.shapes.extraLarge, // Bentuk pil atau sangat bulat
+        colors = CardDefaults.cardColors(
+            containerColor = colorStartDark,
+            contentColor = colorEnd
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 12.dp), // Memberi jarak dari tepi layar
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp) // Memberi bayangan
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Image(painter = painterResource(R.drawable.home_icon), contentDescription = "Home")
+                Text(
+                    text = "Home",
+                    fontSize = 12.sp,
+                    fontFamily = robotoFontFamily,
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.activity_log_logo),
+                    contentDescription = "Activity Log"
+                )
+                Text(
+                    text = "Activity",
+                    fontSize = 12.sp,
+                    fontFamily = robotoFontFamily,
+                )
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.profile_logo),
+                    contentDescription = "Profile"
+                )
+                Text(
+                    text = "Profile",
+                    fontSize = 12.sp,
+                    fontFamily = robotoFontFamily,
+                )
+            }
+        }
+    }
 }
 
 @Preview
