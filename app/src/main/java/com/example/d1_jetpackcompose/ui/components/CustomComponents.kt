@@ -6,6 +6,7 @@ import android.R.color.white
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -103,13 +104,13 @@ fun GeneralButton(
             containerColor = backgroundColor, // Gunakan warna yang sudah dianimasikan/ditentukan
             contentColor = Color.White // Warna teks
         ),
-        interactionSource = interactionSource // Terapkan InteractionSource
+        interactionSource = interactionSource, // Terapkan InteractionSource
     ) {
         Text(
             text = text,
             style = buttonLoginStyle,
             color = Color.Black,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold
         )
     }
 }

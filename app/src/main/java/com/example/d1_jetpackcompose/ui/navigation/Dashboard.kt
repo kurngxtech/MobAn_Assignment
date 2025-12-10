@@ -1,10 +1,13 @@
 package com.example.d1_jetpackcompose.ui.navigation
 
+import android.R.attr.fontFamily
+import android.R.attr.text
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,8 +16,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -24,9 +29,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.focusModifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -157,7 +166,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                     .weight(1f)
                             ) {
                                 Card(
-                                    shape = smartFitShape(30.dp),
+                                    shape = smartFitShape(25.dp),
                                     colors = CardDefaults.cardColors(
                                         containerColor = colorStartDark,
                                         contentColor = colorEnd
@@ -260,12 +269,12 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                         Column(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .fillMaxHeight()
+                                                .fillMaxHeight(),
+                                            verticalArrangement = Arrangement.Center
                                         ) {
                                             GeneralButton(
                                                 onClick = {},
-                                                modifier = Modifier
-                                                    .padding(top = 5.dp),
+                                                modifier = Modifier.padding(top = 5.dp),
                                                 "Start Your Journey"
                                             )
                                         }
@@ -286,7 +295,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                         .fillMaxHeight()
                                 ) {
                                     Card(
-                                        shape = smartFitShape(30.dp),
+                                        shape = smartFitShape(25.dp),
                                         colors = CardDefaults.cardColors(
                                             containerColor = colorStartDark,
                                             contentColor = colorEnd
@@ -295,13 +304,56 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                             .fillMaxHeight()
                                             .weight(1f)
                                     ) {
+                                        Column (
+                                            modifier = Modifier
+                                                .padding(horizontal = 8.dp)
+                                                .padding(vertical = 10.dp)
+                                                .fillMaxWidth()
+                                                .fillMaxHeight()
+                                        ) {
 
+                                            Column (
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .fillMaxHeight(0.7f),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Top
+                                            ) {
+                                                Text(
+                                                    text = "Today",
+                                                    fontFamily = robotoFontFamily,
+                                                    fontSize = 16.sp
+                                                )
+
+                                                Text(
+                                                    text = "0",
+                                                    fontFamily = robotoFontFamily,
+                                                    fontSize = 40.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+
+                                            Column (
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .fillMaxHeight(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                GeneralButton(
+                                                    onClick = {},
+                                                    modifier = Modifier
+                                                        .padding(top = 2.dp),
+                                                    "Step Count"
+                                                )
+                                            }
+                                        }
                                     }
 
                                     Spacer(modifier = Modifier.size(20.dp))
 
                                     Card(
-                                        shape = smartFitShape(30.dp),
+                                        shape = smartFitShape(25.dp),
                                         colors = CardDefaults.cardColors(
                                             containerColor = colorStartDark,
                                             contentColor = colorEnd
@@ -310,7 +362,51 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                             .fillMaxHeight()
                                             .weight(1f)
                                     ) {
+                                        Column (
+                                            modifier = Modifier
+                                                .padding(horizontal = 8.dp)
+                                                .padding(vertical = 10.dp)
+                                                .fillMaxWidth()
+                                                .fillMaxHeight()
+                                        ) {
 
+                                            Column (
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .fillMaxHeight(0.7f),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Top
+                                            ) {
+                                                Text(
+                                                    text = "Today",
+                                                    fontFamily = robotoFontFamily,
+                                                    fontSize = 16.sp
+                                                )
+
+                                                Text(
+                                                    text = "0.0 km",
+                                                    fontFamily = robotoFontFamily,
+                                                    fontSize = 40.sp,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+
+                                            Column (
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .fillMaxHeight(),
+                                                horizontalAlignment = Alignment.CenterHorizontally,
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                GeneralButton(
+                                                    onClick = {},
+                                                    modifier = Modifier
+                                                        .padding(top = 2.dp),
+                                                    "Step Distance",
+
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -327,7 +423,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                         .fillMaxHeight()
                                 ) {
                                     Card(
-                                        shape = smartFitShape(30.dp),
+                                        shape = smartFitShape(25.dp),
                                         colors = CardDefaults.cardColors(
                                             containerColor = colorStartDark,
                                             contentColor = colorEnd
@@ -336,7 +432,66 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                             .fillMaxHeight()
                                             .fillMaxWidth()
                                     ) {
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .fillMaxHeight()
+                                        ) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .fillMaxHeight(0.35f)
+                                                    .drawBehind {
+                                                        val strokeWidth =
+                                                            2.dp.toPx() // Ketebalan garis
+                                                        val y =
+                                                            size.height - (strokeWidth / 2) // Posisi Y di bagian paling bawah
 
+                                                        // Gambar garis dari kiri ke kanan di posisi Y tersebut
+                                                        drawLine(
+                                                            color = colorEnd, // Anda bisa gunakan warna dari theme Anda
+                                                            start = Offset(
+                                                                0f,
+                                                                y
+                                                            ),
+                                                            end = Offset(
+                                                                size.width,
+                                                                y
+                                                            ),
+                                                            strokeWidth = strokeWidth
+                                                        )
+                                                    },
+                                                verticalArrangement = Arrangement.Center
+                                            ) {
+                                                Row(
+                                                    modifier = Modifier
+                                                        .padding(horizontal = 20.dp)
+                                                        .fillMaxWidth(),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        text = "Online Tips",
+                                                        fontFamily = robotoFontFamily,
+                                                        fontSize = 24.sp
+                                                    )
+
+                                                    Image(
+                                                        painter = painterResource(R.drawable.arrow_icon),
+                                                        contentDescription = "SmartFit Logo",
+                                                    )
+                                                }
+                                            }
+
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .fillMaxHeight()
+                                                    .padding(15.dp)
+                                            ) {
+
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -372,7 +527,10 @@ fun BubbleNavigationBar() {
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.clickable{
+
+                }
             ) {
                 Image(painter = painterResource(R.drawable.home_icon), contentDescription = "Home")
                 Text(
@@ -383,7 +541,10 @@ fun BubbleNavigationBar() {
             }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.clickable{
+
+                }
             ) {
                 Image(
                     painter = painterResource(R.drawable.activity_log_logo),
@@ -397,7 +558,10 @@ fun BubbleNavigationBar() {
             }
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(5.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.clickable{
+
+                }
             ) {
                 Image(
                     painter = painterResource(R.drawable.profile_logo),
