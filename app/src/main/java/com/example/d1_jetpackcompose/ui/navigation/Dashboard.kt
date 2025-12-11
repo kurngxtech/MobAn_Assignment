@@ -27,10 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -42,6 +43,7 @@ import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
 import com.example.d1_jetpackcompose.ui.theme.smartFitShape
 import com.example.d1_jetpackcompose.ui.components.GeneralButton
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 
 class DashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,20 +107,33 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                 ) {
 
                     // Settings wrapper
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 10.dp)
                             .padding(top = 10.dp)
                             .fillMaxHeight(0.038f),
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        Image (
+                            painter = painterResource(R.drawable.logout_logo),
+                            contentDescription = "Settings",
+                            colorFilter = ColorFilter.tint(
+                                color = Color.Red, // Warna yang kamu inginkan
+                                blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+                            ),
+                            modifier = Modifier
+                                .size(30.dp)
+                        )
                         Image (
                             painter = painterResource(R.drawable.settings_icon),
                             contentDescription = "Settings",
+                            colorFilter = ColorFilter.tint(
+                                color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+                            ),
                             modifier = Modifier
-                                .size(25.dp)
+                                .size(30.dp)
                         )
                     }
 

@@ -16,6 +16,7 @@ object SmartFitColors {
     val GrayRoad = Color(0xFF757575)
     val PureBlack = Color(0xFF000000)
     val PureWhite = Color(0xFFFFFFFF)
+    val SecondaryWhite = Color(0xFFE0E5E0)
 
     // Kategori: Warna Branding Utama (Hijau)
     val PrimaryGreen = Color(0xFF4F6A4E)
