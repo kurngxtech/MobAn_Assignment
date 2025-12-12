@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -175,15 +176,38 @@ fun DropDownButton(
     }
 }
 
+@Composable
+fun HorizontalLineProfile(modifier: Modifier = Modifier) {
+    val lineGradientBrush = Brush.horizontalGradient(
+        colors = listOf(
+            Color.Transparent,                      // Mulai dari transparan (ujung kiri)
+            SmartFitColors.MainGreen.copy(alpha = 0.5f), // Cepat menjadi warna utama
+            SmartFitColors.MainGreen.copy(alpha = 0.5f), // Tetap warna utama di tengah
+            Color.Transparent                       // Memudar menjadi transparan (ujung kanan)
+        ),
+        // Anda bisa menyesuaikan posisi "stops" untuk kontrol lebih
+        // Contoh:
+        // startX = 0.0f,
+        // endX = Float.POSITIVE_INFINITY
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewButton() {
     // Contoh penggunaan dalam Preview
-    DropDownButton(
-        onClick = {},
-        modifier = Modifier,
-        color = SmartFitColors.PureBlack,
-        text = "This Week",
-        fontFamily = robotoFontFamily
-    )
+//    DropDownButton(
+//        onClick = {},
+//        modifier = Modifier,
+//        color = SmartFitColors.PureBlack,
+//        text = "This Week",
+//        fontFamily = robotoFontFamily
+//    )
+//    GeneralButton(
+//        onClick = {},
+//        modifier = Modifier,
+//        text = "Start Now"
+//
+//    )
+    HorizontalLineProfile()
 }

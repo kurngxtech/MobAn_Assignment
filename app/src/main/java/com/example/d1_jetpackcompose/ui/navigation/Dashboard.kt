@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -124,7 +125,11 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                             ),
                             modifier = Modifier
                                 .size(30.dp)
+                                .clickable (
+                                    onClick = {}
+                                )
                         )
+
                         Image (
                             painter = painterResource(R.drawable.settings_icon),
                             contentDescription = "Settings",
@@ -134,6 +139,9 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                             ),
                             modifier = Modifier
                                 .size(30.dp)
+                                .clickable (
+                                    onClick = {}
+                                )
                         )
                     }
 
@@ -455,6 +463,9 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .fillMaxHeight()
+                                                .clickable (
+                                                    onClick = {}
+                                                )
                                         ) {
                                             Column(
                                                 modifier = Modifier
