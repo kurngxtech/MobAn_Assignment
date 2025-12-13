@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -33,8 +34,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
@@ -98,10 +101,15 @@ fun ActivityPage(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.Start
+            ) {
+
                 Text(
-                    text = "My Profile",
-                    fontSize = 52.sp,
+                    text = "Profile",
+                    fontSize = 40.sp,
                     fontFamily = robotoFontFamily,
                     fontWeight = FontWeight.Bold,
                     color = SmartFitColors.MainGreen
@@ -114,7 +122,7 @@ fun ActivityPage(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image (
+                Image(
                     painter = painterResource(id = R.drawable.profile_picture),
                     contentDescription = "profile picture",
                     contentScale = ContentScale.Crop,
@@ -128,7 +136,7 @@ fun ActivityPage(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.size(20.dp))
 
-            Column (
+            Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -143,11 +151,11 @@ fun ActivityPage(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.size(20.dp))
 
-            Column (
+            Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Button (
+                Button(
                     onClick = {},
                     modifier = Modifier.height(35.dp)
                 ) {
@@ -160,194 +168,178 @@ fun ActivityPage(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.size(20.dp))
 
-            Column (
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                Column (
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .height(240.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    Text(
-                        text = "Profile Detail",
-                        fontFamily = robotoFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        color = Color.White.copy(0.6f),
-                        fontSize = 15.sp
-                    )
-                }
-
-                Spacer(modifier = Modifier.size(10.dp))
-
-                Card (
-                    shape = smartFitShape(15.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorStartDark.copy(alpha = 0.6f),
-                        contentColor = colorEnd
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                ) {
-                    Column (
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 15.dp)
-                            .padding(horizontal = 30.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        // Beri jarak antar Card
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
                     ) {
-                        Row(
+                        // Card Pertama
+                        Card(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(30.dp)
-                                .drawBehind {
-                                    val strokeWidth = 2.dp.toPx()
-                                    // Tentukan posisi Y garis di bagian bawah area Box (setelah padding)
-                                    val y = size.height - (strokeWidth / 2)
-
-                                    // Gambar garis dengan BRUSH, bukan color
-                                    drawLine(
-                                        brush = lineGradientBrush, // <-- Gunakan Brush yang sudah Anda buat
-                                        start = Offset(0f, y),
-                                        end = Offset(size.width, y),
-                                        strokeWidth = strokeWidth
-                                    )
-                                },
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .weight(1f) // 1. Ambil 1/3 dari lebar yang tersedia
+                                .aspectRatio(1f), // 2. Buat tingginya sama dengan lebarnya (membentuk kotak)
+                            shape = smartFitShape(15.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = SmartFitColors.PureBlack.copy(
+                                    alpha = 0.6f
+                                )
+                            )
                         ) {
-                            Text(
-                                text = "Age",
-                                fontFamily = robotoFontFamily,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
+                            // Isi Card 1 di sini, misalnya dengan Box dan Text
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
 
-                            Text(
-                                text = "20",
-                                fontFamily = robotoFontFamily,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
+                                Text(
+                                    text = "177 cm",
+                                    color = SmartFitColors.MainGreen,
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 25.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.size(3.dp))
+                                Text(
+                                    text = "Height",
+                                    color = SmartFitColors.MainGreen.copy(alpha = 0.5f),
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
 
-                        Spacer(modifier = Modifier.size(15.dp))
-
-                        Row(
+                        // Card Kedua
+                        Card(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(30.dp)
-                                .drawBehind {
-                                    val strokeWidth = 2.dp.toPx()
-                                    // Tentukan posisi Y garis di bagian bawah area Box (setelah padding)
-                                    val y = size.height - (strokeWidth / 2)
-
-                                    // Gambar garis dengan BRUSH, bukan color
-                                    drawLine(
-                                        brush = lineGradientBrush, // <-- Gunakan Brush yang sudah Anda buat
-                                        start = Offset(0f, y),
-                                        end = Offset(size.width, y),
-                                        strokeWidth = strokeWidth
-                                    )
-                                },
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Gender",
-                                fontFamily = robotoFontFamily,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                .weight(1f) // Ambil 1/3 dari lebar yang tersedia
+                                .aspectRatio(1f), // Buat tingginya sama dengan lebarnya
+                            shape = smartFitShape(15.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = SmartFitColors.PureBlack.copy(
+                                    alpha = 0.6f
+                                )
                             )
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
 
+                                Text(
+                                    text = "90 kg",
+                                    color = SmartFitColors.MainGreen,
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 25.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.size(3.dp))
+                                Text(
+                                    text = "Weight",
+                                    color = SmartFitColors.MainGreen.copy(alpha = 0.5f),
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+
+                        // Card Ketiga
+                        Card(
+                            modifier = Modifier
+                                .weight(1f) // Ambil 1/3 dari lebar yang tersedia
+                                .aspectRatio(1f), // Buat tingginya sama dengan lebarnya
+                            shape = smartFitShape(15.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = SmartFitColors.PureBlack.copy(
+                                    alpha = 0.6f
+                                )
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+
+                                Text(
+                                    text = "25 y",
+                                    color = SmartFitColors.MainGreen,
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 25.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.size(3.dp))
+                                Text(
+                                    text = "Age",
+                                    color = SmartFitColors.MainGreen.copy(alpha = 0.5f),
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(), // Ambil 1/3 dari lebar yang tersedia
+                        shape = smartFitShape(15.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = SmartFitColors.PureBlack.copy(
+                                alpha = 0.6f
+                            )
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
                             Text(
                                 text = "Male",
+                                color = SmartFitColors.MainGreen,
                                 fontFamily = robotoFontFamily,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 40.sp,
+                                fontWeight = FontWeight.Bold
                             )
-                        }
-
-                        Spacer(modifier = Modifier.size(15.dp))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(30.dp)
-                                .drawBehind {
-                                    val strokeWidth = 2.dp.toPx()
-                                    // Tentukan posisi Y garis di bagian bawah area Box (setelah padding)
-                                    val y = size.height - (strokeWidth / 2)
-
-                                    // Gambar garis dengan BRUSH, bukan color
-                                    drawLine(
-                                        brush = lineGradientBrush, // <-- Gunakan Brush yang sudah Anda buat
-                                        start = Offset(0f, y),
-                                        end = Offset(size.width, y),
-                                        strokeWidth = strokeWidth
-                                    )
-                                },
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                            Spacer(modifier = Modifier.size(3.dp))
                             Text(
-                                text = "Height",
+                                text = "Gender",
+                                color = SmartFitColors.MainGreen.copy(alpha = 0.5f),
                                 fontFamily = robotoFontFamily,
                                 fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-
-                            Text(
-                                text = "177 cm",
-                                fontFamily = robotoFontFamily,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.size(15.dp))
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(30.dp)
-                                .drawBehind {
-                                    val strokeWidth = 2.dp.toPx()
-                                    // Tentukan posisi Y garis di bagian bawah area Box (setelah padding)
-                                    val y = size.height - (strokeWidth / 2)
-
-                                    // Gambar garis dengan BRUSH, bukan color
-                                    drawLine(
-                                        brush = lineGradientBrush, // <-- Gunakan Brush yang sudah Anda buat
-                                        start = Offset(0f, y),
-                                        end = Offset(size.width, y),
-                                        strokeWidth = strokeWidth
-                                    )
-                                },
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Weight",
-                                fontFamily = robotoFontFamily,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
-                            )
-
-                            Text(
-                                text = "100 kg",
-                                fontFamily = robotoFontFamily,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold,
+                                fontWeight = FontWeight.SemiBold
                             )
                         }
                     }
+
                 }
             }
 
             Spacer(modifier = Modifier.size(20.dp))
-            
-            Column (
+
+            Column(
                 modifier = Modifier
-                    .height(200.dp)
                     .fillMaxWidth()
             ) {
-                Column (
+                Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
@@ -359,7 +351,7 @@ fun ActivityPage(modifier: Modifier = Modifier) {
 
                     Spacer(modifier = Modifier.size(10.dp))
 
-                    Card (
+                    Card(
                         shape = smartFitShape(15.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = colorStartDark.copy(alpha = 0.6f),
@@ -367,7 +359,7 @@ fun ActivityPage(modifier: Modifier = Modifier) {
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
+                            .height(150.dp)
                     ) {
                         Row(
                             modifier = Modifier
@@ -378,60 +370,72 @@ fun ActivityPage(modifier: Modifier = Modifier) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Box (
-                               modifier = Modifier
-                                   .size(100.dp)
-                                   .clip(CircleShape)
-                                   .border (
-                                       width = 5.dp,
-                                       color = Color.Red,
-                                       shape = CircleShape
-                                   )
-
+                            Box(
+                                modifier = Modifier
+                                    .size(120.dp)
+                                    .clip(CircleShape)
+                                    .border(
+                                        width = 5.dp,
+                                        color = Color.Green,
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
                             ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(100.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            color = SmartFitColors.MainGreen
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth(),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(
+                                            text = "Ideal",
+                                            color = Color.White,
+                                            fontFamily = robotoFontFamily,
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
 
-                            }
+                                        Spacer(modifier = Modifier.size(5.dp))
 
-                            Spacer(modifier = Modifier.size(10.dp))
-
-                            Box (
-                               modifier = Modifier
-                                   .size(100.dp)
-                                   .clip(CircleShape)
-                                   .border (
-                                       width = 5.dp,
-                                       color = Color.Red,
-                                       shape = CircleShape
-                                   )
-
-                            ) {
-
-                            }
-
-                            Spacer(modifier = Modifier.size(10.dp))
-
-                            Box (
-                               modifier = Modifier
-                                   .size(100.dp)
-                                   .clip(CircleShape)
-                                   .border (
-                                       width = 5.dp,
-                                       color = Color.Red,
-                                       shape = CircleShape
-                                   )
-
-                            ) {
-
+                                        Text(
+                                            text = "18,5 - 24,9",
+                                            color = Color.White,
+                                            fontFamily = robotoFontFamily,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Normal
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.size(20.dp))
+
+                Column (modifier = Modifier.fillMaxWidth()) {
+
+                }
+
             }
         }
     }
 }
 
-@Preview
+@Preview(
+    showBackground = true,
+    name = "Scrollable Profile",
+    heightDp = 1200
+)
 @Composable
 private fun ActivityPagePrev() {
     SmartFitTheme {

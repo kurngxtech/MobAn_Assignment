@@ -90,10 +90,13 @@ fun ActivityLog(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Column {
+            Column (
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.Start
+            ) {
                 Text(
                     text = "Activity Log",
-                    fontSize = 52.sp,
+                    fontSize = 40.sp,
                     fontFamily = robotoFontFamily,
                     fontWeight = FontWeight.Bold,
                     color = SmartFitColors.MainGreen
