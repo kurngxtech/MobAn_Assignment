@@ -1,5 +1,6 @@
 package com.example.d1_jetpackcompose.ui.navigation
 
+import android.R.attr.contentDescription
 import android.os.Bundle
 import android.widget.Space
 import androidx.activity.ComponentActivity
@@ -7,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,12 +22,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +45,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
@@ -329,103 +337,298 @@ fun ActivityPage(modifier: Modifier = Modifier) {
                             )
                         }
                     }
-
                 }
             }
 
             Spacer(modifier = Modifier.size(20.dp))
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth()
+                Text(
+                    text = "Body Mass Index (BMI)",
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontFamily = robotoFontFamily,
+                    fontSize = 15.sp
+                )
+
+                Spacer(modifier = Modifier.size(10.dp))
+
+                Card(
+                    shape = smartFitShape(15.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = colorStartDark.copy(alpha = 0.6f),
+                        contentColor = colorEnd
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
                 ) {
-                    Text(
-                        text = "Body Mass Index (BMI)",
-                        color = Color.White.copy(alpha = 0.5f),
-                        fontFamily = robotoFontFamily,
-                        fontSize = 15.sp
-                    )
-
-                    Spacer(modifier = Modifier.size(10.dp))
-
-                    Card(
-                        shape = smartFitShape(15.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = colorStartDark.copy(alpha = 0.6f),
-                            contentColor = colorEnd
-                        ),
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(150.dp)
+                            .fillMaxHeight()
+                            .padding(vertical = 15.dp)
+                            .padding(horizontal = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Row(
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight()
-                                .padding(vertical = 15.dp)
-                                .padding(horizontal = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
+                                .size(120.dp)
+                                .clip(CircleShape)
+                                .border(
+                                    width = 5.dp,
+                                    color = Color.Green,
+                                    shape = CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(120.dp)
+                                    .size(100.dp)
                                     .clip(CircleShape)
-                                    .border(
-                                        width = 5.dp,
-                                        color = Color.Green,
-                                        shape = CircleShape
+                                    .background(
+                                        color = SmartFitColors.MainGreen
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Box(
+                                Column(
                                     modifier = Modifier
-                                        .size(100.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            color = SmartFitColors.MainGreen
-                                        ),
-                                    contentAlignment = Alignment.Center
+                                        .fillMaxWidth(),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
                                 ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.Center
-                                    ) {
-                                        Text(
-                                            text = "Ideal",
-                                            color = Color.White,
-                                            fontFamily = robotoFontFamily,
-                                            fontSize = 20.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
+                                    Text(
+                                        text = "Ideal",
+                                        color = Color.White,
+                                        fontFamily = robotoFontFamily,
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
 
-                                        Spacer(modifier = Modifier.size(5.dp))
+                                    Spacer(modifier = Modifier.size(5.dp))
 
-                                        Text(
-                                            text = "18,5 - 24,9",
-                                            color = Color.White,
-                                            fontFamily = robotoFontFamily,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Normal
-                                        )
-                                    }
+                                    Text(
+                                        text = "18,5 - 24,9",
+                                        color = Color.White,
+                                        fontFamily = robotoFontFamily,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Normal
+                                    )
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.size(20.dp))
+            Spacer(modifier = Modifier.size(20.dp))
 
-                Column (modifier = Modifier.fillMaxWidth()) {
+            Card (
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = smartFitShape(15.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = SmartFitColors.PureBlack.copy(
+                        alpha = 0.6f
+                    )
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .padding(20.dp)
+                ) {
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable{}
+                            .drawBehind {
+                                val strokeWidth = 2.dp.toPx()
+                                // Tentukan posisi Y garis di bagian bawah area Box (setelah padding)
+                                val y = size.height - (strokeWidth / 2)
 
+                                // Gambar garis dengan BRUSH, bukan color
+                                drawLine(
+                                    brush = lineGradientBrush, // <-- Gunakan Brush yang sudah Anda buat
+                                    start = Offset(0f, y),
+                                    end = Offset(size.width, y),
+                                    strokeWidth = strokeWidth
+                                )
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row (
+                            modifier = Modifier
+                                .padding(bottom = 15.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.user_logo),
+                                contentDescription = "right arrow",
+                                colorFilter = ColorFilter.tint(
+                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+                                ),
+                                modifier = Modifier.size(30.dp)
+                            )
+
+                            Column (
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth(0.9f),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text (
+                                    text = "Personal Info",
+                                    color = SmartFitColors.MainGreen,
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 20.sp
+                                )
+                            }
+
+                            Image(
+                                painter = painterResource(id = R.drawable.right_arrow_icon),
+                                contentDescription = "right arrow",
+                                colorFilter = ColorFilter.tint(
+                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+                                ),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 15.dp)
+                            .clickable{}
+                            .drawBehind {
+                                val strokeWidth = 2.dp.toPx()
+                                // Tentukan posisi Y garis di bagian bawah area Box (setelah padding)
+                                val y = size.height - (strokeWidth / 2)
+
+                                // Gambar garis dengan BRUSH, bukan color
+                                drawLine(
+                                    brush = lineGradientBrush, // <-- Gunakan Brush yang sudah Anda buat
+                                    start = Offset(0f, y),
+                                    end = Offset(size.width, y),
+                                    strokeWidth = strokeWidth
+                                )
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row (
+                            modifier = Modifier
+                                .padding(bottom = 15.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.help_logo),
+                                contentDescription = "right arrow",
+                                colorFilter = ColorFilter.tint(
+                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+                                ),
+                                modifier = Modifier.size(30.dp)
+                            )
+
+                            Column (
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth(0.9f),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text (
+                                    text = "FAQ",
+                                    color = SmartFitColors.MainGreen,
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 20.sp
+                                )
+                            }
+
+                            Image(
+                                painter = painterResource(id = R.drawable.right_arrow_icon),
+                                contentDescription = "right arrow",
+                                colorFilter = ColorFilter.tint(
+                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+                                ),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
+
+                    Row (
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 15.dp)
+                            .clickable{}
+                            .drawBehind {
+                                val strokeWidth = 2.dp.toPx()
+                                // Tentukan posisi Y garis di bagian bawah area Box (setelah padding)
+                                val y = size.height - (strokeWidth / 2)
+
+                                // Gambar garis dengan BRUSH, bukan color
+                                drawLine(
+                                    brush = lineGradientBrush, // <-- Gunakan Brush yang sudah Anda buat
+                                    start = Offset(0f, y),
+                                    end = Offset(size.width, y),
+                                    strokeWidth = strokeWidth
+                                )
+                            },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row (
+                            modifier = Modifier
+                                .padding(bottom = 15.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.logout_logo),
+                                contentDescription = "right arrow",
+                                colorFilter = ColorFilter.tint(
+                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+                                ),
+                                modifier = Modifier.size(30.dp)
+                            )
+
+                            Column (
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth(0.9f),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                Text (
+                                    text = "Log Out",
+                                    color = SmartFitColors.MainGreen,
+                                    fontFamily = robotoFontFamily,
+                                    fontSize = 20.sp
+                                )
+                            }
+
+                            Image(
+                                painter = painterResource(id = R.drawable.right_arrow_icon),
+                                contentDescription = "right arrow",
+                                colorFilter = ColorFilter.tint(
+                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+                                ),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
-
             }
         }
     }
