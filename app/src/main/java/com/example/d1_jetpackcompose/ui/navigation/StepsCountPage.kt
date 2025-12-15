@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.d1_jetpackcompose.R
+import com.example.d1_jetpackcompose.ui.components.TimeProgressButtons
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
 import com.example.d1_jetpackcompose.ui.theme.smartFitShape
@@ -95,7 +96,7 @@ fun StepsCountPage(modifier: Modifier = Modifier) {
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-
+                TimeProgressButtons(modifier = Modifier)
             }
 
             Spacer(modifier = Modifier.size(20.dp))

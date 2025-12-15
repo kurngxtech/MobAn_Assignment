@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,11 +17,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,15 +36,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.R
+import com.example.d1_jetpackcompose.ui.navigation.colorEnd
+import com.example.d1_jetpackcompose.ui.navigation.colorStartDark
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
 
 
 /**
@@ -218,10 +224,87 @@ fun HorizontalLineProfile(modifier: Modifier = Modifier) {
     )
 }
 
+@Composable
+fun BubbleNavigationBar(navController: NavController.Companion) {
+    // Di sinilah Anda mendesain navigasi "mengambang" Anda.
+    // Kita gunakan Card untuk mendapatkan efek bubble/mengambang.
+    Card(
+        shape = MaterialTheme.shapes.extraLarge, // Bentuk pil atau sangat bulat
+        colors = CardDefaults.cardColors(
+            containerColor = colorStartDark.copy(alpha = 0.7f),
+            contentColor = colorEnd
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp, vertical = 12.dp), // Memberi jarak dari tepi layar
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp) // Memberi bayangan
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .clickable{
+
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+            ) {
+                Image(painter = painterResource(R.drawable.home_icon), contentDescription = "Home")
+                Text(
+                    text = "Home",
+                    fontSize = 12.sp,
+                    fontFamily = robotoFontFamily,
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.clickable{
+
+                }
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.activity_log_logo),
+                    contentDescription = "Activity Log"
+                )
+                Text(
+                    text = "Activity",
+                    fontSize = 12.sp,
+                    fontFamily = robotoFontFamily,
+                )
+            }
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier.clickable{
+
+                }
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.profile_logo),
+                    contentDescription = "Profile"
+                )
+                Text(
+                    text = "Profile",
+                    fontSize = 12.sp,
+                    fontFamily = robotoFontFamily,
+                )
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewButton() {
     SmartFitTheme {
-        TimeProgressButtons()
+        BubbleNavigationBar(navController = NavController)
     }
 }
