@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.R
-import com.example.d1_jetpackcompose.ui.navigation.colorEnd
-import com.example.d1_jetpackcompose.ui.navigation.colorStartDark
+import com.example.d1_jetpackcompose.ui.screens.colorEnd
+import com.example.d1_jetpackcompose.ui.screens.colorStartDark
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme

@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.navigation
+package com.example.d1_jetpackcompose.ui.screens
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

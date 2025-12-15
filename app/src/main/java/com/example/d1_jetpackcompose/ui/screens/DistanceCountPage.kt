@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.navigation
+package com.example.d1_jetpackcompose.ui.screens
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -38,7 +38,7 @@ import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
 import com.example.d1_jetpackcompose.ui.theme.smartFitShape
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 
-class StepsCountPageActivity : ComponentActivity() {
+class DistanceCountPageActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -46,7 +46,7 @@ class StepsCountPageActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    StepsCountPage()
+                    DistanceCountPage()
                 }
             }
         }
@@ -54,7 +54,7 @@ class StepsCountPageActivity : ComponentActivity() {
 }
 
 @Composable
-fun StepsCountPage(modifier: Modifier = Modifier) {
+fun DistanceCountPage(modifier: Modifier = Modifier) {
     val gradientDarkMode = Brush.verticalGradient(
         colors = listOf(SmartFitColors.PureBlack, SmartFitColors.MainGreen),
     )
@@ -138,9 +138,9 @@ fun StepsCountPage(modifier: Modifier = Modifier) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
-                                    painter = painterResource(R.drawable.footstep_logo),
+                                    painter = painterResource(R.drawable.distance_logo),
                                     contentDescription = "Steps Logo",
-                                    modifier = Modifier.size(100.dp)
+                                    modifier = Modifier.size(120.dp)
                                 )
                             }
                         }
@@ -169,7 +169,7 @@ fun StepsCountPage(modifier: Modifier = Modifier) {
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 Text(
-                                    text = "850",
+                                    text = "3.5",
                                     fontSize = 64.sp,
                                     fontFamily = robotoFontFamily,
                                     fontWeight = FontWeight.Bold,
@@ -178,7 +178,7 @@ fun StepsCountPage(modifier: Modifier = Modifier) {
                                 Spacer(modifier = Modifier.size(20.dp))
 
                                 Text(
-                                    text = "Steps",
+                                    text = "km",
                                     fontSize = 32.sp,
                                     fontFamily = robotoFontFamily,
                                     fontWeight = FontWeight.Bold,
@@ -196,6 +196,6 @@ fun StepsCountPage(modifier: Modifier = Modifier) {
 @Composable
 private fun StepsCountPagePrev() {
     SmartFitTheme {
-        StepsCountPage()
+        DistanceCountPage()
     }
 }

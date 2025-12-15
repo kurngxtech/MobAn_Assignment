@@ -1,8 +1,6 @@
-package com.example.d1_jetpackcompose.ui.navigation
+package com.example.d1_jetpackcompose.ui.screens
 
-import android.R.attr.contentDescription
 import android.os.Bundle
-import android.widget.Space
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -22,17 +20,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,9 +38,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,7 +58,7 @@ class ProfileActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    ActivityPage()
+                    ProfilePage()
                 }
             }
         }
@@ -75,7 +66,7 @@ class ProfileActivity : ComponentActivity() {
 }
 
 @Composable
-fun ActivityPage(modifier: Modifier = Modifier) {
+fun ProfilePage(modifier: Modifier = Modifier) {
     val gradientDarkMode = Brush.verticalGradient(
         colors = listOf(SmartFitColors.PureBlack, SmartFitColors.MainGreen),
     )
@@ -642,6 +633,6 @@ fun ActivityPage(modifier: Modifier = Modifier) {
 @Composable
 private fun ActivityPagePrev() {
     SmartFitTheme {
-        ActivityPage()
+        ProfilePage()
     }
 }

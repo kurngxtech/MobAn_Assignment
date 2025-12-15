@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.navigation
+package com.example.d1_jetpackcompose.ui.screens
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -8,20 +8,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Surface
@@ -30,14 +24,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.ModifierLocalBeyondBoundsLayout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,7 +38,7 @@ import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
 import com.example.d1_jetpackcompose.ui.theme.smartFitShape
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 
-class DistanceCountPageActivity : ComponentActivity() {
+class StepsCountPageActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -58,7 +46,7 @@ class DistanceCountPageActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    DistanceCountPage()
+                    StepsCountPage()
                 }
             }
         }
@@ -66,7 +54,7 @@ class DistanceCountPageActivity : ComponentActivity() {
 }
 
 @Composable
-fun DistanceCountPage(modifier: Modifier = Modifier) {
+fun StepsCountPage(modifier: Modifier = Modifier) {
     val gradientDarkMode = Brush.verticalGradient(
         colors = listOf(SmartFitColors.PureBlack, SmartFitColors.MainGreen),
     )
@@ -150,9 +138,9 @@ fun DistanceCountPage(modifier: Modifier = Modifier) {
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
-                                    painter = painterResource(R.drawable.distance_logo),
+                                    painter = painterResource(R.drawable.footstep_logo),
                                     contentDescription = "Steps Logo",
-                                    modifier = Modifier.size(120.dp)
+                                    modifier = Modifier.size(100.dp)
                                 )
                             }
                         }
@@ -181,7 +169,7 @@ fun DistanceCountPage(modifier: Modifier = Modifier) {
                                 horizontalArrangement = Arrangement.Center
                             ) {
                                 Text(
-                                    text = "3.5",
+                                    text = "850",
                                     fontSize = 64.sp,
                                     fontFamily = robotoFontFamily,
                                     fontWeight = FontWeight.Bold,
@@ -190,7 +178,7 @@ fun DistanceCountPage(modifier: Modifier = Modifier) {
                                 Spacer(modifier = Modifier.size(20.dp))
 
                                 Text(
-                                    text = "km",
+                                    text = "Steps",
                                     fontSize = 32.sp,
                                     fontFamily = robotoFontFamily,
                                     fontWeight = FontWeight.Bold,
@@ -208,6 +196,6 @@ fun DistanceCountPage(modifier: Modifier = Modifier) {
 @Composable
 private fun StepsCountPagePrev() {
     SmartFitTheme {
-        DistanceCountPage()
+        StepsCountPage()
     }
 }

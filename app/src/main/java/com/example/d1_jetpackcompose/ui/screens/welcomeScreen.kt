@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.navigation // Assuming this is your package
+package com.example.d1_jetpackcompose.ui.screens // Assuming this is your package
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,7 +74,7 @@ fun BasicLayout(modifier: Modifier = Modifier) {
                     painter = painterResource(R.drawable.smartfit_logo),
                     contentDescription = "SmartFit Logo",
                     modifier = Modifier
-                        .size(220.dp)
+                        .size(180.dp)
                 )
             }
 
