@@ -4,10 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-12-15T03:24:23.231446631Z">
+        <DropdownSelection timestamp="2025-12-15T04:10:50.646745998Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/home/kurngx/.android/avd/Tablet_View.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/kurngx/.android/avd/Iphone_13_Pro.avd" />
             </handle>
           </Target>
         </DropdownSelection>

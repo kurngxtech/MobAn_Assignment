@@ -35,7 +35,6 @@ import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
 import com.example.d1_jetpackcompose.ui.theme.smartFitShape
-import com.example.d1_jetpackcompose.ui.components.DropDownButton
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 
 class StepsCountPageActivity : ComponentActivity() {
@@ -96,14 +95,7 @@ fun StepsCountPage(modifier: Modifier = Modifier) {
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                DropDownButton(
-                    onClick = {},
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    text = "This Week",
-                    color = SmartFitColors.PureBlack.copy(alpha = 0.6f),
-                    fontFamily = robotoFontFamily
-                )
+
             }
 
             Spacer(modifier = Modifier.size(20.dp))

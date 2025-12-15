@@ -2,36 +2,46 @@ package com.example.d1_jetpackcompose.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
-import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
+import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 
 
 /**
@@ -121,57 +131,73 @@ fun GeneralButton(
 }
 
 @Composable
-fun DropDownButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    color: Color,
-    text: String,
-    fontFamily: FontFamily
+fun TimeProgressButtons(
+    modifier: Modifier = Modifier
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
+// State untuk menyimpan index yang terpilih (Default "D" = index 0)
+    var selectedIndex by remember { mutableIntStateOf(0) }
+    val options = listOf("D", "W", "M", "Y")
 
-    val targetBackgroundColor = if (isPressed) {
-        SmartFitColors.SecondaryGreen
-    } else {
-        SmartFitColors.MainGreen
-    }
-
-    val backgroundColor by animateColorAsState(
-        targetValue = targetBackgroundColor,
-        label = "backgroundColorAnimation"
-    )
-
-    Button(
-        onClick = onClick,
+    // Container Utama (Bar Card)
+    Box(
         modifier = modifier
-            .fillMaxWidth() // Mengisi lebar penuh
-            .height(48.dp), // Tinggi standar atau sesuai kebutuhan
-        shape = RoundedCornerShape(50), // Bentuk bulat sempurna
-        colors = ButtonDefaults.buttonColors(
-            containerColor = color, // Gunakan warna yang sudah dianimasikan/ditentukan
-            contentColor = SmartFitColors.MainGreen // Warna teks
-        ),
-        interactionSource = interactionSource, // Terapkan InteractionSource
+            .fillMaxWidth()
+            .height(35.dp) // Tinggi disesuaikan dengan proporsi gambar
+            .clip(RoundedCornerShape(9.dp)) // Corner radius mengikuti bar card di gambar
+            .background(Color.Black.copy(alpha = 0.6f)) // Ketentuan 1: Pure Black Opacity 0.6f
+            .padding(4.dp) // Gap antara border bar dengan background tombol aktif
     ) {
-        Row (
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+        Row(
+            modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = text,
-                style = buttonLoginStyle,
-                color = SmartFitColors.MainGreen,
-                fontWeight = FontWeight.Bold
-            )
+            options.forEachIndexed { index, text ->
+                val isSelected = selectedIndex == index
 
-            Image (
-                painter = painterResource(R.drawable.dropdown_arrow),
-                contentDescription = "Dropdown Arrow",
-                modifier = Modifier
-                    .size(20.dp)
-            )
+                // Animasi perubahan warna background (opsional untuk kehalusan)
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (isSelected) Color(0xFF4F6A4E) else Color.Transparent,
+                    label = "bgAnimation"
+                )
+
+                // Layout Tombol Individu
+                Box(
+                    modifier = Modifier
+                        .weight(1f) // Membagi panjang secara merata untuk 4 tombol
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(5.dp)) // Radius tombol aktif sesuai gambar
+                        .background(backgroundColor) // Ketentuan 3 & 4: Warna Aktif #4F6A4E 100%
+                        .clickable { selectedIndex = index }, // Ketentuan 3: Clickable
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = text,
+                        color = Color.White, // Ketentuan 1 & 3: Text Color Putih
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold // Analisis: Font tebal agar terbaca jelas
+                    )
+                }
+
+                // Menambahkan Vertical Divider (Garis pemisah antar tombol)
+                // Analisis: Hanya muncul di antara tombol yang TIDAK aktif (W|M dan M|Y)
+                if (index < options.size - 1) {
+                    // Garis hanya muncul jika tombol saat ini dan tombol setelahnya TIDAK terpilih
+                    // agar tidak memotong background hijau tombol aktif
+                    val showDivider = !isSelected && selectedIndex != index + 1
+
+                    if (showDivider) {
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .height(24.dp) // Panjang garis pemisah sesuai analisis gambar
+                                .background(Color.White.copy(alpha = 0.2f)) // Warna garis halus
+                        )
+                    } else {
+                        // Spacer tetap ada agar lebar tombol tidak berubah saat garis hilang
+                        Spacer(modifier = Modifier.width(1.dp))
+                    }
+                }
+            }
         }
     }
 }
@@ -195,19 +221,7 @@ fun HorizontalLineProfile(modifier: Modifier = Modifier) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewButton() {
-    // Contoh penggunaan dalam Preview
-//    DropDownButton(
-//        onClick = {},
-//        modifier = Modifier,
-//        color = SmartFitColors.PureBlack,
-//        text = "This Week",
-//        fontFamily = robotoFontFamily
-//    )
-//    GeneralButton(
-//        onClick = {},
-//        modifier = Modifier,
-//        text = "Start Now"
-//
-//    )
-    HorizontalLineProfile()
+    SmartFitTheme {
+        TimeProgressButtons()
+    }
 }
