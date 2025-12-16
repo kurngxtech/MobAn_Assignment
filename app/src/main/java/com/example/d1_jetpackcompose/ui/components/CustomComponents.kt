@@ -50,6 +50,10 @@ import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 
 
 /**
@@ -227,7 +231,10 @@ fun HorizontalLineProfile(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BubbleNavigationBar(navController: NavController) {
+fun BubbleNavigationBar(
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
     // Di sinilah Anda mendesain navigasi "mengambang" Anda.
     // Kita gunakan Card untuk mendapatkan efek bubble/mengambang.
     Card(
@@ -236,9 +243,9 @@ fun BubbleNavigationBar(navController: NavController) {
             containerColor = colorStartDark.copy(alpha = 0.7f),
             contentColor = colorEnd
         ),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 12.dp), // Memberi jarak dari tepi layar
+            .padding(horizontal = 30.dp, vertical = 30.dp)
     ) {
         Row(
             modifier = Modifier

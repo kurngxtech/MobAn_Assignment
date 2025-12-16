@@ -78,6 +78,7 @@ fun StepsCountPage(modifier: Modifier = Modifier) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(top = 30.dp)
                 .padding(20.dp),
             horizontalAlignment = Alignment.Start
         ) {

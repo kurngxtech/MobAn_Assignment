@@ -91,51 +91,13 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxSize()
         ) {
-
-            // Settings wrapper
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
-                    .padding(top = 10.dp)
-                    .fillMaxHeight(0.038f),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.logout_logo),
-                    contentDescription = "Settings",
-                    colorFilter = ColorFilter.tint(
-                        color = Color.Red, // Warna yang kamu inginkan
-                        blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
-                    ),
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable(
-                            onClick = {}
-                        )
-                )
-
-                Image(
-                    painter = painterResource(R.drawable.settings_icon),
-                    contentDescription = "Settings",
-                    colorFilter = ColorFilter.tint(
-                        color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
-                        blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
-                    ),
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clickable(
-                            onClick = {}
-                        )
-                )
-            }
-
             // Main Content Wrapper
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
-                    .padding(horizontal = 20.dp)
+                    .padding(20.dp)
+                    .padding(top = 30.dp)
             ) {
                 // Title Wrapper
                 Column(
