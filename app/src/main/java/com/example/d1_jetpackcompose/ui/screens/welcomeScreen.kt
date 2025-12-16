@@ -30,7 +30,7 @@ import com.example.d1_jetpackcompose.ui.components.RoundedButton
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTypography
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 
-class BelajarLayoutActivity : ComponentActivity() {
+class WelcomePageActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -38,7 +38,7 @@ class BelajarLayoutActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    BasicLayout()
+                    WelcomePage()
                 }
             }
         }
@@ -46,7 +46,7 @@ class BelajarLayoutActivity : ComponentActivity() {
 }
 
 @Composable
-fun BasicLayout(modifier: Modifier = Modifier) {
+fun WelcomePage(modifier: Modifier = Modifier) {
     val backgroundImagePainter = painterResource(R.drawable.background_login)
 
     Box(
@@ -169,6 +169,6 @@ fun BasicLayout(modifier: Modifier = Modifier) {
 @Composable
 private fun BasicLayoutPreview() {
     SmartFitTheme {
-        BasicLayout()
+        WelcomePage()
     }
 }

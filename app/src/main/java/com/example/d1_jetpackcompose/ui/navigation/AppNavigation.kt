@@ -5,17 +5,21 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.d1_jetpackcompose.ui.screens.ActivityLog
 import com.example.d1_jetpackcompose.ui.screens.DashboardLayout
 import com.example.d1_jetpackcompose.ui.screens.DistanceCountPage
 import com.example.d1_jetpackcompose.ui.screens.ProfilePage
 import com.example.d1_jetpackcompose.ui.screens.StepsCountPage
+import com.example.d1_jetpackcompose.ui.screens.WelcomePage
 
 /**
  * Mendefinisikan rute (konstanta string) untuk setiap halaman dalam aplikasi.
  * Menggunakan object memastikan tidak ada typo dan memudahkan pengelolaan.
  */
 object AppRoutes {
+    const val WELCOME = "welcome"
     const val DASHBOARD = "dashboard"
+    const val ACTIVITY = "activity"
     const val PROFILE = "profile"
     const val STEPS_COUNT = "steps_count"
     const val DISTANCE_COUNT = "distance_count"
@@ -35,9 +39,17 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         startDestination = AppRoutes.DASHBOARD, // Halaman pertama yang muncul
         modifier = modifier
     ) {
+        // Mendefinisikan layar untuk rute "welcome"
+        composable(AppRoutes.WELCOME) {
+            WelcomePage()
+        }
         // Mendefinisikan layar untuk rute "dashboard"
         composable(AppRoutes.DASHBOARD) {
             DashboardLayout()
+        }
+        // Mendefinisikan layar untuk rute "profile"
+        composable(AppRoutes.ACTIVITY) {
+            ActivityLog()
         }
         // Mendefinisikan layar untuk rute "profile"
         composable(AppRoutes.PROFILE) {

@@ -18,7 +18,7 @@ fun MainScreen() {
     Scaffold(
         // Di sinilah kita menempatkan BubbleNavigationBar Anda
         bottomBar = {
-            BubbleNavigationBar(navController = NavController.Companion) // Kita perlu modifikasi sedikit agar bisa berinteraksi
+            BubbleNavigationBar(navController = navController) // Kita perlu modifikasi sedikit agar bisa berinteraksi
         }
     ) { innerPadding ->
         // AppNavHost akan menjadi konten utama dari Scaffold

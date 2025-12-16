@@ -41,7 +41,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.R
+import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.screens.colorEnd
 import com.example.d1_jetpackcompose.ui.screens.colorStartDark
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
@@ -225,7 +227,7 @@ fun HorizontalLineProfile(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BubbleNavigationBar(navController: NavController.Companion) {
+fun BubbleNavigationBar(navController: NavController) {
     // Di sinilah Anda mendesain navigasi "mengambang" Anda.
     // Kita gunakan Card untuk mendapatkan efek bubble/mengambang.
     Card(
@@ -237,7 +239,6 @@ fun BubbleNavigationBar(navController: NavController.Companion) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 12.dp), // Memberi jarak dari tepi layar
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp) // Memberi bayangan
     ) {
         Row(
             modifier = Modifier
@@ -248,8 +249,13 @@ fun BubbleNavigationBar(navController: NavController.Companion) {
         ) {
             Column(
                 modifier = Modifier
-                    .clickable{
-
+                    .width(50.dp)
+                    .clickable {
+                        navController.navigate(AppRoutes.DASHBOARD) {
+                            launchSingleTop = true
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            restoreState = true
+                        }
                     },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -265,8 +271,14 @@ fun BubbleNavigationBar(navController: NavController.Companion) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.clickable{
-
+                modifier = Modifier
+                    .width(50.dp)
+                    .clickable{
+                        navController.navigate(AppRoutes.ACTIVITY) { // Pastikan AppRoutes.ACTIVITY ada
+                            launchSingleTop = true
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            restoreState = true
+                        }
                 }
             ) {
                 Image(
@@ -283,8 +295,14 @@ fun BubbleNavigationBar(navController: NavController.Companion) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier.clickable{
-
+                modifier = Modifier
+                    .width(50.dp)
+                    .clickable{
+                        navController.navigate(AppRoutes.PROFILE) {
+                            launchSingleTop = true
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            restoreState = true
+                        }
                 }
             ) {
                 Image(
@@ -305,6 +323,9 @@ fun BubbleNavigationBar(navController: NavController.Companion) {
 @Composable
 fun PreviewButton() {
     SmartFitTheme {
-        BubbleNavigationBar(navController = NavController)
+        val navController = rememberNavController()
+
+        // Sekarang teruskan navController palsu tersebut
+        BubbleNavigationBar(navController = navController)
     }
 }
