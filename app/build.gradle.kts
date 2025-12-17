@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     // Preview & Tooling (hanya untuk build debug)
     implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.ui.graphics)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     // --- NAVIGATION ---

@@ -54,6 +54,9 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
 
 
 /**
@@ -313,11 +316,17 @@ fun BubbleNavigationBar(
                 }
             ) {
                 Image(
-                    painter = painterResource(R.drawable.profile_logo),
-                    contentDescription = "Profile"
+                    painter = painterResource(R.drawable.settings_icon),
+                    contentDescription = "Settings",
+                    modifier = Modifier
+                        .size(30.dp),
+                    colorFilter = ColorFilter.tint(
+                        color = SmartFitColors.MainGreen, // Specify your desired color here
+                        blendMode = BlendMode.SrcIn // Use SrcIn for standard icon tinting
+                    )
                 )
                 Text(
-                    text = "Profile",
+                    text = "Settings",
                     fontSize = 12.sp,
                     fontFamily = robotoFontFamily,
                 )
@@ -331,7 +340,6 @@ fun BubbleNavigationBar(
 fun PreviewButton() {
     SmartFitTheme {
         val navController = rememberNavController()
-
         // Sekarang teruskan navController palsu tersebut
         BubbleNavigationBar(navController = navController)
     }

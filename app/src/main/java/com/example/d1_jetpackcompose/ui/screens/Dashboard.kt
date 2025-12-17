@@ -31,6 +31,10 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RenderEffect
+import androidx.compose.ui.graphics.Shader
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -72,9 +76,6 @@ fun DashboardLayout(
     modifier: Modifier = Modifier,
     navController: NavController
 ) {
-    val homeLogo = painterResource(R.drawable.home_icon)
-    val activityLog = painterResource(R.drawable.activity_log_logo)
-    val profileLogo = painterResource(R.drawable.profile_logo)
     val gradientDarkMode = Brush.verticalGradient(
         colors = listOf(colorStartDark, colorEnd),
     )
@@ -85,16 +86,56 @@ fun DashboardLayout(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(brush = gradientDarkMode)
+            .background(Color.Black)
+            .drawBehind {
+
+                // Lingkaran kanan atas
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF4F6A4E).copy(alpha = 0.7f),
+                            Color.Transparent
+                        ),
+                        center = Offset(
+                            x = size.width * 0.75f,
+                            y = size.height * 0.25f
+                        ),
+                        radius = size.minDimension * 0.85f
+                    ),
+                    radius = size.minDimension * 85f,
+                    center = Offset(
+                        x = size.width * 0.75f,
+                        y = size.height * 0.25f
+                    )
+                )
+
+                // Lingkaran kiri bawah
+                drawCircle(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF4F6A4E).copy(alpha = 0.7f),
+                            Color.Transparent
+                        ),
+                        center = Offset(
+                            x = size.width * 0.25f,
+                            y = size.height * 0.75f
+                        ),
+                        radius = size.minDimension * 0.85f
+                    ),
+                    radius = size.minDimension * 0.85f,
+                    center = Offset(
+                        x = size.width * 0.25f,
+                        y = size.height * 0.75f
+                    )
+                )
+            }
     ) {
-        Image(
-            painter = painterResource(R.drawable.darkmode_background),
-            contentDescription = "Background Overlay",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            alpha = 0.30f
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.18f))
         )
-        // The outest wrapper
+                // The outest wrapper
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -150,7 +191,7 @@ fun DashboardLayout(
                         Card(
                             shape = smartFitShape(25.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = colorStartDark.copy(alpha = 0.6f),
+                                containerColor = colorStartDark.copy(alpha = 0.5f),
                                 contentColor = colorEnd
                             ),
                             modifier = Modifier
@@ -279,7 +320,7 @@ fun DashboardLayout(
                             Card(
                                 shape = smartFitShape(25.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = colorStartDark.copy(alpha = 0.6f),
+                                    containerColor = colorStartDark.copy(alpha = 0.5f),
                                     contentColor = colorEnd
                                 ),
                                 modifier = Modifier
@@ -344,7 +385,7 @@ fun DashboardLayout(
                             Card(
                                 shape = smartFitShape(25.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = colorStartDark.copy(alpha = 0.6f),
+                                    containerColor = colorStartDark.copy(alpha = 0.5f),
                                     contentColor = colorEnd
                                 ),
                                 modifier = Modifier
@@ -420,7 +461,7 @@ fun DashboardLayout(
                             Card(
                                 shape = smartFitShape(25.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = colorStartDark.copy(alpha = 0.7f),
+                                    containerColor = colorStartDark.copy(alpha = 0.5f),
                                     contentColor = colorEnd
                                 ),
                                 modifier = Modifier
