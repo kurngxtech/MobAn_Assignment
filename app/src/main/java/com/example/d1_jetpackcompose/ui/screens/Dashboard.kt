@@ -1,5 +1,7 @@
 package com.example.d1_jetpackcompose.ui.screens
 
+import android.net.http.SslCertificate.restoreState
+import android.net.http.SslCertificate.saveState
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -36,12 +38,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
 import com.example.d1_jetpackcompose.ui.theme.smartFitShape
 import com.example.d1_jetpackcompose.ui.components.GeneralButton
-import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
+import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 
 class DashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,7 +55,8 @@ class DashboardActivity : ComponentActivity() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    DashboardLayout()
+                    val navController = rememberNavController()
+                    DashboardLayout(navController = navController)
                 }
             }
         }
@@ -63,7 +68,10 @@ val colorStartLight = Color(0xFFDAE0E0)
 val colorEnd = Color(0xFF4F6A4E)
 
 @Composable
-fun DashboardLayout(modifier: Modifier = Modifier) {
+fun DashboardLayout(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
     val homeLogo = painterResource(R.drawable.home_icon)
     val activityLog = painterResource(R.drawable.activity_log_logo)
     val profileLogo = painterResource(R.drawable.profile_logo)
@@ -277,7 +285,13 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .weight(1f)
-                                    .clickable {}
+                                    .clickable {
+                                        navController.navigate(AppRoutes.STEPS_COUNT) {
+                                            launchSingleTop = true
+                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            restoreState = true
+                                        }
+                                    }
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -336,7 +350,13 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
                                 modifier = Modifier
                                     .fillMaxHeight()
                                     .weight(1f)
-                                    .clickable {}
+                                    .clickable {
+                                        navController.navigate(AppRoutes.DISTANCE_COUNT) {
+                                            launchSingleTop = true
+                                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                            restoreState = true
+                                        }
+                                    }
                             ) {
                                 Column(
                                     modifier = Modifier
@@ -483,6 +503,7 @@ fun DashboardLayout(modifier: Modifier = Modifier) {
 @Composable
 private fun DashboardPreview() {
     SmartFitTheme {
-        DashboardLayout()
+        val navController = rememberNavController()
+        DashboardLayout(navController = navController)
     }
 }
