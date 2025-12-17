@@ -132,7 +132,6 @@ fun GeneralButton(
         shape = RoundedCornerShape(50), // Bentuk bulat sempurna
         colors = ButtonDefaults.buttonColors(
             containerColor = backgroundColor, // Gunakan warna yang sudah dianimasikan/ditentukan
-            contentColor = Color.White // Warna teks
         ),
         interactionSource = interactionSource, // Terapkan InteractionSource
     ) {

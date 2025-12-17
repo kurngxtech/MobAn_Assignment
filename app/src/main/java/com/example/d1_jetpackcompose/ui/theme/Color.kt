@@ -18,11 +18,6 @@ object SmartFitColors {
     val PureWhite = Color(0xFFFFFFFF)
     val SecondaryWhite = Color(0xFFE0E5E0)
 
-    // Kategori: Warna Branding Utama (Hijau)
-    val PrimaryGreen = Color(0xFF4F6A4E)
-    val PressedGreen = Color(0xFF2f402f)
-    val LightGreenAccent = Color(0xFF81C784)
-
     // Kategori: Warna Status & Notifikasi
     val ErrorRed = Color(0xFFB00020)
     val SuccessGreen = Color(0xFF00C853)
@@ -32,6 +27,7 @@ object SmartFitColors {
     val TextSecondary = GrayRoad
     val MainGreen = Color(0xFF4F6A4E) // Warna biru (mengganti #4f6af4e menjadi Color)
     val SecondaryGreen = Color(0xFF2f402f)
+    val LightGreen = Color(0xFF60975E)
 }
 
 // Skema Warna Terang (Light Theme)
