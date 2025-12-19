@@ -7,10 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.ui.screens.ActivityLog
-import com.example.d1_jetpackcompose.ui.screens.DashboardLayout
-import com.example.d1_jetpackcompose.ui.screens.DistanceCountPage
+import com.example.d1_jetpackcompose.ui.screens.ExercisePageLayout
 import com.example.d1_jetpackcompose.ui.screens.ProfilePage
-import com.example.d1_jetpackcompose.ui.screens.StepsCountPage
 import com.example.d1_jetpackcompose.ui.screens.WelcomePage
 
 /**
@@ -46,7 +44,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         }
         // Mendefinisikan layar untuk rute "dashboard"
         composable(AppRoutes.DASHBOARD) {
-            DashboardLayout(navController = navController)
+            ExercisePageLayout(navController = navController)
         }
         // Mendefinisikan layar untuk rute "profile"
         composable(AppRoutes.ACTIVITY) {
@@ -55,14 +53,6 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         // Mendefinisikan layar untuk rute "profile"
         composable(AppRoutes.PROFILE) {
             ProfilePage()
-        }
-        // Mendefinisikan layar untuk rute "steps_count"
-        composable(AppRoutes.STEPS_COUNT) {
-            StepsCountPage()
-        }
-        // Mendefinisikan layar untuk rute "distance_count"
-        composable(AppRoutes.DISTANCE_COUNT){
-            DistanceCountPage()
         }
     }
 }

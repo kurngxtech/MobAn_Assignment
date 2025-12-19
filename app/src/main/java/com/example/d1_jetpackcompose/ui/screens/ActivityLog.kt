@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -65,10 +66,10 @@ class ActivityLogActivity : ComponentActivity() {
 @Composable
 fun ActivityLog(modifier: Modifier = Modifier) {
     val gradientDarkMode = Brush.verticalGradient(
-        colors = listOf(SmartFitColors.PureBlack, SmartFitColors.MainGreen),
+        colors = listOf(Color.Black, MaterialTheme.colorScheme.onSurface),
     )
     val gradientLightMode = Brush.verticalGradient(
-        colors = listOf(SmartFitColors.PureWhite, SmartFitColors.MainGreen),
+        colors = listOf(Color.White, MaterialTheme.colorScheme.onSurface),
     )
 
     Box(
@@ -100,7 +101,7 @@ fun ActivityLog(modifier: Modifier = Modifier) {
                     fontSize = 40.sp,
                     fontFamily = robotoFontFamily,
                     fontWeight = FontWeight.Bold,
-                    color = SmartFitColors.MainGreen
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -402,7 +403,7 @@ fun ButtonActivityLog(
     )
 
     // ... (Definisi warna lainnya)
-    val customGreen = SmartFitColors.MainGreen
+    val customGreen = MaterialTheme.colorScheme.onSurface
     val lightContainer = SmartFitColors.SecondaryWhite
 
 
@@ -467,7 +468,7 @@ fun ActivityLogItemCard(
                     .height(45.dp)
                     .fillMaxWidth(0.9f),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = SmartFitColors.MainGreen, // Hapus warna background Button
+                    containerColor = MaterialTheme.colorScheme.onSurface, // Hapus warna background Button
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(25)

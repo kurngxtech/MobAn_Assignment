@@ -50,10 +50,6 @@ import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
@@ -75,7 +71,7 @@ fun RoundedButton(
     val targetBackgroundColor = if (isPressed) {
         SmartFitColors.SecondaryGreen
     } else {
-        SmartFitColors.MainGreen
+        MaterialTheme.colorScheme.onSurface
     }
 
     // Gunakan animateColorAsState untuk transisi warna yang halus (opsional, tapi disarankan)
@@ -116,7 +112,7 @@ fun GeneralButton(
     val targetBackgroundColor = if (isPressed) {
         SmartFitColors.SecondaryGreen
     } else {
-        SmartFitColors.MainGreen
+        MaterialTheme.colorScheme.onSurface
     }
 
     val backgroundColor by animateColorAsState(
@@ -221,14 +217,14 @@ fun HorizontalLineProfile(modifier: Modifier = Modifier) {
     val lineGradientBrush = Brush.horizontalGradient(
         colors = listOf(
             Color.Transparent,                      // Mulai dari transparan (ujung kiri)
-            SmartFitColors.MainGreen.copy(alpha = 0.5f), // Cepat menjadi warna utama
-            SmartFitColors.MainGreen.copy(alpha = 0.5f), // Tetap warna utama di tengah
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), // Cepat menjadi warna utama
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), // Tetap warna utama di tengah
             Color.Transparent                       // Memudar menjadi transparan (ujung kanan)
         ),
         // Anda bisa menyesuaikan posisi "stops" untuk kontrol lebih
         // Contoh:
         // startX = 0.0f,
-        // endX = Float.POSITIVE_INFINITY
+        // endX = Float.POSITIVE_INF  INITY
     )
 }
 
@@ -320,7 +316,7 @@ fun BubbleNavigationBar(
                     modifier = Modifier
                         .size(30.dp),
                     colorFilter = ColorFilter.tint(
-                        color = SmartFitColors.MainGreen, // Specify your desired color here
+                        color = MaterialTheme.colorScheme.onSurface, // Specify your desired color here
                         blendMode = BlendMode.SrcIn // Use SrcIn for standard icon tinting
                     )
                 )

@@ -26,6 +26,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -68,16 +69,16 @@ class ProfileActivity : ComponentActivity() {
 @Composable
 fun ProfilePage(modifier: Modifier = Modifier) {
     val gradientDarkMode = Brush.verticalGradient(
-        colors = listOf(SmartFitColors.PureBlack, SmartFitColors.MainGreen),
+        colors = listOf(Color.Black, MaterialTheme.colorScheme.onSurface),
     )
     val gradientLightMode = Brush.verticalGradient(
-        colors = listOf(SmartFitColors.PureWhite, SmartFitColors.MainGreen),
+        colors = listOf(Color.White, MaterialTheme.colorScheme.onSurface),
     )
     val lineGradientBrush = Brush.horizontalGradient(
         colors = listOf(
             Color.Transparent,                      // Mulai dari transparan (ujung kiri)
-            SmartFitColors.MainGreen.copy(alpha = 0.5f), // Cepat menjadi warna utama
-            SmartFitColors.MainGreen.copy(alpha = 0.5f), // Tetap warna utama di tengah
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), // Cepat menjadi warna utama
+            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f), // Tetap warna utama di tengah
             Color.Transparent                       // Memudar menjadi transparan (ujung kanan)
         ),
         // Anda bisa menyesuaikan posisi "stops" untuk kontrol lebih
@@ -112,7 +113,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                     fontSize = 40.sp,
                     fontFamily = robotoFontFamily,
                     fontWeight = FontWeight.Bold,
-                    color = SmartFitColors.MainGreen
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -145,7 +146,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                     fontSize = 24.sp,
                     fontFamily = robotoFontFamily,
                     fontWeight = FontWeight.SemiBold,
-                    color = SmartFitColors.MainGreen
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -191,7 +192,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 .aspectRatio(1f), // 2. Buat tingginya sama dengan lebarnya (membentuk kotak)
                             shape = smartFitShape(15.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = SmartFitColors.PureBlack.copy(
+                                containerColor = Color.Black.copy(
                                     alpha = 0.6f
                                 )
                             )
@@ -205,7 +206,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
 
                                 Text(
                                     text = "177 cm",
-                                    color = SmartFitColors.MainGreen,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontFamily = robotoFontFamily,
                                     fontSize = 25.sp,
                                     fontWeight = FontWeight.Bold
@@ -213,7 +214,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 Spacer(modifier = Modifier.size(3.dp))
                                 Text(
                                     text = "Height",
-                                    color = SmartFitColors.MainGreen.copy(alpha = 0.5f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                     fontFamily = robotoFontFamily,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold
@@ -228,7 +229,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 .aspectRatio(1f), // Buat tingginya sama dengan lebarnya
                             shape = smartFitShape(15.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = SmartFitColors.PureBlack.copy(
+                                containerColor = Color.Black.copy(
                                     alpha = 0.6f
                                 )
                             )
@@ -241,7 +242,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
 
                                 Text(
                                     text = "90 kg",
-                                    color = SmartFitColors.MainGreen,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontFamily = robotoFontFamily,
                                     fontSize = 25.sp,
                                     fontWeight = FontWeight.Bold
@@ -249,7 +250,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 Spacer(modifier = Modifier.size(3.dp))
                                 Text(
                                     text = "Weight",
-                                    color = SmartFitColors.MainGreen.copy(alpha = 0.5f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                     fontFamily = robotoFontFamily,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold
@@ -264,7 +265,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 .aspectRatio(1f), // Buat tingginya sama dengan lebarnya
                             shape = smartFitShape(15.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = SmartFitColors.PureBlack.copy(
+                                containerColor = Color.Black.copy(
                                     alpha = 0.6f
                                 )
                             )
@@ -277,7 +278,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
 
                                 Text(
                                     text = "25 y",
-                                    color = SmartFitColors.MainGreen,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontFamily = robotoFontFamily,
                                     fontSize = 25.sp,
                                     fontWeight = FontWeight.Bold
@@ -285,7 +286,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 Spacer(modifier = Modifier.size(3.dp))
                                 Text(
                                     text = "Age",
-                                    color = SmartFitColors.MainGreen.copy(alpha = 0.5f),
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                     fontFamily = robotoFontFamily,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold
@@ -300,7 +301,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                             .fillMaxWidth(), // Ambil 1/3 dari lebar yang tersedia
                         shape = smartFitShape(15.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = SmartFitColors.PureBlack.copy(
+                            containerColor = Color.Black.copy(
                                 alpha = 0.6f
                             )
                         )
@@ -314,7 +315,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                         ) {
                             Text(
                                 text = "Male",
-                                color = SmartFitColors.MainGreen,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontFamily = robotoFontFamily,
                                 fontSize = 40.sp,
                                 fontWeight = FontWeight.Bold
@@ -322,7 +323,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                             Spacer(modifier = Modifier.size(3.dp))
                             Text(
                                 text = "Gender",
-                                color = SmartFitColors.MainGreen.copy(alpha = 0.5f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 fontFamily = robotoFontFamily,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -381,7 +382,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                     .size(100.dp)
                                     .clip(CircleShape)
                                     .background(
-                                        color = SmartFitColors.MainGreen
+                                        color = MaterialTheme.colorScheme.onSurface
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -422,7 +423,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                     .fillMaxWidth(),
                 shape = smartFitShape(15.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = SmartFitColors.PureBlack.copy(
+                    containerColor = Color.Black.copy(
                         alpha = 0.6f
                     )
                 )
@@ -463,7 +464,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 painter = painterResource(id = R.drawable.user_logo),
                                 contentDescription = "right arrow",
                                 colorFilter = ColorFilter.tint(
-                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    color = MaterialTheme.colorScheme.onSurface, // Warna yang kamu inginkan
                                     blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
                                 ),
                                 modifier = Modifier.size(30.dp)
@@ -477,7 +478,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                             ) {
                                 Text (
                                     text = "Personal Info",
-                                    color = SmartFitColors.MainGreen,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontFamily = robotoFontFamily,
                                     fontSize = 20.sp
                                 )
@@ -487,7 +488,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 painter = painterResource(id = R.drawable.right_arrow_icon),
                                 contentDescription = "right arrow",
                                 colorFilter = ColorFilter.tint(
-                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    color = MaterialTheme.colorScheme.onSurface, // Warna yang kamu inginkan
                                     blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
                                 ),
                                 modifier = Modifier.size(20.dp)
@@ -526,7 +527,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 painter = painterResource(id = R.drawable.help_logo),
                                 contentDescription = "right arrow",
                                 colorFilter = ColorFilter.tint(
-                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    color = MaterialTheme.colorScheme.onSurface, // Warna yang kamu inginkan
                                     blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
                                 ),
                                 modifier = Modifier.size(30.dp)
@@ -540,7 +541,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                             ) {
                                 Text (
                                     text = "FAQ",
-                                    color = SmartFitColors.MainGreen,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontFamily = robotoFontFamily,
                                     fontSize = 20.sp
                                 )
@@ -550,7 +551,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 painter = painterResource(id = R.drawable.right_arrow_icon),
                                 contentDescription = "right arrow",
                                 colorFilter = ColorFilter.tint(
-                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    color = MaterialTheme.colorScheme.onSurface, // Warna yang kamu inginkan
                                     blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
                                 ),
                                 modifier = Modifier.size(20.dp)
@@ -589,7 +590,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 painter = painterResource(id = R.drawable.logout_logo),
                                 contentDescription = "right arrow",
                                 colorFilter = ColorFilter.tint(
-                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    color = MaterialTheme.colorScheme.onSurface, // Warna yang kamu inginkan
                                     blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
                                 ),
                                 modifier = Modifier.size(30.dp)
@@ -603,7 +604,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                             ) {
                                 Text (
                                     text = "Log Out",
-                                    color = SmartFitColors.MainGreen,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontFamily = robotoFontFamily,
                                     fontSize = 20.sp
                                 )
@@ -613,7 +614,7 @@ fun ProfilePage(modifier: Modifier = Modifier) {
                                 painter = painterResource(id = R.drawable.right_arrow_icon),
                                 contentDescription = "right arrow",
                                 colorFilter = ColorFilter.tint(
-                                    color = SmartFitColors.MainGreen, // Warna yang kamu inginkan
+                                    color = MaterialTheme.colorScheme.onSurface, // Warna yang kamu inginkan
                                     blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
                                 ),
                                 modifier = Modifier.size(20.dp)
