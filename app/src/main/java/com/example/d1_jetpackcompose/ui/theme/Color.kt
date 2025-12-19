@@ -18,6 +18,7 @@ object SmartFitColors {
     val LightBackground = Color(0xFFF2F0EF)
     val HistoryObjects = Color(0xFFECECEC)
     val TextColor = Color(0xFF4F6A4E)
+    val LightCardColor = Color(0xFFFDFFFD)
 
 
     val SecondaryWhite = Color(0xFFc9d4c9)

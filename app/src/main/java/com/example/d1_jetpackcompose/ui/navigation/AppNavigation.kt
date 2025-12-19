@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.ui.screens.ActivityLog
+import com.example.d1_jetpackcompose.ui.screens.DashboardScreen
 import com.example.d1_jetpackcompose.ui.screens.ExercisePageLayout
 import com.example.d1_jetpackcompose.ui.screens.ProfilePage
 import com.example.d1_jetpackcompose.ui.screens.WelcomePage
@@ -44,7 +45,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         }
         // Mendefinisikan layar untuk rute "dashboard"
         composable(AppRoutes.DASHBOARD) {
-            ExercisePageLayout(navController = navController)
+            DashboardScreen()
         }
         // Mendefinisikan layar untuk rute "profile"
         composable(AppRoutes.ACTIVITY) {

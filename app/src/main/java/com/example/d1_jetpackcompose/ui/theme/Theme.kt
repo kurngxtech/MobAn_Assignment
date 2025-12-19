@@ -13,6 +13,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjects
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightBackground
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightCardColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.SecondaryGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.TextColor
@@ -22,8 +23,10 @@ private val lightColorScheme = lightColorScheme(
     primary = LightGreen,
     secondary = SecondaryGreen,
     background = LightBackground,
+    onBackground = LightCardColor,
     surface = HistoryObjects,
     onSurface = TextColor,
+
 )
 
 private val darkColorScheme = darkColorScheme(

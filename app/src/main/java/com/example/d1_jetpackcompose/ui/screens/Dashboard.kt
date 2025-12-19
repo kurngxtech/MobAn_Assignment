@@ -43,10 +43,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.d1_jetpackcompose.R
-import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
-import com.example.d1_jetpackcompose.ui.theme.smartFitShape
 
 class DashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,7 +71,6 @@ fun DashboardScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(20.dp)
-            .padding(top = 20.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Header Profile
@@ -82,17 +79,26 @@ fun DashboardScreen() {
         Spacer(modifier = Modifier.height(10.dp))
 
         // 2. Daily Goal Card (Zero State)
-        DailyGoalCard(current = 0, total = 10000, color = MaterialTheme.colorScheme.primary)
+        DailyGoalCard(
+            cardColor = MaterialTheme.colorScheme.onBackground,
+            current = 0,
+            total = 10000,
+            color = MaterialTheme.colorScheme.primary
+        )
 
         Spacer(modifier = Modifier.height(25.dp))
 
         // 3. PERIOD SELECTOR (Daily vs Weekly) - BARU
-        PeriodSelector(activeColor = MaterialTheme.colorScheme.primary)
+        PeriodSelector(
+            activeColor = MaterialTheme.colorScheme.primary,
+            inactiveColor = MaterialTheme.colorScheme.onBackground
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         // 4. Summary Grid (Zero State)
         DailySummaryGrid(
+            cardColor = MaterialTheme.colorScheme.onBackground,
             distance = "0 km",
             intake = "0 kcal",
             time = "0 min",
@@ -102,25 +108,33 @@ fun DashboardScreen() {
         Spacer(modifier = Modifier.height(25.dp))
 
         // 5. CATEGORY FILTER (All / Exercise / Foods) - BARU
-        CategoryFilterSelector(activeColor = MaterialTheme.colorScheme.primary)
+        CategoryFilterSelector(
+            activeColor = MaterialTheme.colorScheme.primary,
+            inactiveColor = MaterialTheme.colorScheme.onBackground
+        )
 
         Spacer(modifier = Modifier.height(10.dp))
 
         // 6. History Section (Empty/Zero State)
-        HistorySectionEmptyState()
+        HistorySectionEmptyState(cardColor = MaterialTheme.colorScheme.onBackground)
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        OnlineTipsCard(underlineColor = MaterialTheme.colorScheme.primary)
+        OnlineTipsCard(
+            underlineColor = MaterialTheme.colorScheme.primary,
+            cardColor = MaterialTheme.colorScheme.onBackground
+        )
     }
 }
 
 // 2. KOMPONEN DAILY SUMMARY (Gunakan ini untuk memperbaiki "Parameter never used")
 @Composable
-fun DailySummaryGrid(distance: String, intake: String, time: String, burned: String) {
+fun DailySummaryGrid(cardColor: Color, distance: String, intake: String, time: String, burned: String) {
     Card(
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(
+            containerColor = cardColor // Gunakan parameter di sini
+        ),
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -165,10 +179,12 @@ fun SummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
 
 // 4. FIX DEPRECATED PROGRESS INDICATOR
 @Composable
-fun DailyGoalCard(current: Int, total: Int, color: Color) {
+fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
     Card(
         shape = RoundedCornerShape(32.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(
+            containerColor = cardColor // Gunakan parameter di sini
+        ),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
@@ -202,7 +218,8 @@ fun HeaderProfileSection(name: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(top = 48.dp, bottom = 16.dp) // Beri jarak dari Status Bar
+            .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // --- FOTO PROFIL ---
@@ -236,10 +253,12 @@ fun HeaderProfileSection(name: String) {
 }
 
 @Composable
-fun PeriodSelector(activeColor: Color) {
+fun PeriodSelector(activeColor: Color, inactiveColor: Color) {
     Card(
         shape = RoundedCornerShape(50), // Bentuk Pill/Capsule penuh
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(
+            containerColor = inactiveColor // Gunakan parameter di sini
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp) // Tinggi fix sesuai visual
@@ -284,10 +303,12 @@ fun PeriodSelector(activeColor: Color) {
 }
 
 @Composable
-fun CategoryFilterSelector(activeColor: Color) {
+fun CategoryFilterSelector(activeColor: Color, inactiveColor: Color) {
     Card(
         shape = RoundedCornerShape(50), // Bentuk Pill
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(
+            containerColor = inactiveColor // Gunakan parameter di sini
+        ),
         modifier = Modifier
             .fillMaxWidth()
             .height(40.dp)
@@ -341,12 +362,14 @@ fun CategoryFilterSelector(activeColor: Color) {
 }
 
 @Composable
-fun HistorySectionEmptyState() {
+fun HistorySectionEmptyState(cardColor: Color) {
     Column {
         // Kartu placeholder karena progress 0
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White), // Warna abu-abu sesuai style inactive
+            colors = CardDefaults.cardColors(
+                containerColor = cardColor // Gunakan parameter di sini
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
@@ -391,7 +414,7 @@ fun HistorySectionEmptyState() {
 }
 
 @Composable
-fun OnlineTipsCard(underlineColor: Color) {
+fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -399,7 +422,9 @@ fun OnlineTipsCard(underlineColor: Color) {
     ) {
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(
+                containerColor = cardColor // Gunakan parameter di sini
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
@@ -474,12 +499,11 @@ fun OnlineTipsCard(underlineColor: Color) {
 @Preview(
     showBackground = true,
     name = "Scrollable Profile",
-    heightDp = 1200
+    heightDp = 1000
 )
 @Composable
 private fun DashboardScreenPrev() {
     SmartFitTheme {
         DashboardScreen()
-
     }
 }

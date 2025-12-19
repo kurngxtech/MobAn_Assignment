@@ -228,107 +228,107 @@ fun HorizontalLineProfile(modifier: Modifier = Modifier) {
     )
 }
 
-@Composable
-fun BubbleNavigationBar(
-    navController: NavController,
-    modifier: Modifier = Modifier
-) {
-    // Di sinilah Anda mendesain navigasi "mengambang" Anda.
-    // Kita gunakan Card untuk mendapatkan efek bubble/mengambang.
-    Card(
-        shape = MaterialTheme.shapes.extraLarge, // Bentuk pil atau sangat bulat
-        colors = CardDefaults.cardColors(
-            containerColor = colorStartDark.copy(alpha = 0.7f),
-            contentColor = colorEnd
-        ),
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 30.dp, vertical = 30.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier
-                    .width(50.dp)
-                    .clickable {
-                        navController.navigate(AppRoutes.DASHBOARD) {
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            restoreState = true
-                        }
-                    },
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-            ) {
-                Image(painter = painterResource(R.drawable.home_icon), contentDescription = "Home")
-                Text(
-                    text = "Home",
-                    fontSize = 12.sp,
-                    fontFamily = robotoFontFamily,
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier
-                    .width(50.dp)
-                    .clickable{
-                        navController.navigate(AppRoutes.ACTIVITY) { // Pastikan AppRoutes.ACTIVITY ada
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            restoreState = true
-                        }
-                }
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.activity_log_logo),
-                    contentDescription = "Activity Log"
-                )
-                Text(
-                    text = "Activity",
-                    fontSize = 12.sp,
-                    fontFamily = robotoFontFamily,
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(5.dp),
-                modifier = Modifier
-                    .width(50.dp)
-                    .clickable{
-                        navController.navigate(AppRoutes.PROFILE) {
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            restoreState = true
-                        }
-                }
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.settings_icon),
-                    contentDescription = "Settings",
-                    modifier = Modifier
-                        .size(30.dp),
-                    colorFilter = ColorFilter.tint(
-                        color = MaterialTheme.colorScheme.onSurface, // Specify your desired color here
-                        blendMode = BlendMode.SrcIn // Use SrcIn for standard icon tinting
-                    )
-                )
-                Text(
-                    text = "Settings",
-                    fontSize = 12.sp,
-                    fontFamily = robotoFontFamily,
-                )
-            }
-        }
-    }
-}
+//@Composable
+//fun BubbleNavigationBar(
+//    navController: NavController,
+//    modifier: Modifier = Modifier
+//) {
+//    // Di sinilah Anda mendesain navigasi "mengambang" Anda.
+//    // Kita gunakan Card untuk mendapatkan efek bubble/mengambang.
+//    Card(
+//        shape = MaterialTheme.shapes.extraLarge, // Bentuk pil atau sangat bulat
+//        colors = CardDefaults.cardColors(
+//            containerColor = MaterialTheme.colorScheme.onBackground,
+//            contentColor = colorEnd
+//        ),
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .padding(horizontal = 30.dp, vertical = 30.dp)
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(horizontal = 16.dp, vertical = 8.dp),
+//            horizontalArrangement = Arrangement.SpaceAround,
+//            verticalAlignment = Alignment.CenterVertically
+//        ) {
+//            Column(
+//                modifier = Modifier
+//                    .width(50.dp)
+//                    .clickable {
+//                        navController.navigate(AppRoutes.DASHBOARD) {
+//                            launchSingleTop = true
+//                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+//                            restoreState = true
+//                        }
+//                    },
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.spacedBy(5.dp),
+//            ) {
+//                Image(painter = painterResource(R.drawable.home_icon), contentDescription = "Home")
+//                Text(
+//                    text = "Home",
+//                    fontSize = 12.sp,
+//                    fontFamily = robotoFontFamily,
+//                )
+//            }
+//
+//            Column(
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.spacedBy(5.dp),
+//                modifier = Modifier
+//                    .width(50.dp)
+//                    .clickable{
+//                        navController.navigate(AppRoutes.ACTIVITY) { // Pastikan AppRoutes.ACTIVITY ada
+//                            launchSingleTop = true
+//                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+//                            restoreState = true
+//                        }
+//                }
+//            ) {
+//                Image(
+//                    painter = painterResource(R.drawable.activity_log_logo),
+//                    contentDescription = "Activity Log"
+//                )
+//                Text(
+//                    text = "Activity",
+//                    fontSize = 12.sp,
+//                    fontFamily = robotoFontFamily,
+//                )
+//            }
+//
+//            Column(
+//                horizontalAlignment = Alignment.CenterHorizontally,
+//                verticalArrangement = Arrangement.spacedBy(5.dp),
+//                modifier = Modifier
+//                    .width(50.dp)
+//                    .clickable{
+//                        navController.navigate(AppRoutes.PROFILE) {
+//                            launchSingleTop = true
+//                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+//                            restoreState = true
+//                        }
+//                }
+//            ) {
+//                Image(
+//                    painter = painterResource(R.drawable.profile_logo),
+//                    contentDescription = "Settings",
+//                    modifier = Modifier
+//                        .size(30.dp),
+//                    colorFilter = ColorFilter.tint(
+//                        color = MaterialTheme.colorScheme.onSurface, // Specify your desired color here
+//                        blendMode = BlendMode.SrcIn // Use SrcIn for standard icon tinting
+//                    )
+//                )
+//                Text(
+//                    text = "Profile",
+//                    fontSize = 12.sp,
+//                    fontFamily = robotoFontFamily,
+//                )
+//            }
+//        }
+//    }
+//}
 
 @Preview(showBackground = true)
 @Composable
