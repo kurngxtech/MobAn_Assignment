@@ -1,521 +1,374 @@
 package com.example.d1_jetpackcompose.ui.screens
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Paint
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.d1_jetpackcompose.R
-import com.example.d1_jetpackcompose.ui.components.TimeProgressButtons
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
-import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
-import com.example.d1_jetpackcompose.ui.theme.smartFitShape
-import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 
-class ActivityLogActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            SmartFitTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    ActivityLog()
-                }
-            }
-        }
+// --- THEME SETUP ---
+private val ResetRed = Color(0xFF8D3B3B) // Merah Bata
+private val HistoryCardGray = Color(0xFFE8E8E8)
+
+// --- MODIFIER CUSTOM SHADOW (FIXED STROKE) ---
+fun Modifier.customDropShadowActivity(
+    color: Color = Color.Black.copy(alpha = 0.2f),
+    borderRadius: Dp = 24.dp,
+    blurRadius: Dp = 8.dp,
+    offsetY: Dp = 4.dp
+) = this.drawBehind {
+    this.drawIntoCanvas { canvas ->
+        val paint = Paint()
+        val frameworkPaint = paint.asFrameworkPaint()
+
+        // PERBAIKAN: Set warna transparan agar tidak muncul stroke di pinggir card
+        frameworkPaint.color = android.graphics.Color.TRANSPARENT
+        frameworkPaint.style = android.graphics.Paint.Style.FILL
+
+        frameworkPaint.setShadowLayer(
+            blurRadius.toPx(),
+            0f,
+            offsetY.toPx(),
+            color.toArgb()
+        )
+
+        val outline = RoundedCornerShape(borderRadius).createOutline(size, layoutDirection, this)
+        canvas.drawOutline(outline = outline, paint = paint)
     }
 }
 
 @Composable
-fun ActivityLog(modifier: Modifier = Modifier) {
-    val gradientDarkMode = Brush.verticalGradient(
-        colors = listOf(Color.Black, MaterialTheme.colorScheme.onSurface),
-    )
-    val gradientLightMode = Brush.verticalGradient(
-        colors = listOf(Color.White, MaterialTheme.colorScheme.onSurface),
-    )
-
-    Box(
+fun ActivityLogScreen() {
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(brush = gradientDarkMode)
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp)
+            .padding(top = 36.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Image(
-            painter = painterResource(R.drawable.darkmode_background),
-            contentDescription = "Background Overlay",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop,
-            alpha = 0.30f
-        )
-        Column(
+        Column (
             modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
-                .padding(top = 30.dp),
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // 1. Header
+            Text(
+                text = "Your Activities",
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                fontSize = 32.sp,
+            )
 
-            Column (
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.Start
-            ) {
-                Text(
-                    text = "Activity Log",
-                    fontSize = 40.sp,
-                    fontFamily = robotoFontFamily,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            Text(
+                text = "You can choose either edit or add new activity",
+                color = Color.Gray,
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                textAlign = TextAlign.Center,
+            )
 
-            Spacer(modifier = Modifier.size(20.dp))
+        }
 
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                TimeProgressButtons(modifier = Modifier)
-            }
+        Spacer(modifier = Modifier.size(24.dp))
+        // 2. Top Buttons
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TopActionCard(
+                title = "Add Exercise",
+                subtitle = "Running or Walking",
+                modifier = Modifier.weight(1f)
+            )
+            TopActionCard(
+                title = "Add Food",
+                subtitle = "Input meals and calories",
+                modifier = Modifier.weight(1f)
+            )
+        }
 
-            Spacer(modifier = Modifier.size(20.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-            Column(
+        // 3. Section Title & Tabs
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "History Activities",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            // Tab Switcher
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.8f)
+                    .height(50.dp)
+                    .clip(RoundedCornerShape(25.dp))
+                    .background(Color.White)
             ) {
-                Card(
-                    shape = smartFitShape(30.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = colorStartDark.copy(alpha = 0.6f),
-                        contentColor = colorEnd
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
-                ) {
-                    Column(
+                Row(modifier = Modifier.fillMaxSize()) {
+                    Box(
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .weight(1f)
                             .fillMaxHeight()
-                            .padding(horizontal = 15.dp)
-                            .padding(vertical = 10.dp)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(25.dp))
+                            .background(MaterialTheme.colorScheme.primary),
+                        contentAlignment = Alignment.Center
                     ) {
-                        // column untuk bottom border
-                        Column(
-                            modifier = Modifier
-                                .drawBehind {
-                                    val strokeWidth =
-                                        1.dp.toPx() // Ketebalan garis
-                                    val y =
-                                        size.height - (strokeWidth / 2) // Posisi Y di bagian paling bawah
-
-                                    // Gambar garis dari kiri ke kanan di posisi Y tersebut
-                                    drawLine(
-                                        color = colorEnd, // Anda bisa gunakan warna dari theme Anda
-                                        start = Offset(
-                                            0f,
-                                            y
-                                        ),
-                                        end = Offset(
-                                            size.width,
-                                            y
-                                        ),
-                                        strokeWidth = strokeWidth
-                                    )
-                                }
-                        ) {
-                            // row untuk judul dan button atas
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .fillMaxHeight(0.12f)
-                                    .padding(bottom = 5.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Your Activity",
-                                    fontSize = 24.sp,
-                                    fontFamily = robotoFontFamily,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-
-                                Row {
-                                    ButtonActivityLog(
-                                        onAddClicked = {},
-                                        onEditClicked = {},
-                                        modifier = Modifier
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.size(25.dp))
-                        // column untuk data log
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight()
-                        ) {
-                            // Column pembungkus border bawah
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .drawBehind {
-                                        val strokeWidth =
-                                            2.dp.toPx() // Ketebalan garis
-                                        val y =
-                                            size.height - (strokeWidth / 2) // Posisi Y di bagian paling bawah
-
-                                        // Gambar garis dari kiri ke kanan di posisi Y tersebut
-                                        drawLine(
-                                            color = colorEnd, // Anda bisa gunakan warna dari theme Anda
-                                            start = Offset(
-                                                0f,
-                                                y
-                                            ),
-                                            end = Offset(
-                                                size.width,
-                                                y
-                                            ),
-                                            strokeWidth = strokeWidth
-                                        )
-                                    }
-                            ) {
-                                // row untuk isi log dan bin icon
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(40.dp)
-                                        .padding(bottom = 5.dp)
-
-                                ) {
-                                    ActivityLogItemCard(
-                                        logTitle = "Today's morning run",
-                                        onLogClicked = {},
-                                        onDeleteClicked = {},
-                                        modifier = Modifier
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.size(10.dp))
-
-                            // Column pembungkus border bawah
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .drawBehind {
-                                        val strokeWidth =
-                                            2.dp.toPx() // Ketebalan garis
-                                        val y =
-                                            size.height - (strokeWidth / 2) // Posisi Y di bagian paling bawah
-
-                                        // Gambar garis dari kiri ke kanan di posisi Y tersebut
-                                        drawLine(
-                                            color = colorEnd, // Anda bisa gunakan warna dari theme Anda
-                                            start = Offset(
-                                                0f,
-                                                y
-                                            ),
-                                            end = Offset(
-                                                size.width,
-                                                y
-                                            ),
-                                            strokeWidth = strokeWidth
-                                        )
-                                    }
-                            ) {
-                                // row untuk isi log dan bin icon
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(40.dp)
-                                        .padding(bottom = 5.dp)
-
-                                ) {
-                                    ActivityLogItemCard(
-                                        logTitle = "Today's morning run",
-                                        onLogClicked = {},
-                                        onDeleteClicked = {},
-                                        modifier = Modifier
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.size(10.dp))
-                            // Column pembungkus border bawah
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .drawBehind {
-                                        val strokeWidth =
-                                            2.dp.toPx() // Ketebalan garis
-                                        val y =
-                                            size.height - (strokeWidth / 2) // Posisi Y di bagian paling bawah
-
-                                        // Gambar garis dari kiri ke kanan di posisi Y tersebut
-                                        drawLine(
-                                            color = colorEnd, // Anda bisa gunakan warna dari theme Anda
-                                            start = Offset(
-                                                0f,
-                                                y
-                                            ),
-                                            end = Offset(
-                                                size.width,
-                                                y
-                                            ),
-                                            strokeWidth = strokeWidth
-                                        )
-                                    }
-                            ) {
-                                // row untuk isi log dan bin icon
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(40.dp)
-                                        .padding(bottom = 5.dp)
-
-                                ) {
-                                    ActivityLogItemCard(
-                                        logTitle = "Today's morning run",
-                                        onLogClicked = {},
-                                        onDeleteClicked = {},
-                                        modifier = Modifier
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.size(10.dp))
-
-                            // Column pembungkus border bawah
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .drawBehind {
-                                        val strokeWidth =
-                                            2.dp.toPx() // Ketebalan garis
-                                        val y =
-                                            size.height - (strokeWidth / 2) // Posisi Y di bagian paling bawah
-
-                                        // Gambar garis dari kiri ke kanan di posisi Y tersebut
-                                        drawLine(
-                                            color = colorEnd, // Anda bisa gunakan warna dari theme Anda
-                                            start = Offset(
-                                                0f,
-                                                y
-                                            ),
-                                            end = Offset(
-                                                size.width,
-                                                y
-                                            ),
-                                            strokeWidth = strokeWidth
-                                        )
-                                    }
-                            ) {
-                                // row untuk isi log dan bin icon
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(40.dp)
-                                        .padding(bottom = 5.dp)
-
-                                ) {
-                                    ActivityLogItemCard(
-                                        logTitle = "Today's morning run",
-                                        onLogClicked = {},
-                                        onDeleteClicked = {},
-                                        modifier = Modifier
-                                    )
-                                }
-                            }
-                        }
+                        Text("Daily", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Weekly", color = Color.Gray, fontWeight = FontWeight.Medium)
                     }
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // 4. Main Content (Menu & List)
+        Card(
+            shape = RoundedCornerShape(32.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(vertical = 25.dp)
+                    .padding(horizontal = 15.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    HistoryItem(
+                        title = "Lawar Plek",
+                        subtitle = "Des 18, 20.00 | 80 cal intake"
+                    )
+                    HistoryItem(
+                        title = "Walking",
+                        subtitle = "Des 18, 20.00 | 80 cal intake"
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+// --- COMPONENTS ---
+
+@Composable
+fun TopActionCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    subtitle: String,
+    iconRes: Int? = null
+) {
+    // Menggunakan Box + background agar custom shadow lebih presisi daripada Card
+    Box(
+        modifier = modifier
+            .aspectRatio(1f)
+            .customDropShadowActivity(
+                color = Color.Black.copy(alpha = 0.15f),
+                borderRadius = 32.dp,
+                blurRadius = 5.dp,
+                offsetY = 6.dp
+            )
+            .background(Color.White, RoundedCornerShape(32.dp))
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+                fontSize = 11.sp,
+                textAlign = TextAlign.Center,
+                lineHeight = 14.sp
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Box(
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurface),
+                contentAlignment = Alignment.Center
+            ) {
+                if (iconRes != null) {
+                    Image(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = title,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-fun ButtonActivityLog(
-    onAddClicked: () -> Unit,
-    onEditClicked: () -> Unit,
-    modifier: Modifier = Modifier
+fun MenuButton(
+    text: String,
+    backgroundColor: Color,
+    leftIconRes: Int? = null,
+    rightIconRes: Int? = null
 ) {
-    // Definisikan ukuran radius yang akan kita gunakan
-    val fullRadius = 30.dp // Untuk sudut luar
-    val smallRadius =
-        10.dp // Untuk sudut dalam (agar terlihat menyatu, tapi tetap ada sedikit pemisah)
-
-    // 💡 SHAPE CUSTOM ASIMETRIS
-    // Tombol Kiri (Add): Penuh di Kiri, Kecil di Kanan
-    val LeftPillShape = RoundedCornerShape(
-        topStart = fullRadius,
-        bottomStart = fullRadius,
-        topEnd = smallRadius,
-        bottomEnd = smallRadius
-    )
-
-    // Tombol Kanan (Edit): Kecil di Kiri, Penuh di Kanan
-    val RightPillShape = RoundedCornerShape(
-        topStart = smallRadius,
-        bottomStart = smallRadius,
-        topEnd = fullRadius,
-        bottomEnd = fullRadius
-    )
-
-    // ... (Definisi warna lainnya)
-    val customGreen = MaterialTheme.colorScheme.onSurface
-    val lightContainer = SmartFitColors.SecondaryWhite
-
-
-    // GROUP BUTTONS
-    Row(verticalAlignment = Alignment.CenterVertically) {
-
-        // TOMBOL 1: ADD (Menggunakan LeftPillShape)
-        Button(
-            onClick = onAddClicked,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = lightContainer,
-                contentColor = customGreen // Warna teks hijau
-            ),
-            modifier = Modifier.width(66.dp),
-            shape = LeftPillShape, // <-- Shape Kustom Kiri!
-            // Hilangkan padding bawaan agar tombol terlihat berdempetan
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+    Button(
+        onClick = { /* TODO */ },
+        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
+        shape = RoundedCornerShape(50),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp),
+        contentPadding = PaddingValues(horizontal = 20.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text("Add")
-        }
-
-        // 💡 PENTING: Gunakan SPACER sangat kecil atau jangan gunakan sama sekali
-        // untuk membuat ilusi penyatuan seperti di gambar
-        Spacer(modifier = Modifier.width(5.dp))
-
-        // TOMBOL 2: EDIT (Menggunakan RightPillShape)
-        Button(
-            onClick = onEditClicked,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = customGreen,
-                contentColor = Color.White
-            ),
-            modifier = Modifier.width(66.dp),
-            shape = RightPillShape, // <-- Shape Kustom Kanan!
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Text("Edit")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (leftIconRes != null) {
+                    Image(
+                        painter = painterResource(id = leftIconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
+                    )
+                }
+                Text(
+                    text = text,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Color.White
+                )
+            }
+            if (rightIconRes != null) {
+                Image(
+                    painter = painterResource(id = rightIconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
         }
     }
 }
 
 @Composable
-fun ActivityLogItemCard(
-    logTitle: String,
-    onLogClicked: () -> Unit, // Handler untuk klik di area log (Button)
-    onDeleteClicked: () -> Unit, // Handler untuk klik di ikon Delete (Icon)
-    modifier: Modifier = Modifier
+fun HistoryItem(
+    title: String,
+    subtitle: String,
+    iconRes: Int? = null
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .customDropShadowActivity(
+                color = Color.Black.copy(alpha = 0.15f),
+                borderRadius = 24.dp, // Sesuai dengan shape background
+                blurRadius = 5.dp,
+                offsetY = 6.dp
+            )
+            .background(HistoryCardGray, RoundedCornerShape(24.dp))
     ) {
         Row(
             modifier = Modifier
+                .padding(12.dp)
+                .padding(horizontal = 8.dp)
                 .fillMaxWidth(),
-            // Hanya berikan padding horizontal
-            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Button(
-                onClick = onLogClicked,
+            Box(
                 modifier = Modifier
-                    .height(45.dp)
-                    .fillMaxWidth(0.9f),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface, // Hapus warna background Button
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(25)
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurface),
+                contentAlignment = Alignment.Center
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    Text(
-                        text = logTitle,
-                        fontFamily = robotoFontFamily,
-                        fontWeight = FontWeight.Normal,
-                        fontSize = 16.sp
+                if (iconRes != null) {
+                    Image(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = title,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
 
-            Image(
-                painter = painterResource(R.drawable.delete_logo),
-                contentDescription = "Delete Icon",
-                modifier = Modifier
-                    .size(24.dp),
-                colorFilter = ColorFilter.tint(
-                    color = Color.Red, // Warna yang kamu inginkan
-                    blendMode = BlendMode.SrcIn // Cara warna diaplikasikan (SrcIn adalah yang paling umum untuk ikon)
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 16.sp
                 )
-            )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    fontSize = 12.sp
+                )
+            }
         }
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun ActivityLogPreview() {
+fun PreviewActivityLogRevisi() {
     SmartFitTheme {
-//        ActivityLogItemCard(
-//            logTitle = "Running",
-//            onLogClicked = {},
-//            onDeleteClicked = {},
-//            modifier = Modifier
-//        )
-//        ButtonActivityLog(
-//            onAddClicked = {},
-//            onEditClicked = {},
-//            modifier = Modifier
-//        )
-        ActivityLog()
+        ActivityLogScreen()
     }
 }

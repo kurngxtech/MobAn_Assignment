@@ -30,7 +30,7 @@ fun MainScreen() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 80.dp) // Jarak aman agar konten berhenti sebelum Navbar
+                .padding(bottom = 90.dp) // Jarak aman agar konten berhenti sebelum Navbar
         ) {
             AppNavHost(
                 navController = navController,

@@ -129,7 +129,13 @@ fun DashboardScreen() {
 
 // 2. KOMPONEN DAILY SUMMARY (Gunakan ini untuk memperbaiki "Parameter never used")
 @Composable
-fun DailySummaryGrid(cardColor: Color, distance: String, intake: String, time: String, burned: String) {
+fun DailySummaryGrid(
+    cardColor: Color,
+    distance: String,
+    intake: String,
+    time: String,
+    burned: String
+) {
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
@@ -138,7 +144,7 @@ fun DailySummaryGrid(cardColor: Color, distance: String, intake: String, time: S
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text("Daily Summary", fontWeight = FontWeight.Bold, color = Color(0xFF3E4E35))
+            Text("Daily Summary", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -172,7 +178,7 @@ fun SummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
             text = value,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF3E4E35)
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -192,9 +198,35 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Daily Goal", fontWeight = FontWeight.Medium)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.daily_goal_icon),
+                        contentDescription = "daily goal icon",
+                        modifier = Modifier
+                            .size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("Daily Goal", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
+                }
                 Spacer(modifier = Modifier.height(15.dp))
-                Text(text = "$current / $total", fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = "$current",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = " / $total",
+                        fontSize = 18.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
             }
 
             Box(contentAlignment = Alignment.Center) {
@@ -207,7 +239,7 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
                     trackColor = Color(0xFFE0E0E0),
                     strokeCap = StrokeCap.Round
                 )
-                Text("0 %", fontWeight = FontWeight.Bold, color = Color.Gray)
+                Text("0 %", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }
@@ -241,7 +273,7 @@ fun HeaderProfileSection(name: String) {
                 text = "Hi $name !",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF3E4E35) // Warna hijau gelap sesuai referensi
+                color = MaterialTheme.colorScheme.onSurface // Warna hijau gelap sesuai referensi
             )
             Text(
                 text = "Let's start your journey today",
@@ -261,42 +293,34 @@ fun PeriodSelector(activeColor: Color, inactiveColor: Color) {
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(40.dp) // Tinggi fix sesuai visual
+            .height(50.dp) // Tinggi fix sesuai visual
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(25.dp))
+                .background(Color.White)
         ) {
-            // Tombol Kiri (Active: Daily Summary)
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .background(activeColor), // Warna Hijau Aktif
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Daily Summary",
-                    color = Color.White, // Teks Putih karena background hijau
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp
-                )
-            }
-
-            // Tombol Kanan (Inactive: Weekly Summary)
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .background(Color.Transparent), // Transparan/Putih
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Weekly Summary",
-                    color = Color(0xFF3E4E35), // Warna teks hijau tua/gelap
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp
-                )
+            Row(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(25.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Daily", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Weekly", color = Color.Gray, fontWeight = FontWeight.Medium)
+                }
             }
         }
     }
@@ -305,57 +329,55 @@ fun PeriodSelector(activeColor: Color, inactiveColor: Color) {
 @Composable
 fun CategoryFilterSelector(activeColor: Color, inactiveColor: Color) {
     Card(
-        shape = RoundedCornerShape(50), // Bentuk Pill
+        shape = RoundedCornerShape(50), // Bentuk Pill/Capsule penuh
         colors = CardDefaults.cardColors(
             containerColor = inactiveColor // Gunakan parameter di sini
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(40.dp)
+            .height(50.dp) // Tinggi fix sesuai visual
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(25.dp))
+                .background(Color.White)
         ) {
-            // Option 1: All (Active)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .background(activeColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("All", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 13.sp)
-            }
+            Row(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(25.dp))
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Daily", color = Color.White, fontWeight = FontWeight.Bold)
+                }
 
-            // Option 2: Exercise (Inactive)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "Exercise",
-                    color = Color(0xFF3E4E35),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 13.sp
-                )
-            }
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Weekly", color = Color.Gray, fontWeight = FontWeight.Medium)
+                }
 
-            // Option 3: Foods (Inactive)
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "Foods",
-                    color = Color(0xFF3E4E35),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 13.sp
-                )
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "Foods",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 13.sp
+                    )
+                }
             }
         }
     }
@@ -390,7 +412,7 @@ fun HistorySectionEmptyState(cardColor: Color) {
                         text = "History Activities",
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF3E4E35)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
                         text = "View Detail",
@@ -473,7 +495,8 @@ fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
                         Text(
                             text = "Online Tips",
                             fontFamily = robotoFontFamily,
-                            fontSize = 24.sp
+                            fontSize = 24.sp,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Image(

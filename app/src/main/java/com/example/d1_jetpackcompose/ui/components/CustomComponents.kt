@@ -44,8 +44,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
-import com.example.d1_jetpackcompose.ui.screens.colorEnd
-import com.example.d1_jetpackcompose.ui.screens.colorStartDark
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors
 import com.example.d1_jetpackcompose.ui.theme.buttonLoginStyle
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
