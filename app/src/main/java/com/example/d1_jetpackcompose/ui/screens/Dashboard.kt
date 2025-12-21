@@ -71,6 +71,7 @@ fun DashboardScreen() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(20.dp)
+            .padding(top = 40.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Header Profile
@@ -250,7 +251,7 @@ fun HeaderProfileSection(name: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 48.dp, bottom = 16.dp) // Beri jarak dari Status Bar
+            .padding(bottom = 16.dp) // Beri jarak dari Status Bar
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

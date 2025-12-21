@@ -60,7 +60,7 @@ fun ExercisePage() {
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 24.dp, vertical = 32.dp)
-            .padding(top = 50.dp),
+            .padding(top = 36.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // 1. MAIN STATS CARD

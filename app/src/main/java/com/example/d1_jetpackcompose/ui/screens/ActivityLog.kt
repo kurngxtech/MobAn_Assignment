@@ -1,8 +1,13 @@
 package com.example.d1_jetpackcompose.ui.screens
 
+import android.R.attr.onClick
+import android.net.http.SslCertificate.restoreState
+import android.net.http.SslCertificate.saveState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,10 +31,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.R
+import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 
 // --- THEME SETUP ---
-private val ResetRed = Color(0xFF8D3B3B) // Merah Bata
 private val HistoryCardGray = Color(0xFFE8E8E8)
 
 // --- MODIFIER CUSTOM SHADOW (FIXED STROKE) ---
@@ -60,22 +68,21 @@ fun Modifier.customDropShadowActivity(
 }
 
 @Composable
-fun ActivityLogScreen() {
+fun ActivityLogScreen(navController: NavController) {
+    // 1. HAPUS verticalScroll di root Column agar page tidak ikut bergeser
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState())
             .padding(24.dp)
             .padding(top = 36.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column (
-            modifier = Modifier
-                .fillMaxWidth(),
+        // --- HEADER (Static) ---
+        Column(
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. Header
             Text(
                 text = "Your Activities",
                 style = MaterialTheme.typography.headlineLarge,
@@ -83,7 +90,6 @@ fun ActivityLogScreen() {
                 fontWeight = FontWeight.Bold,
                 fontSize = 32.sp,
             )
-
             Text(
                 text = "You can choose either edit or add new activity",
                 color = Color.Gray,
@@ -91,11 +97,11 @@ fun ActivityLogScreen() {
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center,
             )
-
         }
 
         Spacer(modifier = Modifier.size(24.dp))
-        // 2. Top Buttons
+
+        // --- TOP CARDS (Static) ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -103,18 +109,32 @@ fun ActivityLogScreen() {
             TopActionCard(
                 title = "Add Exercise",
                 subtitle = "Running or Walking",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    navController.navigate(AppRoutes.EXERCISE) {
+                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        restoreState = true
+                    }
+                }
             )
             TopActionCard(
                 title = "Add Food",
                 subtitle = "Input meals and calories",
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                onClick = {
+                    navController.navigate(AppRoutes.FOOD) {
+                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        restoreState = true
+                    }
+                }
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 3. Section Title & Tabs
+        // --- SECTION TITLE & TABS (Static) ---
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = "History Activities",
@@ -125,7 +145,6 @@ fun ActivityLogScreen() {
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            // Tab Switcher
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -159,32 +178,38 @@ fun ActivityLogScreen() {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 4. Main Content (Menu & List)
+        // --- 4. MAIN CONTENT CARD (Fixed Height & Internal Scroll) ---
+        // --- 4. Main Content (Daftar History dengan Pembatas Statis) ---
         Card(
             shape = RoundedCornerShape(32.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp) // Card tetap diam pada ketinggian ini
         ) {
+            // --- PEMBATAS STATIS (Warna Putih mengikuti Card) ---
             Column(
                 modifier = Modifier
-                    .padding(vertical = 25.dp)
-                    .padding(horizontal = 15.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .fillMaxSize()
+                    .padding(top = 20.dp, bottom = 20.dp), // Area "Pembatas" Atas & Bawah
             ) {
-
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    HistoryItem(
-                        title = "Lawar Plek",
-                        subtitle = "Des 18, 20.00 | 80 cal intake"
-                    )
-                    HistoryItem(
-                        title = "Walking",
-                        subtitle = "Des 18, 20.00 | 80 cal intake"
-                    )
+                // --- AREA KONTEN (Hanya bagian ini yang scrollable) ---
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Masukkan daftar HistoryItem kamu di sini
+                    HistoryItem(title = "Lawar Plek", subtitle = "Des 18, 20.00 | 80 cal intake")
+                    HistoryItem(title = "Walking", subtitle = "Des 18, 20.00 | 80 cal intake")
+                    HistoryItem(title = "Walking", subtitle = "Des 18, 20.00 | 80 cal intake")
+                    HistoryItem(title = "Walking", subtitle = "Des 18, 20.00 | 80 cal intake")
+                    HistoryItem(title = "Walking", subtitle = "Des 18, 20.00 | 80 cal intake")
                 }
             }
         }
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -195,11 +220,13 @@ fun TopActionCard(
     modifier: Modifier = Modifier,
     title: String,
     subtitle: String,
-    iconRes: Int? = null
+    iconRes: Int? = null,
+    onClick: () -> Unit
 ) {
     // Menggunakan Box + background agar custom shadow lebih presisi daripada Card
     Box(
         modifier = modifier
+            .clickable(onClick = onClick)
             .aspectRatio(1f)
             .customDropShadowActivity(
                 color = Color.Black.copy(alpha = 0.15f),
@@ -326,49 +353,64 @@ fun HistoryItem(
                 .padding(12.dp)
                 .padding(horizontal = 8.dp)
                 .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurface),
-                contentAlignment = Alignment.Center
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (iconRes != null) {
-                    Image(
-                        painter = painterResource(id = iconRes),
-                        contentDescription = title,
-                        modifier = Modifier.size(24.dp)
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.onSurface),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (iconRes != null) {
+                        Image(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = title,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.size(10.dp))
+
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        fontSize = 12.sp
                     )
                 }
+
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 16.sp
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                    fontSize = 12.sp
-                )
-            }
+            Image(
+                painter = painterResource(id = R.drawable.right_arrow_icon),
+                contentDescription = title,
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                modifier = Modifier
+                    .size(15.dp)
+                    .fillMaxWidth()
+            )
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 1920)
 @Composable
-fun PreviewActivityLogRevisi() {
+fun PreviewActivityLogRevision() {
     SmartFitTheme {
-        ActivityLogScreen()
+        ActivityLogScreen(navController = rememberNavController())
     }
 }

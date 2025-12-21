@@ -2,12 +2,17 @@ package com.example.d1_jetpackcompose.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.ui.screens.ActivityLogScreen
+import com.example.d1_jetpackcompose.ui.screens.AddExerciseScreen
+import com.example.d1_jetpackcompose.ui.screens.AddFoodScreen
 import com.example.d1_jetpackcompose.ui.screens.DashboardScreen
 import com.example.d1_jetpackcompose.ui.screens.WelcomePage
+import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 
 /**
  * Mendefinisikan rute (konstanta string) untuk setiap halaman dalam aplikasi.
@@ -18,8 +23,8 @@ object AppRoutes {
     const val DASHBOARD = "dashboard"
     const val ACTIVITY = "activity"
     const val PROFILE = "profile"
-    const val STEPS_COUNT = "steps_count"
-    const val DISTANCE_COUNT = "distance_count"
+    const val EXERCISE = "exercise"
+    const val FOOD = "food"
 }
 
 /**
@@ -46,10 +51,19 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier) 
         }
         // Mendefinisikan layar untuk rute "profile"
         composable(AppRoutes.ACTIVITY) {
-            ActivityLogScreen()
+            ActivityLogScreen(navController = navController)
+        }
+
+        composable(AppRoutes.EXERCISE) {
+            AddExerciseScreen(navController = navController)
+        }
+
+        composable(AppRoutes.FOOD) {
+            AddFoodScreen(navController = navController)
         }
         // Mendefinisikan layar untuk rute "profile"
         composable(AppRoutes.PROFILE) {
         }
     }
 }
+
