@@ -19,8 +19,7 @@ object SmartFitColors {
     val HistoryObjects = Color(0xFFECECEC)
     val TextColor = Color(0xFF4F6A4E)
     val LightCardColor = Color(0xFFFDFFFD)
-
-
+    val DeleteColor = Color(0xFF8E3838)
     val SecondaryWhite = Color(0xFFc9d4c9)
 
     // Kategori: Warna Status & Notifikasi

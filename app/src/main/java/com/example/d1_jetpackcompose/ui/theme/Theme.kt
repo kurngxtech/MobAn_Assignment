@@ -11,6 +11,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DeleteColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjects
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightBackground
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightCardColor
@@ -26,7 +27,7 @@ private val lightColorScheme = lightColorScheme(
     onBackground = LightCardColor,
     surface = HistoryObjects,
     onSurface = TextColor,
-
+    surfaceVariant = DeleteColor
 )
 
 private val darkColorScheme = darkColorScheme(
