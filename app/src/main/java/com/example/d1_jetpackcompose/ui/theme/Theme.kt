@@ -2,15 +2,17 @@
 
 package com.example.d1_jetpackcompose.ui.theme
 
+import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.material3.MaterialTheme // <-- Kontrak Google
-import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.Typography
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DeleteColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjects
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightBackground
@@ -18,7 +20,6 @@ import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightCardColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.SecondaryGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.TextColor
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 private val lightColorScheme = lightColorScheme(
     primary = LightGreen,
@@ -31,41 +32,47 @@ private val lightColorScheme = lightColorScheme(
 )
 
 private val darkColorScheme = darkColorScheme(
-    primary = Color(0xFF81C784), // Versi terang dari PrimaryGreen untuk latar belakang gelap
+    primary = Color(0xFF81C784),
     onPrimary = Color.Black,
     secondary = SecondaryGreen,
-    background = Color(0xFF121212), // Sangat gelap
+    background = Color(0xFF121212),
     surface = Color(0xFF1E1E1E),
     onSurface = Color.White
 )
 
 @Composable
 fun SmartFitTheme(
-    // Tentukan apakah sistem sedang menggunakan Dark Mode (Wajib untuk assignment)
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Content adalah Composable yang akan dibungkus (seluruh aplikasi)
     content: @Composable () -> Unit
 ) {
-    // 1. Pilih skema warna yang benar berdasarkan darkTheme
     val colorScheme = when {
         darkTheme -> darkColorScheme
         else -> lightColorScheme
     }
 
-    val systemUiController = rememberSystemUiController()
-    SideEffect {
-        systemUiController.setSystemBarsColor(
-            color = Color.Transparent,
-            darkIcons = !darkTheme
-        )
+    // The new way to control system bars
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            // Set the status bar color to transparent
+            window.statusBarColor = Color.Transparent.toArgb()
+            // Set the navigation bar color to transparent
+            window.navigationBarColor = Color.Transparent.toArgb()
+
+            // Set the content to appear behind the system bars
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+
+            // Set the system bar icons (clock, battery, etc.) to be dark or light
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
+        }
     }
 
-    // 2. Terapkan tema
     MaterialTheme(
-        colorScheme = colorScheme, // <-- Gunakan variabel colorScheme yang sudah dipilih
-        typography = SmartFitTypography, // dari Type.kt
+        colorScheme = colorScheme,
+        typography = SmartFitTypography,
         content = content
     )
 }
-
-
+    

@@ -25,15 +25,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.d1_jetpackcompose.R
 import androidx.navigation.compose.rememberNavController
-import com.example.d1_jetpackcompose.R // Pastikan import R sesuai package-mu
+import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
 
 // import com.example.d1_jetpackcompose.navigation.AppRoutes // Uncomment jika AppRoutes ada di file terpisah
-
 @Composable
-fun AddFoodScreen(navController: NavController) {
+fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
     // State untuk form input
     var foodName by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") } // Breakfast, Lunch, Dinner, Snacks
@@ -181,21 +182,21 @@ fun AddFoodScreen(navController: NavController) {
 
         // --- 4. BOTTOM BUTTON ---
         Button(
-            onClick = { /* TODO: Save Food Action */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(45.dp),
+            onClick = {
+                if (foodName.isNotEmpty()) {
+                    viewModel.addActivity(
+                        title = foodName,
+                        type = ActivityType.FOOD,
+                        calories = totalCalories.toIntOrNull() ?: 0
+                    )
+                    navController.popBackStack()
+                }
+            },
+            modifier = Modifier.fillMaxWidth().height(45.dp),
             shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary // Hijau Muda/Primary
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text(
-                text = "Add Meal",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Text("Add Meal", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -269,10 +270,10 @@ fun CategoryRadioButtonFood(
     }
 }
 
-@Preview(showBackground = true, heightDp = 1000)
-@Composable
-fun PreviewAddFood() {
-    SmartFitTheme {
-        AddFoodScreen(navController = rememberNavController())
-    }
-}
+//@Preview(showBackground = true, heightDp = 1000)
+//@Composable
+//fun PreviewAddFood() {
+//    SmartFitTheme {
+//        AddFoodScreen(navController = rememberNavController())
+//    }
+//}

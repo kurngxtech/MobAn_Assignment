@@ -1,8 +1,5 @@
 package com.example.d1_jetpackcompose.ui.screens
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,45 +23,38 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.R
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
+import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
 
-class DashboardActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            SmartFitTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    DashboardScreen()
-                }
-            }
-        }
-    }
-}
+
+private val HistoryCardGray = Color(0xFFE8E8E8)
 
 @Composable
 // 1. FUNGSI HALAMAN UTAMA
-fun DashboardScreen() {
+fun DashboardScreen(navController: NavController, // Butuh NavController untuk klik detail
+                    viewModel: SharedViewModel) {
 
+    val stats by viewModel.dashboardStats.collectAsState()
     // Main Container
     Column(
         modifier = Modifier
@@ -82,7 +72,7 @@ fun DashboardScreen() {
         // 2. Daily Goal Card (Zero State)
         DailyGoalCard(
             cardColor = MaterialTheme.colorScheme.onBackground,
-            current = 0,
+            current = stats.totalCaloriesBurned,
             total = 10000,
             color = MaterialTheme.colorScheme.primary
         )
@@ -100,10 +90,10 @@ fun DashboardScreen() {
         // 4. Summary Grid (Zero State)
         DailySummaryGrid(
             cardColor = MaterialTheme.colorScheme.onBackground,
-            distance = "0 km",
-            intake = "0 kcal",
-            time = "0 min",
-            burned = "0 kcal"
+            distance = "${stats.totalDistance} km",
+            intake = "${stats.totalCaloriesIntake} kcal",
+            time = "${stats.totalDuration} min",
+            burned = "${stats.totalCaloriesBurned} kcal"
         )
 
         Spacer(modifier = Modifier.height(25.dp))
@@ -117,7 +107,37 @@ fun DashboardScreen() {
         Spacer(modifier = Modifier.height(10.dp))
 
         // 6. History Section (Empty/Zero State)
-        HistorySectionEmptyState(cardColor = MaterialTheme.colorScheme.onBackground)
+        if (stats.recentActivities.isEmpty()) {
+            HistorySectionEmptyState(MaterialTheme.colorScheme.onBackground)
+        } else {
+            // Gunakan Column agar item tersusun rapi ke bawah dengan jarak
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp) // Jarak antar kartu
+            ) {
+                // Loop setiap data activity yang ada di list
+                stats.recentActivities.forEach { activity ->
+
+                    // 1. Tentukan Icon berdasarkan Tipe (Food/Exercise)
+                    // Pastikan kamu punya drawable yang sesuai, contoh: R.drawable.walk_icon
+                    val icon = if (activity.type == ActivityType.FOOD) {
+                        R.drawable.add_food_icon // Ganti dengan ID icon makanan kamu
+                    } else {
+                        R.drawable.walk_icon // Ganti dengan ID icon olahraga kamu
+                    }
+
+                    // 2. Tentukan Subtitle Dinamis (Contoh: "80 kcal | Intake")
+                    val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
+                    val subtitleText = "${activity.calories} kcal | $typeLabel"
+
+                    // 3. Panggil Komponen UI dengan Data Dinamis
+                    HistoryItem(
+                        title = activity.title,
+                        subtitle = subtitleText,
+                        iconRes = icon
+                    )
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(25.dp))
 
@@ -520,14 +540,90 @@ fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
     }
 }
 
-@Preview(
-    showBackground = true,
-    name = "Scrollable Profile",
-    heightDp = 1000
-)
 @Composable
-private fun DashboardScreenPrev() {
-    SmartFitTheme {
-        DashboardScreen()
+fun HistoryItemDashboard(
+    title: String,
+    subtitle: String,
+    iconRes: Int? = null
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .customDropShadowActivity(
+                color = Color.Black.copy(alpha = 0.15f),
+                borderRadius = 24.dp, // Sesuai dengan shape background
+                blurRadius = 5.dp,
+                offsetY = 6.dp
+            )
+            .background(HistoryCardGray, RoundedCornerShape(24.dp))
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.onSurface),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (iconRes != null) {
+                        Image(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = title,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.size(10.dp))
+
+                Column {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        fontSize = 12.sp
+                    )
+                }
+
+            }
+
+            Image(
+                painter = painterResource(id = R.drawable.right_arrow_icon),
+                contentDescription = title,
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                modifier = Modifier
+                    .size(15.dp)
+                    .fillMaxWidth()
+            )
+        }
     }
 }
+
+//@Preview(
+//    showBackground = true,
+//    name = "Scrollable Profile",
+//    heightDp = 1000
+//)
+//@Composable
+//private fun DashboardScreenPrev() {
+//    SmartFitTheme {
+//        DashboardScreen()
+//    }
+//}

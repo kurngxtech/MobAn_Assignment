@@ -1,7 +1,5 @@
 package com.example.d1_jetpackcompose.ui.screens
 
-import android.net.http.SslCertificate.restoreState
-import android.net.http.SslCertificate.saveState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,16 +24,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.R
+import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
+import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
 
 
 // Tambahkan parameter navController agar navigasi bisa jalan
 @Composable
-fun AddExerciseScreen(navController: NavController) {
+fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) {
     // State untuk form input
     var exerciseName by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") }
@@ -203,21 +204,24 @@ fun AddExerciseScreen(navController: NavController) {
 
         // 3. Bottom Button
         Button(
-            onClick = { /* TODO: Save Action */ },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(45.dp),
+            onClick = {
+                if (exerciseName.isNotEmpty()) {
+                    viewModel.addActivity(
+                        title = exerciseName,
+                        type = ActivityType.EXERCISE,
+                        calories = caloriesBurned.toIntOrNull() ?: 0,
+                        distance = distance.toDoubleOrNull() ?: 0.0,
+                        duration = duration.toIntOrNull() ?: 0
+                    )
+                    // Navigasi Balik -> Data Otomatis Muncul di Log & Dashboard
+                    navController.popBackStack()
+                }
+            },
+            modifier = Modifier.fillMaxWidth().height(45.dp),
             shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text(
-                text = "Add Activity",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+            Text("Add Activity", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -298,10 +302,10 @@ fun CategoryRadioButton(
     }
 }
 
-@Preview(showBackground = true, heightDp = 1000)
-@Composable
-fun PreviewAddExercise() {
-    SmartFitTheme {
-        AddExerciseScreen(navController = rememberNavController())
-    }
-}
+//@Preview(showBackground = true, heightDp = 1000)
+//@Composable
+//fun PreviewAddExercise() {
+//    SmartFitTheme {
+//        AddExerciseScreen(navController = rememberNavController(), viewModel = SharedViewModel())
+//    }
+//}

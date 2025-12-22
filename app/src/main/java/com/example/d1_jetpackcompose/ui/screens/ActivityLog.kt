@@ -1,19 +1,17 @@
 package com.example.d1_jetpackcompose.ui.screens
 
-import android.R.attr.onClick
-import android.net.http.SslCertificate.restoreState
-import android.net.http.SslCertificate.saveState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,16 +29,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.R
+import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
+import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 // --- THEME SETUP ---
 private val HistoryCardGray = Color(0xFFE8E8E8)
 
-// --- MODIFIER CUSTOM SHADOW (FIXED STROKE) ---
+// --- MODIFIER CUSTOM SHADOW ---
 fun Modifier.customDropShadowActivity(
     color: Color = Color.Black.copy(alpha = 0.2f),
     borderRadius: Dp = 24.dp,
@@ -50,26 +54,27 @@ fun Modifier.customDropShadowActivity(
     this.drawIntoCanvas { canvas ->
         val paint = Paint()
         val frameworkPaint = paint.asFrameworkPaint()
-
-        // PERBAIKAN: Set warna transparan agar tidak muncul stroke di pinggir card
         frameworkPaint.color = android.graphics.Color.TRANSPARENT
         frameworkPaint.style = android.graphics.Paint.Style.FILL
-
         frameworkPaint.setShadowLayer(
             blurRadius.toPx(),
             0f,
             offsetY.toPx(),
             color.toArgb()
         )
-
         val outline = RoundedCornerShape(borderRadius).createOutline(size, layoutDirection, this)
         canvas.drawOutline(outline = outline, paint = paint)
     }
 }
 
 @Composable
-fun ActivityLogScreen(navController: NavController) {
-    // 1. HAPUS verticalScroll di root Column agar page tidak ikut bergeser
+fun ActivityLogScreen(
+    navController: NavController,
+    viewModel: SharedViewModel // Tambahkan ViewModel sebagai parameter
+) {
+    // 💡 1. OBSERVE DATA DARI DATABASE
+    val activityList by viewModel.allActivities.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -78,7 +83,7 @@ fun ActivityLogScreen(navController: NavController) {
             .padding(top = 36.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // --- HEADER (Static) ---
+        // --- HEADER ---
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -101,7 +106,7 @@ fun ActivityLogScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        // --- TOP CARDS (Static) ---
+        // --- TOP CARDS ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -110,31 +115,21 @@ fun ActivityLogScreen(navController: NavController) {
                 title = "Add Exercise",
                 subtitle = "Running or Walking",
                 modifier = Modifier.weight(1f),
-                onClick = {
-                    navController.navigate(AppRoutes.EXERCISE) {
-                        launchSingleTop = true
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        restoreState = true
-                    }
-                }
+                iconRes = R.drawable.walk_icon,
+                onClick = { navController.navigate(AppRoutes.EXERCISE) }
             )
             TopActionCard(
                 title = "Add Food",
                 subtitle = "Input meals and calories",
                 modifier = Modifier.weight(1f),
-                onClick = {
-                    navController.navigate(AppRoutes.FOOD) {
-                        launchSingleTop = true
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
-                        restoreState = true
-                    }
-                }
+                iconRes = R.drawable.add_food_icon,
+                onClick = { navController.navigate(AppRoutes.FOOD) }
             )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SECTION TITLE & TABS (Static) ---
+        // --- SECTION TITLE & TABS ---
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = "History Activities",
@@ -164,12 +159,9 @@ fun ActivityLogScreen(navController: NavController) {
                     ) {
                         Text("Daily", color = Color.White, fontWeight = FontWeight.Bold)
                     }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(), contentAlignment = Alignment.Center) {
                         Text("Weekly", color = Color.Gray, fontWeight = FontWeight.Medium)
                     }
                 }
@@ -178,22 +170,19 @@ fun ActivityLogScreen(navController: NavController) {
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- 4. MAIN CONTENT CARD (Fixed Height & Internal Scroll) ---
-        // --- 4. Main Content (Daftar History dengan Pembatas Statis) ---
+        // --- 💡 2. MAIN CONTENT CARD (DYNAMIC LIST) ---
         Card(
             shape = RoundedCornerShape(32.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp) // Card tetap diam pada ketinggian ini
+                .height(400.dp)
         ) {
-            // --- PEMBATAS STATIS (Warna Putih mengikuti Card) ---
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(top = 20.dp, bottom = 20.dp), // Area "Pembatas" Atas & Bawah
+                    .padding(vertical = 20.dp),
             ) {
-                // --- AREA KONTEN (Hanya bagian ini yang scrollable) ---
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -201,12 +190,28 @@ fun ActivityLogScreen(navController: NavController) {
                         .padding(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Masukkan daftar HistoryItem kamu di sini
-                    HistoryItem(title = "Lawar Plek", subtitle = "Des 18, 20.00 | 80 cal intake")
-                    HistoryItem(title = "Walking", subtitle = "Des 18, 20.00 | 80 cal intake")
-                    HistoryItem(title = "Walking", subtitle = "Des 18, 20.00 | 80 cal intake")
-                    HistoryItem(title = "Walking", subtitle = "Des 18, 20.00 | 80 cal intake")
-                    HistoryItem(title = "Walking", subtitle = "Des 18, 20.00 | 80 cal intake")
+                    if (activityList.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("No activities found", color = Color.Gray)
+                        }
+                    } else {
+                        // 💡 3. LOOP DATA DARI DATABASE
+                        activityList.forEach { activity ->
+                            val dateString = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(activity.timestamp))
+                            val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
+                            val icon = if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
+
+                            HistoryItem(
+                                title = activity.title,
+                                subtitle = "$dateString | ${activity.calories} cal $typeLabel",
+                                iconRes = icon,
+                                modifier = Modifier.clickable {
+                                    // 💡 4. NAVIGASI KE DETAIL DENGAN ID
+                                    navController.navigate("detail_log/${activity.id}")
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -223,7 +228,6 @@ fun TopActionCard(
     iconRes: Int? = null,
     onClick: () -> Unit
 ) {
-    // Menggunakan Box + background agar custom shadow lebih presisi daripada Card
     Box(
         modifier = modifier
             .clickable(onClick = onClick)
@@ -243,22 +247,8 @@ fun TopActionCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray,
-                fontSize = 11.sp,
-                textAlign = TextAlign.Center,
-                lineHeight = 14.sp
-            )
+            Text(text = title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, textAlign = TextAlign.Center)
+            Text(text = subtitle, color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 14.sp)
             Spacer(modifier = Modifier.height(16.dp))
             Box(
                 modifier = Modifier
@@ -271,61 +261,10 @@ fun TopActionCard(
                     Image(
                         painter = painterResource(id = iconRes),
                         contentDescription = title,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MenuButton(
-    text: String,
-    backgroundColor: Color,
-    leftIconRes: Int? = null,
-    rightIconRes: Int? = null
-) {
-    Button(
-        onClick = { /* TODO */ },
-        colors = ButtonDefaults.buttonColors(containerColor = backgroundColor),
-        shape = RoundedCornerShape(50),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp),
-        contentPadding = PaddingValues(horizontal = 20.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                if (leftIconRes != null) {
-                    Image(
-                        painter = painterResource(id = leftIconRes),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
+                        modifier = Modifier.size(32.dp),
                         colorFilter = ColorFilter.tint(Color.White)
                     )
                 }
-                Text(
-                    text = text,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White
-                )
-            }
-            if (rightIconRes != null) {
-                Image(
-                    painter = painterResource(id = rightIconRes),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
             }
         }
     }
@@ -335,14 +274,15 @@ fun MenuButton(
 fun HistoryItem(
     title: String,
     subtitle: String,
-    iconRes: Int? = null
+    iconRes: Int? = null,
+    modifier: Modifier = Modifier // 💡 TAMBAHKAN MODIFIER AGAR BISA CLICKABLE
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier // Gunakan modifier di sini
             .fillMaxWidth()
             .customDropShadowActivity(
                 color = Color.Black.copy(alpha = 0.15f),
-                borderRadius = 24.dp, // Sesuai dengan shape background
+                borderRadius = 24.dp,
                 blurRadius = 5.dp,
                 offsetY = 6.dp
             )
@@ -356,9 +296,7 @@ fun HistoryItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -370,47 +308,24 @@ fun HistoryItem(
                         Image(
                             painter = painterResource(id = iconRes),
                             contentDescription = title,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.White) // 💡 Ikon jadi putih agar kontras
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.size(10.dp))
-
                 Column {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                        fontSize = 12.sp
-                    )
+                    Text(text = title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+                    Text(text = subtitle, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
                 }
-
             }
-
             Image(
                 painter = painterResource(id = R.drawable.right_arrow_icon),
-                contentDescription = title,
+                contentDescription = null,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-                modifier = Modifier
-                    .size(15.dp)
-                    .fillMaxWidth()
+                modifier = Modifier.size(15.dp)
             )
         }
     }
 }
 
-@Preview(showBackground = true, heightDp = 1920)
-@Composable
-fun PreviewActivityLogRevision() {
-    SmartFitTheme {
-        ActivityLogScreen(navController = rememberNavController())
-    }
-}
