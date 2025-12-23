@@ -7,11 +7,13 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navigation
 import com.example.d1_jetpackcompose.ui.screens.ActivityLogScreen
 import com.example.d1_jetpackcompose.ui.screens.AddExerciseScreen
 import com.example.d1_jetpackcompose.ui.screens.AddFoodScreen
 import com.example.d1_jetpackcompose.ui.screens.DashboardScreen
 import com.example.d1_jetpackcompose.ui.screens.DetailLogScreen
+import com.example.d1_jetpackcompose.ui.screens.ProfileScreen
 import com.example.d1_jetpackcompose.ui.screens.WelcomePage
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
@@ -65,6 +67,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, 
         }
         // Mendefinisikan layar untuk rute "profile"
         composable(AppRoutes.PROFILE) {
+            ProfileScreen(navController = navController)
         }
 
         composable(

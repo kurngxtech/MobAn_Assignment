@@ -77,9 +77,10 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         // 2. Daily Goal Card (Zero State)
+        val totalSteps = (stats.totalDistance * 1300).toInt()
         DailyGoalCard(
             cardColor = MaterialTheme.colorScheme.onBackground,
-            current = stats.totalCaloriesBurned,
+            current = totalSteps,
             total = 10000,
             color = MaterialTheme.colorScheme.primary
         )
@@ -226,10 +227,22 @@ fun SummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
 // 4. FIX DEPRECATED PROGRESS INDICATOR
 @Composable
 fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
+    // 1. LOGIC HITUNG PROGRESS
+    // Hasil harus berupa Float antara 0.0f sampai 1.0f
+    // Kita gunakan .coerceIn(0f, 1f) agar jika langkah > 10.000, lingkaran tidak error/melebihi penuh
+    val progressValue = if (total > 0) {
+        (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+
+    // 2. LOGIC HITUNG PERSENTASE TEXT (0-100)
+    val percentageInt = (progressValue * 100).toInt()
+
     Card(
         shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(
-            containerColor = cardColor // Gunakan parameter di sini
+            containerColor = cardColor
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -239,15 +252,13 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.daily_goal_icon),
                         contentDescription = "daily goal icon",
-                        modifier = Modifier
-                            .size(20.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
@@ -259,12 +270,14 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
                 }
                 Spacer(modifier = Modifier.height(15.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
+                    // Menampilkan angka dinamis (Current)
                     Text(
                         text = "$current",
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
+                    // Menampilkan angka dinamis (Total)
                     Text(
                         text = " / $total",
                         fontSize = 18.sp,
@@ -275,17 +288,19 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
             }
 
             Box(contentAlignment = Alignment.Center) {
-                // Perbaikan: Menggunakan parameter lambda () -> Float
+                // 3. IMPLEMENTASI PROGRESS BAR
                 CircularProgressIndicator(
-                    progress = { 0f }, // Tetap 0f karena progress 0
+                    progress = { progressValue }, // Masukkan hasil perhitungan float di sini
                     modifier = Modifier.size(80.dp),
                     color = color,
                     strokeWidth = 8.dp,
                     trackColor = Color(0xFFE0E0E0),
-                    strokeCap = StrokeCap.Round
+                    strokeCap = StrokeCap.Round,
                 )
+
+                // 4. IMPLEMENTASI TEXT PERSEN
                 Text(
-                    "0 %",
+                    text = "$percentageInt %", // Tampilkan hasil perhitungan integer persen
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -615,6 +630,7 @@ fun HistoryItemDashboard(
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 16.sp
                     )
+                    Spacer(modifier = Modifier.size(10.dp))
                     Text(
                         text = subtitle,
                         style = MaterialTheme.typography.bodySmall,

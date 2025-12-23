@@ -292,6 +292,7 @@ fun HistoryItem(
                 Spacer(modifier = Modifier.size(10.dp))
                 Column {
                     Text(text = title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
+                    Spacer(modifier = Modifier.size(10.dp))
                     Text(text = subtitle, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
                 }
             }
