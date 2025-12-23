@@ -1,8 +1,6 @@
 package com.example.d1_jetpackcompose.ui.screens // Assuming this is your package
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,28 +22,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.ui.components.RoundedButton
+import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTypography
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 
-class WelcomePageActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            SmartFitTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                ) {
-                    WelcomePage()
-                }
-            }
-        }
-    }
-}
-
 @Composable
-fun WelcomePage(modifier: Modifier = Modifier) {
+fun WelcomePage(modifier: Modifier = Modifier, navController : NavController) {
     val backgroundImagePainter = painterResource(R.drawable.background_login)
 
     Box(
@@ -63,6 +48,7 @@ fun WelcomePage(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(20.dp)
+                .padding(top = 20.dp)
         ) {
             // Smartfit logo
             Column(
@@ -133,7 +119,13 @@ fun WelcomePage(modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically
             ){
                 RoundedButton(
-                    onClick = {},
+                    onClick = {
+                        navController.navigate(AppRoutes.LOGIN) {
+                            launchSingleTop = true
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            restoreState = true
+                        }
+                    },
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
@@ -146,7 +138,7 @@ fun WelcomePage(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Already has an account?",
+                    text = "Start your journey right now",
                     style = SmartFitTypography.bodyLarge,
                     color = Color.White
                 )
@@ -154,7 +146,7 @@ fun WelcomePage(modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.size(5.dp))
 
                 Text(
-                    text = "Login",
+                    text = "!",
                     style = SmartFitTypography.bodyLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -169,6 +161,6 @@ fun WelcomePage(modifier: Modifier = Modifier) {
 @Composable
 private fun BasicLayoutPreview() {
     SmartFitTheme {
-        WelcomePage()
+        WelcomePage(navController = rememberNavController())
     }
 }

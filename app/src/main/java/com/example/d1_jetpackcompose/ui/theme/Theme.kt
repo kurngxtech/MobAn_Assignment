@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DarkerCardGray
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DeleteColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjects
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightBackground
@@ -28,7 +29,8 @@ private val lightColorScheme = lightColorScheme(
     onBackground = LightCardColor,
     surface = HistoryObjects,
     onSurface = TextColor,
-    surfaceVariant = DeleteColor
+    surfaceVariant = DeleteColor,
+    onSurfaceVariant = DarkerCardGray
 )
 
 private val darkColorScheme = darkColorScheme(

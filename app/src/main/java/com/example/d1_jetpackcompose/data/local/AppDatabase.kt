@@ -5,10 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [ActivityEntity::class], version = 1, exportSchema = false)
+// TAMBAHKAN UserEntity ke dalam entities
+@Database(entities = [ActivityEntity::class, UserEntity::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun activityDao(): ActivityDao
+    abstract fun userDao(): UserDao // TAMBAHKAN INI
 
     companion object {
         @Volatile
@@ -16,11 +17,15 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
+                // Saat merubah schema (menambah UserEntity), kita perlu fallbackToDestructiveMigration
+                // atau menaikkan version number.
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "smartfit_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration() // Hati-hati, ini akan reset data lama jika versi naik
+                    .build()
                 INSTANCE = instance
                 instance
             }

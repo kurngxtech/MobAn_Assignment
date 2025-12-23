@@ -254,6 +254,7 @@ fun ProfileScreen(navController: NavController) {
                 onClick = { /* Logout Logic */ }
             )
         }
+        Spacer(modifier = Modifier.height(50.dp))
     }
 }
 

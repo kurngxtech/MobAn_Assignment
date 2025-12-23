@@ -13,8 +13,11 @@ import com.example.d1_jetpackcompose.ui.screens.AddExerciseScreen
 import com.example.d1_jetpackcompose.ui.screens.AddFoodScreen
 import com.example.d1_jetpackcompose.ui.screens.DashboardScreen
 import com.example.d1_jetpackcompose.ui.screens.DetailLogScreen
+import com.example.d1_jetpackcompose.ui.screens.LoginScreen
 import com.example.d1_jetpackcompose.ui.screens.ProfileScreen
+import com.example.d1_jetpackcompose.ui.screens.SignUpScreen
 import com.example.d1_jetpackcompose.ui.screens.WelcomePage
+import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
 
@@ -24,6 +27,8 @@ import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
  */
 object AppRoutes {
     const val WELCOME = "welcome"
+    const val LOGIN = "login"
+    const val SIGNUP = "signup"
     const val DASHBOARD = "dashboard"
     const val ACTIVITY = "activity"
     const val PROFILE = "profile"
@@ -39,16 +44,26 @@ object AppRoutes {
  * @param modifier Modifier yang diteruskan dari parent (misalnya, dari Scaffold).
  */
 @Composable
-fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, viewModel: SharedViewModel) {
+fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, viewModel: SharedViewModel, authViewModel: AuthViewModel) {
     NavHost(
+        modifier = modifier,
         navController = navController,
-        startDestination = AppRoutes.DASHBOARD, // Halaman pertama yang muncul
-        modifier = modifier
+        startDestination = AppRoutes.WELCOME, // Halaman pertama yang muncul
+
     ) {
         // Mendefinisikan layar untuk rute "welcome"
         composable(AppRoutes.WELCOME) {
-            WelcomePage()
+            WelcomePage(navController = navController)
         }
+
+        composable(AppRoutes.LOGIN) {
+            LoginScreen(navController = navController, authViewModel = authViewModel) // Pass VM
+        }
+
+        composable(AppRoutes.SIGNUP) {
+            SignUpScreen(navController = navController, authViewModel = authViewModel) // Pass VM
+        }
+
         // Mendefinisikan layar untuk rute "dashboard"
         composable(AppRoutes.DASHBOARD) {
             DashboardScreen(navController = navController, viewModel = viewModel)
