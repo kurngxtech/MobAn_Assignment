@@ -2,12 +2,10 @@ package com.example.d1_jetpackcompose.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.d1_jetpackcompose.ui.screens.ActivityLogScreen
 import com.example.d1_jetpackcompose.ui.screens.AddExerciseScreen
@@ -15,7 +13,7 @@ import com.example.d1_jetpackcompose.ui.screens.AddFoodScreen
 import com.example.d1_jetpackcompose.ui.screens.DashboardScreen
 import com.example.d1_jetpackcompose.ui.screens.DetailLogScreen
 import com.example.d1_jetpackcompose.ui.screens.WelcomePage
-import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
 
 /**

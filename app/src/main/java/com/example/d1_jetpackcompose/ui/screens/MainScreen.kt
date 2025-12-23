@@ -10,50 +10,50 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.rememberNavController
-import com.example.d1_jetpackcompose.ui.components.BubbleNavigationBar
-import com.example.d1_jetpackcompose.ui.navigation.AppNavHost
-import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.data.local.AppDatabase
 import com.example.d1_jetpackcompose.data.repository.ActivityRepository
-import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModelFactory
+import com.example.d1_jetpackcompose.ui.components.BubbleNavigationBar
+import com.example.d1_jetpackcompose.ui.navigation.AppNavHost
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModelFactory
 
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    // Pastikan warna ini sama dengan warna background yang Anda inginkan
-    val globalBackgroundColor = MaterialTheme.colorScheme.background
-
     val context = LocalContext.current
+
+    // 1. Inisialisasi Database (Single Source of Truth)
     val database = AppDatabase.getDatabase(context)
     val repository = ActivityRepository(database.activityDao())
+
+    // 2. Buat ViewModel menggunakan Factory agar data tersimpan secara persistent
     val sharedViewModel: SharedViewModel = viewModel(
         factory = SharedViewModelFactory(repository)
     )
 
-    // Gunakan Box sebagai root untuk menumpuk elemen
+    val globalBackgroundColor = MaterialTheme.colorScheme.background
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(globalBackgroundColor) // Background menyeluruh
+            .background(globalBackgroundColor)
     ) {
-        // 1. Konten Utama (NavHost)
-        // Kita beri padding bawah secara manual agar konten tidak tertutup bar
+        // Konten Utama
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = 90.dp) // Jarak aman agar konten berhenti sebelum Navbar
+                .padding(bottom = 90.dp) // Beri jarak agar tidak tertutup Navbar
         ) {
             AppNavHost(
                 navController = navController,
                 modifier = Modifier.fillMaxSize(),
-                viewModel = sharedViewModel
+                viewModel = sharedViewModel // Kirim viewModel yang sama ke semua screen
             )
         }
 
-        // 2. Navbar (Floating Overlay)
-        // Kita letakkan secara independen di atas NavHost
+        // Navbar di bagian bawah
         Box(
             modifier = Modifier.align(Alignment.BottomCenter)
         ) {

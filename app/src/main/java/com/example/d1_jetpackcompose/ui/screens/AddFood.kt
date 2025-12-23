@@ -21,16 +21,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.R
-import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.data.local.ActivityType
-import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
-import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
 // import com.example.d1_jetpackcompose.navigation.AppRoutes // Uncomment jika AppRoutes ada di file terpisah
 @Composable
@@ -60,12 +56,7 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        // LOGIC NAVIGASI SESUAI PERMINTAAN
-                        navController.navigate(AppRoutes.ACTIVITY) { // Pastikan object AppRoutes sudah terimport/tersedia
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            restoreState = true
-                        }
+                        navController.popBackStack()
                     }
                     .padding(vertical = 8.dp),
             ) {
@@ -109,12 +100,12 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     // Placeholder Image Element (Silakan isi painterResource dengan icon tudung saji kamu)
-//                    Image(
-//                        painter = painterResource(id = R.drawable.ic_food_cover), // Ganti ID ini
-//                        contentDescription = "Food Icon",
-//                        modifier = Modifier.size(60.dp),
-//                        colorFilter = ColorFilter.tint(Color.White) // Opsional: jika icon ingin putih
-//                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.add_food_icon), // Ganti ID ini
+                        contentDescription = "Food Icon",
+                        modifier = Modifier.size(60.dp),
+                        colorFilter = ColorFilter.tint(Color.White) // Opsional: jika icon ingin putih
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

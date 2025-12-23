@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,17 +45,23 @@ import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
-import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.TimePeriod
+import com.example.d1_jetpackcompose.ui.viewModel.CategoryFilter
 
 
 private val HistoryCardGray = Color(0xFFE8E8E8)
 
 @Composable
 // 1. FUNGSI HALAMAN UTAMA
-fun DashboardScreen(navController: NavController, // Butuh NavController untuk klik detail
-                    viewModel: SharedViewModel) {
+fun DashboardScreen(
+    navController: NavController, // Butuh NavController untuk klik detail
+    viewModel: SharedViewModel
+) {
 
     val stats by viewModel.dashboardStats.collectAsState()
+    val currentPeriod by viewModel.selectedPeriod.collectAsState()
+    val currentCategory by viewModel.selectedCategory.collectAsState()
     // Main Container
     Column(
         modifier = Modifier
@@ -79,8 +86,10 @@ fun DashboardScreen(navController: NavController, // Butuh NavController untuk k
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // 3. PERIOD SELECTOR (Daily vs Weekly) - BARU
+        // 2. PERIOD SELECTOR (INTERAKTIF)
         PeriodSelector(
+            selectedPeriod = currentPeriod,
+            onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) }, // Update ViewModel
             activeColor = MaterialTheme.colorScheme.primary,
             inactiveColor = MaterialTheme.colorScheme.onBackground
         )
@@ -98,8 +107,10 @@ fun DashboardScreen(navController: NavController, // Butuh NavController untuk k
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // 5. CATEGORY FILTER (All / Exercise / Foods) - BARU
+        // 3. CATEGORY FILTER (INTERAKTIF)
         CategoryFilterSelector(
+            selectedFilter = currentCategory,
+            onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) }, // Update ViewModel
             activeColor = MaterialTheme.colorScheme.primary,
             inactiveColor = MaterialTheme.colorScheme.onBackground
         )
@@ -110,31 +121,35 @@ fun DashboardScreen(navController: NavController, // Butuh NavController untuk k
         if (stats.recentActivities.isEmpty()) {
             HistorySectionEmptyState(MaterialTheme.colorScheme.onBackground)
         } else {
-            // Gunakan Column agar item tersusun rapi ke bawah dengan jarak
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp) // Jarak antar kartu
+            // KARTU DINAMIS (Mengikuti jumlah konten)
+            Card(
+                shape = RoundedCornerShape(32.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight() // 💡 1. Biarkan tingginya menyesuaikan isi
+                // Jangan gunakan .height(300.dp)
             ) {
-                // Loop setiap data activity yang ada di list
-                stats.recentActivities.forEach { activity ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth() // 💡 2. Jangan fillMaxSize, cukup fillMaxWidth
+                        .padding(vertical = 20.dp)
+                        .padding(horizontal = 20.dp), // Gabungkan padding di sini
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // 💡 3. Hapus .verticalScroll() di sini.
+                    // Karena DashboardScreen INDUK-nya sudah bisa discroll.
 
-                    // 1. Tentukan Icon berdasarkan Tipe (Food/Exercise)
-                    // Pastikan kamu punya drawable yang sesuai, contoh: R.drawable.walk_icon
-                    val icon = if (activity.type == ActivityType.FOOD) {
-                        R.drawable.add_food_icon // Ganti dengan ID icon makanan kamu
-                    } else {
-                        R.drawable.walk_icon // Ganti dengan ID icon olahraga kamu
+                    stats.recentActivities.forEach { activity ->
+                        val icon = if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
+                        val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
+
+                        HistoryItemDashboard(
+                            title = activity.title,
+                            subtitle = "${activity.calories} kcal | $typeLabel",
+                            iconRes = icon
+                        )
                     }
-
-                    // 2. Tentukan Subtitle Dinamis (Contoh: "80 kcal | Intake")
-                    val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
-                    val subtitleText = "${activity.calories} kcal | $typeLabel"
-
-                    // 3. Panggil Komponen UI dengan Data Dinamis
-                    HistoryItem(
-                        title = activity.title,
-                        subtitle = subtitleText,
-                        iconRes = icon
-                    )
                 }
             }
         }
@@ -165,7 +180,11 @@ fun DailySummaryGrid(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text("Daily Summary", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                "Daily Summary",
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -231,7 +250,12 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
                             .size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Daily Goal", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
+                    Text(
+                        "Daily Goal",
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 20.sp
+                    )
                 }
                 Spacer(modifier = Modifier.height(15.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
@@ -260,7 +284,11 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
                     trackColor = Color(0xFFE0E0E0),
                     strokeCap = StrokeCap.Round
                 )
-                Text("0 %", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    "0 %",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
@@ -306,15 +334,16 @@ fun HeaderProfileSection(name: String) {
 }
 
 @Composable
-fun PeriodSelector(activeColor: Color, inactiveColor: Color) {
+fun PeriodSelector(
+    selectedPeriod: TimePeriod,
+    onSelect: (TimePeriod) -> Unit,
+    activeColor: Color,
+    inactiveColor: Color
+) {
     Card(
-        shape = RoundedCornerShape(50), // Bentuk Pill/Capsule penuh
-        colors = CardDefaults.cardColors(
-            containerColor = inactiveColor // Gunakan parameter di sini
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp) // Tinggi fix sesuai visual
+        shape = RoundedCornerShape(50),
+        colors = CardDefaults.cardColors(containerColor = inactiveColor),
+        modifier = Modifier.fillMaxWidth().height(50.dp)
     ) {
         Box(
             modifier = Modifier
@@ -323,40 +352,39 @@ fun PeriodSelector(activeColor: Color, inactiveColor: Color) {
                 .background(Color.White)
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(25.dp))
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Daily", color = Color.White, fontWeight = FontWeight.Bold)
-                }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Weekly", color = Color.Gray, fontWeight = FontWeight.Medium)
-                }
+                // DAILY BUTTON
+                SelectorItem(
+                    text = "Daily",
+                    isActive = selectedPeriod == TimePeriod.DAILY,
+                    activeColor = activeColor,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onSelect(TimePeriod.DAILY) }
+                )
+
+                // WEEKLY BUTTON
+                SelectorItem(
+                    text = "Weekly",
+                    isActive = selectedPeriod == TimePeriod.WEEKLY,
+                    activeColor = activeColor,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onSelect(TimePeriod.WEEKLY) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun CategoryFilterSelector(activeColor: Color, inactiveColor: Color) {
+fun CategoryFilterSelector(
+    selectedFilter: CategoryFilter,
+    onSelect: (CategoryFilter) -> Unit,
+    activeColor: Color,
+    inactiveColor: Color
+) {
     Card(
-        shape = RoundedCornerShape(50), // Bentuk Pill/Capsule penuh
-        colors = CardDefaults.cardColors(
-            containerColor = inactiveColor // Gunakan parameter di sini
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp) // Tinggi fix sesuai visual
+        shape = RoundedCornerShape(50),
+        colors = CardDefaults.cardColors(containerColor = inactiveColor),
+        modifier = Modifier.fillMaxWidth().height(50.dp)
     ) {
         Box(
             modifier = Modifier
@@ -365,40 +393,32 @@ fun CategoryFilterSelector(activeColor: Color, inactiveColor: Color) {
                 .background(Color.White)
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(25.dp))
-                        .background(MaterialTheme.colorScheme.primary),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Daily", color = Color.White, fontWeight = FontWeight.Bold)
-                }
+                // ALL BUTTON
+                SelectorItem(
+                    text = "All",
+                    isActive = selectedFilter == CategoryFilter.ALL,
+                    activeColor = activeColor,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onSelect(CategoryFilter.ALL) }
+                )
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Weekly", color = Color.Gray, fontWeight = FontWeight.Medium)
-                }
+                // EXERCISE BUTTON
+                SelectorItem(
+                    text = "Exercise",
+                    isActive = selectedFilter == CategoryFilter.EXERCISE,
+                    activeColor = activeColor,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onSelect(CategoryFilter.EXERCISE) }
+                )
 
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Foods",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 13.sp
-                    )
-                }
+                // FOODS BUTTON
+                SelectorItem(
+                    text = "Foods",
+                    isActive = selectedFilter == CategoryFilter.FOOD,
+                    activeColor = activeColor,
+                    modifier = Modifier.weight(1f),
+                    onClick = { onSelect(CategoryFilter.FOOD) }
+                )
             }
         }
     }
@@ -579,7 +599,8 @@ fun HistoryItemDashboard(
                         Image(
                             painter = painterResource(id = iconRes),
                             contentDescription = title,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
+                            colorFilter = ColorFilter.tint(Color.White) // 💡 Ikon jadi putih agar kontras
                         )
                     }
                 }
@@ -613,6 +634,33 @@ fun HistoryItemDashboard(
                     .fillMaxWidth()
             )
         }
+    }
+}
+
+// Helper Item untuk menghindari duplikasi kode
+@Composable
+fun SelectorItem(
+    text: String,
+    isActive: Boolean,
+    activeColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(4.dp)
+            .clip(RoundedCornerShape(25.dp))
+            .background(if (isActive) activeColor else Color.Transparent) // Logic Warna Aktif
+            .clickable { onClick() }, // Logic Klik
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            color = if (isActive) Color.White else Color.Gray, // Logic Warna Text
+            fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
+            fontSize = 13.sp
+        )
     }
 }
 

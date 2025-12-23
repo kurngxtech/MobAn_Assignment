@@ -25,9 +25,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityType
-import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
-import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

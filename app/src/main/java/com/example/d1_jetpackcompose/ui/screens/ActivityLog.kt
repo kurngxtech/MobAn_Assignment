@@ -25,18 +25,14 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
-import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -72,8 +68,8 @@ fun ActivityLogScreen(
     navController: NavController,
     viewModel: SharedViewModel // Tambahkan ViewModel sebagai parameter
 ) {
-    // 💡 1. OBSERVE DATA DARI DATABASE
-    val activityList by viewModel.allActivities.collectAsState()
+    val activityList by viewModel.activityLogList.collectAsState()
+    val currentPeriod by viewModel.selectedPeriod.collectAsState()
 
     Column(
         modifier = Modifier
@@ -140,32 +136,12 @@ fun ActivityLogScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .clip(RoundedCornerShape(25.dp))
-                    .background(Color.White)
-            ) {
-                Row(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(25.dp))
-                            .background(MaterialTheme.colorScheme.primary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Daily", color = Color.White, fontWeight = FontWeight.Bold)
-                    }
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(), contentAlignment = Alignment.Center) {
-                        Text("Weekly", color = Color.Gray, fontWeight = FontWeight.Medium)
-                    }
-                }
-            }
+            PeriodSelector(
+                selectedPeriod = currentPeriod,
+                onSelect = { viewModel.setTimePeriod(it) },
+                activeColor = MaterialTheme.colorScheme.primary,
+                inactiveColor = Color(0xFFE8E8E8) // Sesuaikan warna background card di sini
+            )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -328,4 +304,6 @@ fun HistoryItem(
         }
     }
 }
+
+
 

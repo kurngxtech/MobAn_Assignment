@@ -21,17 +21,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityType
-import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
-import com.example.d1_jetpackcompose.ui.viewmodel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
 
 // Tambahkan parameter navController agar navigasi bisa jalan
@@ -65,12 +60,7 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        // LOGIC NAVIGASI SESUAI PERMINTAAN
-                        navController.navigate(AppRoutes.ACTIVITY) { // Ganti AppRoutes.ACTIVITY jika sudah ada object-nya
-                            launchSingleTop = true
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            restoreState = true
-                        }
+                        navController.popBackStack()
                     }
                     .padding(vertical = 8.dp),
             ) {
@@ -114,11 +104,12 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     contentAlignment = Alignment.Center
                 ) {
                     // Image Placeholder
-//                    Image(
-//                        painter = painterResource(id = R.drawable.ic_run_stickman), // Ganti sesuai asset
-//                        contentDescription = "Exercise Icon",
-//                        modifier = Modifier.size(60.dp)
-//                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.walk_icon), // Ganti sesuai asset
+                        contentDescription = "Exercise Icon",
+                        modifier = Modifier.size(60.dp),
+                        colorFilter = ColorFilter.tint(Color.White) // Opsional: jika icon ingin putih
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
