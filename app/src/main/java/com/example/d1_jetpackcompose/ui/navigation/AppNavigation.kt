@@ -7,7 +7,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.navigation
 import com.example.d1_jetpackcompose.ui.screens.ActivityLogScreen
 import com.example.d1_jetpackcompose.ui.screens.AddExerciseScreen
 import com.example.d1_jetpackcompose.ui.screens.AddFoodScreen
@@ -20,11 +19,6 @@ import com.example.d1_jetpackcompose.ui.screens.WelcomePage
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
-
-/**
- * Mendefinisikan rute (konstanta string) untuk setiap halaman dalam aplikasi.
- * Menggunakan object memastikan tidak ada typo dan memudahkan pengelolaan.
- */
 object AppRoutes {
     const val WELCOME = "welcome"
     const val LOGIN = "login"
@@ -36,39 +30,36 @@ object AppRoutes {
     const val FOOD = "food"
 }
 
-/**
- * Composable utama yang mengatur grafik navigasi.
- * Ia menentukan Composable mana yang akan ditampilkan untuk setiap rute.
- *
- * @param navController Controller yang bertanggung jawab untuk navigasi.
- * @param modifier Modifier yang diteruskan dari parent (misalnya, dari Scaffold).
- */
 @Composable
-fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, viewModel: SharedViewModel, authViewModel: AuthViewModel) {
+fun AppNavHost(
+    navController: NavHostController,
+    modifier: Modifier = Modifier,
+    viewModel: SharedViewModel,
+    authViewModel: AuthViewModel,
+    startDestination: String // 💡 Parameter baru untuk menentukan halaman awal
+) {
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = AppRoutes.WELCOME, // Halaman pertama yang muncul
-
+        startDestination = startDestination // 💡 Gunakan parameter dinamis ini
     ) {
-        // Mendefinisikan layar untuk rute "welcome"
         composable(AppRoutes.WELCOME) {
             WelcomePage(navController = navController)
         }
 
         composable(AppRoutes.LOGIN) {
-            LoginScreen(navController = navController, authViewModel = authViewModel) // Pass VM
+            LoginScreen(navController = navController, authViewModel = authViewModel)
         }
 
         composable(AppRoutes.SIGNUP) {
-            SignUpScreen(navController = navController, authViewModel = authViewModel) // Pass VM
+            SignUpScreen(navController = navController, authViewModel = authViewModel)
         }
 
-        // Mendefinisikan layar untuk rute "dashboard"
         composable(AppRoutes.DASHBOARD) {
-            DashboardScreen(navController = navController, viewModel = viewModel)
+            // 💡 Kirim authViewModel ke Dashboard untuk ambil username
+            DashboardScreen(navController = navController, viewModel = viewModel, authViewModel = authViewModel)
         }
-        // Mendefinisikan layar untuk rute "profile"
+
         composable(AppRoutes.ACTIVITY) {
             ActivityLogScreen(navController = navController, viewModel = viewModel)
         }
@@ -80,7 +71,7 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, 
         composable(AppRoutes.FOOD) {
             AddFoodScreen(navController = navController, viewModel = viewModel)
         }
-        // Mendefinisikan layar untuk rute "profile"
+
         composable(AppRoutes.PROFILE) {
             ProfileScreen(navController = navController)
         }
@@ -98,4 +89,3 @@ fun AppNavHost(navController: NavHostController, modifier: Modifier = Modifier, 
         }
     }
 }
-

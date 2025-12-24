@@ -75,7 +75,7 @@ fun DetailLogScreen(
             onDismissRequest = { showEditConfirmation = false },
             containerColor = Color.White,
             title = { Text(text = "Edit Activity", fontWeight = FontWeight.Bold) },
-            text = { Text("Do you want to edit this activity log?") },
+            text = { Text("Do you want to edit this activity log?", color = Color.Black) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -100,7 +100,7 @@ fun DetailLogScreen(
             onDismissRequest = { showDeleteConfirmation = false },
             containerColor = Color.White,
             title = { Text(text = "Delete Activity", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete this activity? This action cannot be undone.") },
+            text = { Text("Are you sure you want to delete this activity? This action cannot be undone.", color = Color.Black) },
             confirmButton = {
                 TextButton(
                     onClick = {

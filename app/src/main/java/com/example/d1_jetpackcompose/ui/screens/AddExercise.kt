@@ -179,15 +179,6 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     onValueChange = { caloriesBurned = it },
                     keyboardType = KeyboardType.Number
                 )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                CustomUnderlinedInput(
-                    label = "Calories Intake",
-                    value = caloriesIntake,
-                    onValueChange = { caloriesIntake = it },
-                    keyboardType = KeyboardType.Number
-                )
             }
         }
 

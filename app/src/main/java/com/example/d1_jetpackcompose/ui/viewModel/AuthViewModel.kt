@@ -1,5 +1,6 @@
 package com.example.d1_jetpackcompose.ui.viewModel
 
+import android.content.SharedPreferences
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,7 +36,10 @@ import kotlinx.coroutines.launch
 
 // --- 1. VIEW MODEL LOGIC ---
 
-class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
+class AuthViewModel(
+    private val repository: AuthRepository,
+    private val sharedPreferences: SharedPreferences // 💡 Inject SharedPreferences
+) : ViewModel() {
 
     // States
     private val _isLoading = MutableStateFlow(false)
@@ -46,6 +50,29 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
     private val _signUpState = MutableStateFlow<AuthResult?>(null)
     val signUpState = _signUpState.asStateFlow()
+
+    // 💡 State untuk menyimpan Username user yang sedang aktif
+    private val _currentUsername = MutableStateFlow("Guest")
+    val currentUsername = _currentUsername.asStateFlow()
+
+    // 💡 State untuk status login (dicek saat splash/awal app)
+    private val _isSessionValid = MutableStateFlow(false)
+    val isSessionValid = _isSessionValid.asStateFlow()
+
+    // 💡 INIT: Cek apakah ada sesi tersimpan saat ViewModel dibuat
+    init {
+        checkSession()
+    }
+
+    private fun checkSession() {
+        val savedUsername = sharedPreferences.getString("USER_NAME", null)
+        val isRemembered = sharedPreferences.getBoolean("IS_REMEMBERED", false)
+
+        if (isRemembered && !savedUsername.isNullOrEmpty()) {
+            _currentUsername.value = savedUsername
+            _isSessionValid.value = true
+        }
+    }
 
     // Fungsi Sign Up
     fun signUp(username: String, email: String, pass: String, confirmPass: String) {
@@ -91,8 +118,8 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    // Fungsi Login
-    fun login(email: String, pass: String) {
+    // Fungsi Login (Updated dengan Remember Me)
+    fun login(email: String, pass: String, rememberMe: Boolean) { // 💡 Tambah param rememberMe
         viewModelScope.launch {
             _isLoading.value = true
 
@@ -109,12 +136,25 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
                 return@launch
             }
 
-            // Simulasi Loading Screen Perpindahan (2 detik sesuai request)
+            // Simulasi Loading Screen Perpindahan
             delay(2000)
 
             val user = repository.loginUser(email, pass)
 
             if (user != null) {
+                // 💡 Simpan sesi jika user mencentang Remember Me
+                if (rememberMe) {
+                    sharedPreferences.edit()
+                        .putString("USER_NAME", user.username)
+                        .putBoolean("IS_REMEMBERED", true)
+                        .apply()
+                } else {
+                    // Jika tidak dicentang, pastikan sesi bersih
+                    sharedPreferences.edit().clear().apply()
+                }
+
+                // Update state username saat ini
+                _currentUsername.value = user.username
                 _loginState.value = AuthResult.Success("Login Successful! Welcome ${user.username}")
             } else {
                 _loginState.value = AuthResult.Error("Wrong email or password")
@@ -123,7 +163,7 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    // Reset State (agar pop-up tidak muncul terus saat rotasi layar)
+    // Reset State
     fun resetLoginState() { _loginState.value = null }
     fun resetSignUpState() { _signUpState.value = null }
 }
@@ -134,20 +174,21 @@ sealed class AuthResult {
     data class Error(val message: String) : AuthResult()
 }
 
-// Factory untuk ViewModel
-class AuthViewModelFactory(private val repository: AuthRepository) : ViewModelProvider.Factory {
+// Factory untuk ViewModel (Updated dengan SharedPreferences)
+class AuthViewModelFactory(
+    private val repository: AuthRepository,
+    private val sharedPreferences: SharedPreferences // 💡 Inject
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AuthViewModel(repository) as T
+            return AuthViewModel(repository, sharedPreferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
-
-// --- 2. UI COMPONENTS (INPUT & BUTTONS) ---
-
+// --- UI COMPONENTS TETAP SAMA ---
 @Composable
 fun AuthInput(
     modifier: Modifier = Modifier,

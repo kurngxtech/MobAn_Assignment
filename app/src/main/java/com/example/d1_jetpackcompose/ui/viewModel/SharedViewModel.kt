@@ -80,53 +80,53 @@ class SharedViewModel(private val repository: ActivityRepository) : ViewModel() 
     val selectedActivity: StateFlow<ActivityEntity?> = _selectedActivity.asStateFlow()
 
 
-    // --- INIT DATA DUMMY ---
-    init {
-        insertDummyData()
-    }
+//    // --- INIT DATA DUMMY ---
+//    init {
+//        insertDummyData()
+//    }
 
-    private fun insertDummyData() {
-        viewModelScope.launch {
-            // Menggunakan first() untuk mengecek database saat ini
-            val currentData = _allActivities.value
-            if (currentData.isEmpty()) {
-                Log.d("SharedViewModel", "Database kosong, memasukkan data dummy...")
-                val calendar = Calendar.getInstance()
-                val today = calendar.timeInMillis
-
-                calendar.add(Calendar.DAY_OF_YEAR, -1)
-                val yesterday = calendar.timeInMillis
-
-                val dummyList = listOf(
-                    ActivityEntity(
-                        title = "Morning Run",
-                        type = ActivityType.EXERCISE,
-                        calories = 250,
-                        distance = 3.5,
-                        duration = 30,
-                        timestamp = today
-                    ),
-                    ActivityEntity(
-                        title = "Healthy Breakfast",
-                        type = ActivityType.FOOD,
-                        calories = 450,
-                        timestamp = today
-                    ),
-                    ActivityEntity(
-                        title = "Cycling",
-                        type = ActivityType.EXERCISE,
-                        calories = 400,
-                        distance = 10.5,
-                        duration = 45,
-                        timestamp = yesterday
-                    )
-                )
-                dummyList.forEach { repository.insert(it) }
-            } else {
-                Log.d("SharedViewModel", "Data sudah ada: ${currentData.size} item")
-            }
-        }
-    }
+//    private fun insertDummyData() {
+//        viewModelScope.launch {
+//            // Menggunakan first() untuk mengecek database saat ini
+//            val currentData = _allActivities.value
+//            if (currentData.isEmpty()) {
+//                Log.d("SharedViewModel", "Database kosong, memasukkan data dummy...")
+//                val calendar = Calendar.getInstance()
+//                val today = calendar.timeInMillis
+//
+//                calendar.add(Calendar.DAY_OF_YEAR, -1)
+//                val yesterday = calendar.timeInMillis
+//
+//                val dummyList = listOf(
+//                    ActivityEntity(
+//                        title = "Morning Run",
+//                        type = ActivityType.EXERCISE,
+//                        calories = 250,
+//                        distance = 3.5,
+//                        duration = 30,
+//                        timestamp = today
+//                    ),
+//                    ActivityEntity(
+//                        title = "Healthy Breakfast",
+//                        type = ActivityType.FOOD,
+//                        calories = 450,
+//                        timestamp = today
+//                    ),
+//                    ActivityEntity(
+//                        title = "Cycling",
+//                        type = ActivityType.EXERCISE,
+//                        calories = 400,
+//                        distance = 10.5,
+//                        duration = 45,
+//                        timestamp = yesterday
+//                    )
+//                )
+//                dummyList.forEach { repository.insert(it) }
+//            } else {
+//                Log.d("SharedViewModel", "Data sudah ada: ${currentData.size} item")
+//            }
+//        }
+//    }
 
     // --- ACTIONS ---
 

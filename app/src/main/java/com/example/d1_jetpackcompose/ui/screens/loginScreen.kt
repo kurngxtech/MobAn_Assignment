@@ -40,7 +40,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             LaunchedEffect(Unit) {
                 authViewModel.resetLoginState() // Bersihkan state sebelum pindah
                 navController.navigate(AppRoutes.DASHBOARD) {
-                    popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                    popUpTo(AppRoutes.WELCOME) { inclusive = true } // Hapus stack ke belakang sampai Welcome
                 }
             }
         } else if (result is AuthResult.Error) {
@@ -132,7 +132,8 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
             PrimaryAuthButton(
                 text = "Log in",
-                onClick = { authViewModel.login(email, password) } // 💡 Trigger ViewModel
+                // 💡 Kirim status rememberMe ke ViewModel
+                onClick = { authViewModel.login(email, password, rememberMe) }
             )
 
             Spacer(modifier = Modifier.weight(1f))

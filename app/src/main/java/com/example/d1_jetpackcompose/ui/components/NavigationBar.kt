@@ -1,21 +1,10 @@
 package com.example.d1_jetpackcompose.ui.components
 
-
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -46,7 +35,6 @@ fun BubbleNavigationBar(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    // Logic pendeteksi route aktif untuk menentukan parameter isActive secara dinamis
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -57,13 +45,9 @@ fun BubbleNavigationBar(
     ) {
         Card(
             shape = RoundedCornerShape(50.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color.White
-            ),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 15.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(72.dp) // Sedikit ditambah tingginya agar pill & text memiliki ruang napas
+            modifier = Modifier.fillMaxWidth().height(72.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
@@ -77,8 +61,12 @@ fun BubbleNavigationBar(
                     isActive = currentRoute == AppRoutes.DASHBOARD
                 ) {
                     navController.navigate(AppRoutes.DASHBOARD) {
+                        // 💡 FIX: Paksa pop up ke DASHBOARD sebagai akar baru
+                        popUpTo(AppRoutes.DASHBOARD) {
+                            inclusive = false
+                            saveState = true
+                        }
                         launchSingleTop = true
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
                         restoreState = true
                     }
                 }
@@ -90,8 +78,8 @@ fun BubbleNavigationBar(
                     isActive = currentRoute == AppRoutes.ACTIVITY
                 ) {
                     navController.navigate(AppRoutes.ACTIVITY) {
+                        popUpTo(AppRoutes.DASHBOARD) { saveState = true }
                         launchSingleTop = true
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
                         restoreState = true
                     }
                 }
@@ -103,8 +91,8 @@ fun BubbleNavigationBar(
                     isActive = currentRoute == AppRoutes.PROFILE
                 ) {
                     navController.navigate(AppRoutes.PROFILE) {
+                        popUpTo(AppRoutes.DASHBOARD) { saveState = true }
                         launchSingleTop = true
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
                         restoreState = true
                     }
                 }
@@ -120,7 +108,6 @@ fun NavbarItem(
     isActive: Boolean,
     onClick: () -> Unit
 ) {
-    // Animasi warna untuk transisi yang smooth
     val backgroundPillColor by animateColorAsState(
         targetValue = if (isActive) MaterialTheme.colorScheme.primary else Color.Transparent,
         label = "pillAnimation"
@@ -142,13 +129,9 @@ fun NavbarItem(
             .clickable(onClick = onClick)
             .padding(vertical = 4.dp)
     ) {
-        // --- CONTAINER SHAPE LONJONG (PILL) UNTUK ICON ---
         Box(
-            modifier = Modifier
-                .width(64.dp) // Lebar pill sesuai Material 3
-                .height(32.dp) // Tinggi pill
-                .clip(RoundedCornerShape(50)) // Membuat bentuk lonjong sempurna
-                .background(backgroundPillColor),
+            modifier = Modifier.width(64.dp).height(32.dp)
+                .clip(RoundedCornerShape(50)).background(backgroundPillColor),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -158,10 +141,7 @@ fun NavbarItem(
                 colorFilter = ColorFilter.tint(iconTint)
             )
         }
-
         Spacer(modifier = Modifier.height(4.dp))
-
-        // --- LABEL TEXT (DI LUAR SHAPE) ---
         Text(
             text = label,
             fontSize = 11.sp,
@@ -169,15 +149,5 @@ fun NavbarItem(
             color = textColor,
             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium
         )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun BubbleNavigationBarPrev() {
-    SmartFitTheme {
-        val navController = rememberNavController()
-        // Sekarang teruskan navController palsu tersebut
-        BubbleNavigationBar(navController = navController)
     }
 }

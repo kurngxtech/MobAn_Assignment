@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -167,8 +168,12 @@ fun ActivityLogScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (activityList.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No activities found", color = Color.Gray)
+                        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                            Text(
+                                "No activities found\n Add any activities you want.",
+                                color = Color.Gray,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     } else {
                         // 💡 3. LOOP DATA DARI DATABASE

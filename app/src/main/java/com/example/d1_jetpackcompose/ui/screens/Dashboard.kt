@@ -39,15 +39,19 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.R
+import com.example.d1_jetpackcompose.data.local.ActivityEntity
 import com.example.d1_jetpackcompose.data.local.ActivityType
+import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
+import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.CategoryFilter
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.TimePeriod
-import com.example.d1_jetpackcompose.ui.viewModel.CategoryFilter
 
 
 private val HistoryCardGray = Color(0xFFE8E8E8)
@@ -55,13 +59,18 @@ private val HistoryCardGray = Color(0xFFE8E8E8)
 @Composable
 // 1. FUNGSI HALAMAN UTAMA
 fun DashboardScreen(
-    navController: NavController, // Butuh NavController untuk klik detail
-    viewModel: SharedViewModel
+    navController: NavController,
+    viewModel: SharedViewModel,
+    authViewModel: AuthViewModel
 ) {
 
     val stats by viewModel.dashboardStats.collectAsState()
     val currentPeriod by viewModel.selectedPeriod.collectAsState()
     val currentCategory by viewModel.selectedCategory.collectAsState()
+
+    // AMBIL USERNAME DARI AUTH VIEWMODEL
+    val username by authViewModel.currentUsername.collectAsState()
+
     // Main Container
     Column(
         modifier = Modifier
@@ -72,11 +81,11 @@ fun DashboardScreen(
             .verticalScroll(rememberScrollState())
     ) {
         // 1. Header Profile
-        HeaderProfileSection(name = "Jamal")
+        HeaderProfileSection(name = username)
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 2. Daily Goal Card (Zero State)
+        // 2. Daily Goal Card
         val totalSteps = (stats.totalDistance * 1300).toInt()
         DailyGoalCard(
             cardColor = MaterialTheme.colorScheme.onBackground,
@@ -87,17 +96,17 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // 2. PERIOD SELECTOR (INTERAKTIF)
+        // 3. PERIOD SELECTOR
         PeriodSelector(
             selectedPeriod = currentPeriod,
-            onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) }, // Update ViewModel
+            onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) },
             activeColor = MaterialTheme.colorScheme.primary,
             inactiveColor = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 4. Summary Grid (Zero State)
+        // 4. Summary Grid
         DailySummaryGrid(
             cardColor = MaterialTheme.colorScheme.onBackground,
             distance = "${stats.totalDistance} km",
@@ -108,40 +117,103 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // 3. CATEGORY FILTER (INTERAKTIF)
+        // 5. CATEGORY FILTER
         CategoryFilterSelector(
             selectedFilter = currentCategory,
-            onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) }, // Update ViewModel
+            onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) },
             activeColor = MaterialTheme.colorScheme.primary,
             inactiveColor = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 6. History Section (Empty/Zero State)
-        if (stats.recentActivities.isEmpty()) {
-            HistorySectionEmptyState(MaterialTheme.colorScheme.onBackground)
-        } else {
-            // KARTU DINAMIS (Mengikuti jumlah konten)
-            Card(
-                shape = RoundedCornerShape(32.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight() // 💡 1. Biarkan tingginya menyesuaikan isi
-                // Jangan gunakan .height(300.dp)
+        // 6. History Section (Unified Card: Empty & Populated)
+        HistorySection(
+            navController = navController,
+            recentActivities = stats.recentActivities,
+            cardColor = MaterialTheme.colorScheme.onBackground
+        )
+
+        Spacer(modifier = Modifier.height(25.dp))
+
+        OnlineTipsCard(
+            underlineColor = MaterialTheme.colorScheme.primary,
+            cardColor = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}
+
+// --- KOMPONEN BARU: HISTORY SECTION UNIFIED ---
+@Composable
+fun HistorySection(
+    navController: NavController,
+    recentActivities: List<ActivityEntity>,
+    cardColor: Color
+) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = cardColor
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp) // Padding internal card
+        ) {
+            // HEADER ROW (Selalu Muncul)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(
+                Text(
+                    text = "History Activities",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "View Detail",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.clickable {
+                        // 💡 NAVIGASI KE ACTIVITY LOG PAGE
+                        navController.navigate(AppRoutes.ACTIVITY) {
+                            popUpTo(AppRoutes.DASHBOARD) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            // CONTENT AREA (Kondisional)
+            if (recentActivities.isEmpty()) {
+                // Tampilan Kosong
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth() // 💡 2. Jangan fillMaxSize, cukup fillMaxWidth
-                        .padding(vertical = 20.dp)
-                        .padding(horizontal = 20.dp), // Gabungkan padding di sini
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "No activities found\n Add any activities you want.",
+                        color = Color.Gray,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            } else {
+                // Tampilan Ada Data
+                Column(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // 💡 3. Hapus .verticalScroll() di sini.
-                    // Karena DashboardScreen INDUK-nya sudah bisa discroll.
-
-                    stats.recentActivities.forEach { activity ->
+                    recentActivities.forEach { activity ->
                         val icon = if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
                         val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
 
@@ -154,17 +226,12 @@ fun DashboardScreen(
                 }
             }
         }
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        OnlineTipsCard(
-            underlineColor = MaterialTheme.colorScheme.primary,
-            cardColor = MaterialTheme.colorScheme.onBackground
-        )
     }
 }
 
-// 2. KOMPONEN DAILY SUMMARY (Gunakan ini untuk memperbaiki "Parameter never used")
+
+// --- SISA KOMPONEN PENDUKUNG (Copy-Paste agar file lengkap) ---
+
 @Composable
 fun DailySummaryGrid(
     cardColor: Color,
@@ -176,7 +243,7 @@ fun DailySummaryGrid(
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = cardColor // Gunakan parameter di sini
+            containerColor = cardColor
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -189,7 +256,6 @@ fun DailySummaryGrid(
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                // Parameter 'distance' dan 'intake' sekarang digunakan di sini
                 SummaryItem(label = "Distance", value = distance, modifier = Modifier.weight(1f))
                 SummaryItem(
                     label = "Calories Intake",
@@ -210,7 +276,6 @@ fun DailySummaryGrid(
     }
 }
 
-// 3. KOMPONEN ITEM KECIL (Helper)
 @Composable
 fun SummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
@@ -224,19 +289,13 @@ fun SummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
     }
 }
 
-// 4. FIX DEPRECATED PROGRESS INDICATOR
 @Composable
 fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
-    // 1. LOGIC HITUNG PROGRESS
-    // Hasil harus berupa Float antara 0.0f sampai 1.0f
-    // Kita gunakan .coerceIn(0f, 1f) agar jika langkah > 10.000, lingkaran tidak error/melebihi penuh
     val progressValue = if (total > 0) {
         (current.toFloat() / total.toFloat()).coerceIn(0f, 1f)
     } else {
         0f
     }
-
-    // 2. LOGIC HITUNG PERSENTASE TEXT (0-100)
     val percentageInt = (progressValue * 100).toInt()
 
     Card(
@@ -270,14 +329,12 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
                 }
                 Spacer(modifier = Modifier.height(15.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
-                    // Menampilkan angka dinamis (Current)
                     Text(
                         text = "$current",
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    // Menampilkan angka dinamis (Total)
                     Text(
                         text = " / $total",
                         fontSize = 18.sp,
@@ -288,19 +345,16 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
             }
 
             Box(contentAlignment = Alignment.Center) {
-                // 3. IMPLEMENTASI PROGRESS BAR
                 CircularProgressIndicator(
-                    progress = { progressValue }, // Masukkan hasil perhitungan float di sini
+                    progress = { progressValue },
                     modifier = Modifier.size(80.dp),
                     color = color,
                     strokeWidth = 8.dp,
                     trackColor = Color(0xFFE0E0E0),
                     strokeCap = StrokeCap.Round,
                 )
-
-                // 4. IMPLEMENTASI TEXT PERSEN
                 Text(
-                    text = "$percentageInt %", // Tampilkan hasil perhitungan integer persen
+                    text = "$percentageInt %",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -314,30 +368,27 @@ fun HeaderProfileSection(name: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 16.dp) // Beri jarak dari Status Bar
+            .padding(bottom = 16.dp)
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // --- FOTO PROFIL ---
-        // Ganti R.drawable.profile_placeholder dengan resource foto Anda
         Image(
             painter = painterResource(id = R.drawable.profile_picture),
             contentDescription = "User Profile Picture",
             modifier = Modifier
                 .size(56.dp)
-                .clip(CircleShape), // Membuat gambar jadi bulat sempurna
+                .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
 
         Spacer(modifier = Modifier.width(16.dp))
 
-        // --- TEKS GREETING ---
         Column {
             Text(
                 text = "Hi $name !",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface // Warna hijau gelap sesuai referensi
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "Let's start your journey today",
@@ -367,7 +418,6 @@ fun PeriodSelector(
                 .background(Color.White)
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
-                // DAILY BUTTON
                 SelectorItem(
                     text = "Daily",
                     isActive = selectedPeriod == TimePeriod.DAILY,
@@ -375,8 +425,6 @@ fun PeriodSelector(
                     modifier = Modifier.weight(1f),
                     onClick = { onSelect(TimePeriod.DAILY) }
                 )
-
-                // WEEKLY BUTTON
                 SelectorItem(
                     text = "Weekly",
                     isActive = selectedPeriod == TimePeriod.WEEKLY,
@@ -408,7 +456,6 @@ fun CategoryFilterSelector(
                 .background(Color.White)
         ) {
             Row(modifier = Modifier.fillMaxSize()) {
-                // ALL BUTTON
                 SelectorItem(
                     text = "All",
                     isActive = selectedFilter == CategoryFilter.ALL,
@@ -416,8 +463,6 @@ fun CategoryFilterSelector(
                     modifier = Modifier.weight(1f),
                     onClick = { onSelect(CategoryFilter.ALL) }
                 )
-
-                // EXERCISE BUTTON
                 SelectorItem(
                     text = "Exercise",
                     isActive = selectedFilter == CategoryFilter.EXERCISE,
@@ -425,8 +470,6 @@ fun CategoryFilterSelector(
                     modifier = Modifier.weight(1f),
                     onClick = { onSelect(CategoryFilter.EXERCISE) }
                 )
-
-                // FOODS BUTTON
                 SelectorItem(
                     text = "Foods",
                     isActive = selectedFilter == CategoryFilter.FOOD,
@@ -434,58 +477,6 @@ fun CategoryFilterSelector(
                     modifier = Modifier.weight(1f),
                     onClick = { onSelect(CategoryFilter.FOOD) }
                 )
-            }
-        }
-    }
-}
-
-@Composable
-fun HistorySectionEmptyState(cardColor: Color) {
-    Column {
-        // Kartu placeholder karena progress 0
-        Card(
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = cardColor // Gunakan parameter di sini
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 20.dp)
-                    .padding(vertical = 15.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "History Activities",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "View Detail",
-                        fontSize = 12.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.clickable { /* Handle click */ }
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Belum ada data history", color = Color.Gray)
-                }
             }
         }
     }
@@ -501,7 +492,7 @@ fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
         Card(
             shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
-                containerColor = cardColor // Gunakan parameter di sini
+                containerColor = cardColor
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -520,22 +511,12 @@ fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
                         .fillMaxWidth()
                         .fillMaxHeight(0.35f)
                         .drawBehind {
-                            val strokeWidth =
-                                2.dp.toPx() // Ketebalan garis
-                            val y =
-                                size.height - (strokeWidth / 2) // Posisi Y di bagian paling bawah
-
-                            // Gambar garis dari kiri ke kanan di posisi Y tersebut
+                            val strokeWidth = 2.dp.toPx()
+                            val y = size.height - (strokeWidth / 2)
                             drawLine(
-                                color = underlineColor, // Anda bisa gunakan warna dari theme Anda
-                                start = Offset(
-                                    0f,
-                                    y
-                                ),
-                                end = Offset(
-                                    size.width,
-                                    y
-                                ),
+                                color = underlineColor,
+                                start = Offset(0f,y),
+                                end = Offset(size.width,y),
                                 strokeWidth = strokeWidth
                             )
                         },
@@ -554,22 +535,18 @@ fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
                             fontSize = 24.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-
                         Image(
                             painter = painterResource(R.drawable.arrow_icon),
                             contentDescription = "SmartFit Logo",
                         )
                     }
                 }
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .fillMaxHeight()
                         .padding(15.dp)
-                ) {
-
-                }
+                ) {}
             }
         }
     }
@@ -586,7 +563,7 @@ fun HistoryItemDashboard(
             .fillMaxWidth()
             .customDropShadowActivity(
                 color = Color.Black.copy(alpha = 0.15f),
-                borderRadius = 24.dp, // Sesuai dengan shape background
+                borderRadius = 24.dp,
                 blurRadius = 5.dp,
                 offsetY = 6.dp
             )
@@ -615,13 +592,11 @@ fun HistoryItemDashboard(
                             painter = painterResource(id = iconRes),
                             contentDescription = title,
                             modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(Color.White) // 💡 Ikon jadi putih agar kontras
+                            colorFilter = ColorFilter.tint(Color.White)
                         )
                     }
                 }
-
                 Spacer(modifier = Modifier.size(10.dp))
-
                 Column {
                     Text(
                         text = title,
@@ -638,9 +613,7 @@ fun HistoryItemDashboard(
                         fontSize = 12.sp
                     )
                 }
-
             }
-
             Image(
                 painter = painterResource(id = R.drawable.right_arrow_icon),
                 contentDescription = title,
@@ -653,7 +626,6 @@ fun HistoryItemDashboard(
     }
 }
 
-// Helper Item untuk menghindari duplikasi kode
 @Composable
 fun SelectorItem(
     text: String,
@@ -667,27 +639,15 @@ fun SelectorItem(
             .fillMaxHeight()
             .padding(4.dp)
             .clip(RoundedCornerShape(25.dp))
-            .background(if (isActive) activeColor else Color.Transparent) // Logic Warna Aktif
-            .clickable { onClick() }, // Logic Klik
+            .background(if (isActive) activeColor else Color.Transparent)
+            .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = if (isActive) Color.White else Color.Gray, // Logic Warna Text
+            color = if (isActive) Color.White else Color.Gray,
             fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium,
             fontSize = 13.sp
         )
     }
 }
-
-//@Preview(
-//    showBackground = true,
-//    name = "Scrollable Profile",
-//    heightDp = 1000
-//)
-//@Composable
-//private fun DashboardScreenPrev() {
-//    SmartFitTheme {
-//        DashboardScreen()
-//    }
-//}
