@@ -21,7 +21,11 @@ interface ActivityDao {
     @Update
     suspend fun updateActivity(activity: ActivityEntity)
 
-    // DELETE: Hapus data
+    // DELETE: Hapus data spesifik
     @Delete
     suspend fun deleteActivity(activity: ActivityEntity)
+
+    // --- BARU: Hapus SEMUA data untuk fitur Reset/Logout ---
+    @Query("DELETE FROM activity_table")
+    suspend fun deleteAllActivities()
 }

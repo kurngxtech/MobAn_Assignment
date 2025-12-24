@@ -33,14 +33,28 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     // Logic State Observers
     val isLoading by authViewModel.isLoading.collectAsState()
     val loginResult by authViewModel.loginState.collectAsState()
+    val loginState by authViewModel.loginState.collectAsState()
 
     // --- 💡 LOGIKA LOGIN & NAVIGASI ---
     loginResult?.let { result ->
         if (result is AuthResult.Success) {
-            LaunchedEffect(Unit) {
-                authViewModel.resetLoginState() // Bersihkan state sebelum pindah
-                navController.navigate(AppRoutes.DASHBOARD) {
-                    popUpTo(AppRoutes.WELCOME) { inclusive = true } // Hapus stack ke belakang sampai Welcome
+            LaunchedEffect(loginState) {
+                if (loginState is AuthResult.Success) {
+                    // Cek apakah data profile sudah ada di database/sharedprefs
+                    // Jika data profile (Height/Weight/Gender) masih kosong -> ke SURVEY
+                    // Jika sudah ada -> ke DASHBOARD
+
+                    val isProfileEmpty = true // Ganti dengan logic cek data Anda
+
+                    if (isProfileEmpty) {
+                        navController.navigate(AppRoutes.SURVEY) {
+                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(AppRoutes.DASHBOARD) {
+                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                        }
+                    }
                 }
             }
         } else if (result is AuthResult.Error) {

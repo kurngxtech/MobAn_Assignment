@@ -7,15 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.d1_jetpackcompose.ui.screens.ActivityLogScreen
-import com.example.d1_jetpackcompose.ui.screens.AddExerciseScreen
-import com.example.d1_jetpackcompose.ui.screens.AddFoodScreen
-import com.example.d1_jetpackcompose.ui.screens.DashboardScreen
-import com.example.d1_jetpackcompose.ui.screens.DetailLogScreen
-import com.example.d1_jetpackcompose.ui.screens.LoginScreen
-import com.example.d1_jetpackcompose.ui.screens.ProfileScreen
-import com.example.d1_jetpackcompose.ui.screens.SignUpScreen
-import com.example.d1_jetpackcompose.ui.screens.WelcomePage
+import com.example.d1_jetpackcompose.ui.screens.*
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
@@ -28,6 +20,7 @@ object AppRoutes {
     const val PROFILE = "profile"
     const val EXERCISE = "exercise"
     const val FOOD = "food"
+    const val SURVEY = "survey"
 }
 
 @Composable
@@ -36,44 +29,31 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     viewModel: SharedViewModel,
     authViewModel: AuthViewModel,
-    startDestination: String // 💡 Parameter baru untuk menentukan halaman awal
+    startDestination: String
 ) {
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = startDestination // 💡 Gunakan parameter dinamis ini
+        startDestination = startDestination
     ) {
-        composable(AppRoutes.WELCOME) {
-            WelcomePage(navController = navController)
-        }
+        composable(AppRoutes.WELCOME) { WelcomePage(navController = navController) }
+        composable(AppRoutes.LOGIN) { LoginScreen(navController, authViewModel) }
+        composable(AppRoutes.SIGNUP) { SignUpScreen(navController, authViewModel) }
 
-        composable(AppRoutes.LOGIN) {
-            LoginScreen(navController = navController, authViewModel = authViewModel)
-        }
-
-        composable(AppRoutes.SIGNUP) {
-            SignUpScreen(navController = navController, authViewModel = authViewModel)
+        composable(AppRoutes.SURVEY) {
+            SurveyScreen(navController = navController)
         }
 
         composable(AppRoutes.DASHBOARD) {
-            // 💡 Kirim authViewModel ke Dashboard untuk ambil username
-            DashboardScreen(navController = navController, viewModel = viewModel, authViewModel = authViewModel)
+            DashboardScreen(navController, viewModel, authViewModel)
         }
-
-        composable(AppRoutes.ACTIVITY) {
-            ActivityLogScreen(navController = navController, viewModel = viewModel)
-        }
-
-        composable(AppRoutes.EXERCISE) {
-            AddExerciseScreen(navController = navController, viewModel = viewModel)
-        }
-
-        composable(AppRoutes.FOOD) {
-            AddFoodScreen(navController = navController, viewModel = viewModel)
-        }
+        composable(AppRoutes.ACTIVITY) { ActivityLogScreen(navController, viewModel) }
+        composable(AppRoutes.EXERCISE) { AddExerciseScreen(navController, viewModel) }
+        composable(AppRoutes.FOOD) { AddFoodScreen(navController, viewModel) }
 
         composable(AppRoutes.PROFILE) {
-            ProfileScreen(navController = navController)
+            // 💡 Kirim authViewModel ke sini
+            ProfileScreen(navController, viewModel, authViewModel)
         }
 
         composable(
@@ -81,11 +61,7 @@ fun AppNavHost(
             arguments = listOf(navArgument("activityId") { type = NavType.IntType })
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getInt("activityId") ?: 0
-            DetailLogScreen(
-                navController = navController,
-                activityId = id,
-                viewModel = viewModel
-            )
+            DetailLogScreen(navController, id, viewModel)
         }
     }
 }

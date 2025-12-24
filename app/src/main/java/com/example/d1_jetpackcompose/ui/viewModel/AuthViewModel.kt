@@ -71,7 +71,20 @@ class AuthViewModel(
         if (isRemembered && !savedUsername.isNullOrEmpty()) {
             _currentUsername.value = savedUsername
             _isSessionValid.value = true
+        } else {
+            _isSessionValid.value = false
         }
+    }
+
+    // --- FUNGSI BARU: LOGOUT ---
+    fun logout() {
+        // 1. Hapus data di SharedPreferences (Sesi Permanen)
+        sharedPreferences.edit().clear().apply()
+
+        // 2. Reset state di Memory (Sesi Aktif Aplikasi)
+        _currentUsername.value = "Guest"
+        _isSessionValid.value = false
+        _loginState.value = null
     }
 
     // Fungsi Sign Up
@@ -155,6 +168,7 @@ class AuthViewModel(
 
                 // Update state username saat ini
                 _currentUsername.value = user.username
+                _isSessionValid.value = true // Set sesi valid agar MainScreen tahu
                 _loginState.value = AuthResult.Success("Login Successful! Welcome ${user.username}")
             } else {
                 _loginState.value = AuthResult.Error("Wrong email or password")

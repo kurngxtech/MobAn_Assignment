@@ -1,6 +1,5 @@
 package com.example.d1_jetpackcompose.ui.viewModel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -11,11 +10,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
-// 1. Enum untuk mendefinisikan pilihan filter
 enum class TimePeriod { DAILY, WEEKLY }
 enum class CategoryFilter { ALL, EXERCISE, FOOD }
 
-// 2. Data Class untuk menampung hasil hitungan Dashboard
 data class DashboardStats(
     val totalCaloriesIntake: Int = 0,
     val totalCaloriesBurned: Int = 0,
@@ -26,42 +23,36 @@ data class DashboardStats(
 
 class SharedViewModel(private val repository: ActivityRepository) : ViewModel() {
 
-    // --- STATE UTAMA (Raw Data dari Database) ---
     private val _allActivities = repository.allActivities
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // --- STATE FILTER (Pilihan User) ---
     private val _selectedPeriod = MutableStateFlow(TimePeriod.DAILY)
     val selectedPeriod = _selectedPeriod.asStateFlow()
 
     private val _selectedCategory = MutableStateFlow(CategoryFilter.ALL)
     val selectedCategory = _selectedCategory.asStateFlow()
 
-    // --- LOGIKA FILTERING OTOMATIS (Reactive Layer) ---
     private val filteredActivities = combine(
         _allActivities,
         _selectedPeriod,
         _selectedCategory
     ) { list, period, category ->
         list.filter { activity ->
-            // Filter Berdasarkan Waktu
             val matchesTime = when (period) {
                 TimePeriod.DAILY -> isSameDay(activity.timestamp, System.currentTimeMillis())
                 TimePeriod.WEEKLY -> isSameWeek(activity.timestamp, System.currentTimeMillis())
             }
-
-            // Filter Berdasarkan Kategori
             val matchesCategory = when (category) {
                 CategoryFilter.ALL -> true
                 CategoryFilter.EXERCISE -> activity.type == ActivityType.EXERCISE
                 CategoryFilter.FOOD -> activity.type == ActivityType.FOOD
             }
-
             matchesTime && matchesCategory
         }
     }
 
-    // --- OUTPUT STATE (Diconsume oleh UI) ---
+    private val _userProfile = MutableStateFlow<String?>(null)
+    val userProfile = _userProfile.asStateFlow()
 
     val dashboardStats: StateFlow<DashboardStats> = filteredActivities.map { list ->
         DashboardStats(
@@ -79,56 +70,13 @@ class SharedViewModel(private val repository: ActivityRepository) : ViewModel() 
     private val _selectedActivity = MutableStateFlow<ActivityEntity?>(null)
     val selectedActivity: StateFlow<ActivityEntity?> = _selectedActivity.asStateFlow()
 
-
-//    // --- INIT DATA DUMMY ---
-//    init {
-//        insertDummyData()
-//    }
-
-//    private fun insertDummyData() {
-//        viewModelScope.launch {
-//            // Menggunakan first() untuk mengecek database saat ini
-//            val currentData = _allActivities.value
-//            if (currentData.isEmpty()) {
-//                Log.d("SharedViewModel", "Database kosong, memasukkan data dummy...")
-//                val calendar = Calendar.getInstance()
-//                val today = calendar.timeInMillis
-//
-//                calendar.add(Calendar.DAY_OF_YEAR, -1)
-//                val yesterday = calendar.timeInMillis
-//
-//                val dummyList = listOf(
-//                    ActivityEntity(
-//                        title = "Morning Run",
-//                        type = ActivityType.EXERCISE,
-//                        calories = 250,
-//                        distance = 3.5,
-//                        duration = 30,
-//                        timestamp = today
-//                    ),
-//                    ActivityEntity(
-//                        title = "Healthy Breakfast",
-//                        type = ActivityType.FOOD,
-//                        calories = 450,
-//                        timestamp = today
-//                    ),
-//                    ActivityEntity(
-//                        title = "Cycling",
-//                        type = ActivityType.EXERCISE,
-//                        calories = 400,
-//                        distance = 10.5,
-//                        duration = 45,
-//                        timestamp = yesterday
-//                    )
-//                )
-//                dummyList.forEach { repository.insert(it) }
-//            } else {
-//                Log.d("SharedViewModel", "Data sudah ada: ${currentData.size} item")
-//            }
-//        }
-//    }
-
-    // --- ACTIONS ---
+    // --- FUNGSI RESET DATABASE ---
+    fun logout() {
+        _userProfile.value = null
+        viewModelScope.launch {
+            repository.clearUserData() // Ini akan menghapus semua history dari database
+        }
+    }
 
     fun setTimePeriod(period: TimePeriod) { _selectedPeriod.value = period }
     fun setCategoryFilter(category: CategoryFilter) { _selectedCategory.value = category }
@@ -159,7 +107,6 @@ class SharedViewModel(private val repository: ActivityRepository) : ViewModel() 
         }
     }
 
-    // --- DATE HELPERS ---
     private fun isSameDay(t1: Long, t2: Long): Boolean {
         val cal1 = Calendar.getInstance().apply { timeInMillis = t1 }
         val cal2 = Calendar.getInstance().apply { timeInMillis = t2 }
