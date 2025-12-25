@@ -68,8 +68,12 @@ fun DashboardScreen(
     val currentPeriod by viewModel.selectedPeriod.collectAsState()
     val currentCategory by viewModel.selectedCategory.collectAsState()
 
-    // AMBIL USERNAME DARI AUTH VIEWMODEL
-    val username by authViewModel.currentUsername.collectAsState()
+    // 💡 PERBAIKAN: Ambil Objek User Lengkap (bukan cuma username)
+    val currentUser by authViewModel.currentUser.collectAsState()
+
+    // Ambil username & Goal dari currentUser
+    val username = currentUser?.username ?: "Guest"
+    val dailyGoal = currentUser?.dailyStepsGoal ?: 5000 // Default 5000 jika null
 
     // Main Container
     Column(
@@ -86,11 +90,13 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(10.dp))
 
         // 2. Daily Goal Card
-        val totalSteps = (stats.totalDistance * 1300).toInt()
+        // Hitung langkah saat ini (Estimasi dari Jarak)
+        val currentSteps = (stats.totalDistance * 1300).toInt()
+
         DailyGoalCard(
             cardColor = MaterialTheme.colorScheme.onBackground,
-            current = totalSteps,
-            total = 10000,
+            current = currentSteps,
+            total = dailyGoal, // 💡 Ganti 10000 dengan dailyGoal dari user
             color = MaterialTheme.colorScheme.primary
         )
 

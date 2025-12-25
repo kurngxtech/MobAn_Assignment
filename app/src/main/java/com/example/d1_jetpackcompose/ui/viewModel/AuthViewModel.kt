@@ -29,16 +29,21 @@ import androidx.lifecycle.viewModelScope
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.UserEntity
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
+import com.example.d1_jetpackcompose.ui.screens.UserSurveyData // Import Data Class dari Survey
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 // --- 1. VIEW MODEL LOGIC ---
 
 class AuthViewModel(
     private val repository: AuthRepository,
-    private val sharedPreferences: SharedPreferences // 💡 Inject SharedPreferences
+    private val sharedPreferences: SharedPreferences // Inject SharedPreferences
 ) : ViewModel() {
 
     // States
@@ -51,15 +56,21 @@ class AuthViewModel(
     private val _signUpState = MutableStateFlow<AuthResult?>(null)
     val signUpState = _signUpState.asStateFlow()
 
-    // 💡 State untuk menyimpan Username user yang sedang aktif
+    // State untuk menyimpan Username user yang sedang aktif
     private val _currentUsername = MutableStateFlow("Guest")
     val currentUsername = _currentUsername.asStateFlow()
 
-    // 💡 State untuk status login (dicek saat splash/awal app)
+    // State untuk status login (dicek saat splash/awal app)
     private val _isSessionValid = MutableStateFlow(false)
     val isSessionValid = _isSessionValid.asStateFlow()
 
-    // 💡 INIT: Cek apakah ada sesi tersimpan saat ViewModel dibuat
+    // --- NEW: REALTIME USER DATA FLOW ---
+    // Mengambil data lengkap user (tinggi, berat, dll) setiap kali username berubah
+    val currentUser: StateFlow<UserEntity?> = _currentUsername
+        .flatMapLatest { username -> repository.getCurrentUserFlow(username) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // INIT: Cek apakah ada sesi tersimpan saat ViewModel dibuat
     init {
         checkSession()
     }
@@ -76,7 +87,7 @@ class AuthViewModel(
         }
     }
 
-    // --- FUNGSI BARU: LOGOUT ---
+    // --- FUNGSI LOGOUT ---
     fun logout() {
         // 1. Hapus data di SharedPreferences (Sesi Permanen)
         sharedPreferences.edit().clear().apply()
@@ -85,6 +96,31 @@ class AuthViewModel(
         _currentUsername.value = "Guest"
         _isSessionValid.value = false
         _loginState.value = null
+    }
+
+    // --- FUNGSI BARU: SAVE USER PROFILE (DARI SURVEY) ---
+    fun saveUserProfile(surveyData: UserSurveyData) {
+        viewModelScope.launch {
+            val username = _currentUsername.value
+            // Ambil data user saat ini dari database berdasarkan username
+            val existingUser = repository.getUserByUsername(username)
+
+            if (existingUser != null) {
+                // Update object user dengan data baru dari Survey
+                val updatedUser = existingUser.copy(
+                    gender = surveyData.gender,
+                    age = surveyData.age.toIntOrNull() ?: 0,
+                    height = surveyData.height.toFloatOrNull() ?: 0f,
+                    weight = surveyData.weight.toFloatOrNull() ?: 0f,
+                    bmi = surveyData.bmi,
+                    goal = surveyData.goal,
+                    activityLevel = surveyData.activityLevel,
+                    dailyStepsGoal = surveyData.dailySteps.toIntOrNull() ?: 5000
+                )
+                // Simpan perubahan ke database
+                repository.updateUserProfile(updatedUser)
+            }
+        }
     }
 
     // Fungsi Sign Up
@@ -132,7 +168,7 @@ class AuthViewModel(
     }
 
     // Fungsi Login (Updated dengan Remember Me)
-    fun login(email: String, pass: String, rememberMe: Boolean) { // 💡 Tambah param rememberMe
+    fun login(email: String, pass: String, rememberMe: Boolean) {
         viewModelScope.launch {
             _isLoading.value = true
 
@@ -155,7 +191,7 @@ class AuthViewModel(
             val user = repository.loginUser(email, pass)
 
             if (user != null) {
-                // 💡 Simpan sesi jika user mencentang Remember Me
+                // Simpan sesi jika user mencentang Remember Me
                 if (rememberMe) {
                     sharedPreferences.edit()
                         .putString("USER_NAME", user.username)
@@ -191,7 +227,7 @@ sealed class AuthResult {
 // Factory untuk ViewModel (Updated dengan SharedPreferences)
 class AuthViewModelFactory(
     private val repository: AuthRepository,
-    private val sharedPreferences: SharedPreferences // 💡 Inject
+    private val sharedPreferences: SharedPreferences // Inject
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
@@ -202,7 +238,7 @@ class AuthViewModelFactory(
     }
 }
 
-// --- UI COMPONENTS TETAP SAMA ---
+// --- UI COMPONENTS TETAP SAMA (TIDAK DISENTUH) ---
 @Composable
 fun AuthInput(
     modifier: Modifier = Modifier,

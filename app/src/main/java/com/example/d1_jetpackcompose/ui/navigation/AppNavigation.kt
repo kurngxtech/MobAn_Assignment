@@ -40,8 +40,9 @@ fun AppNavHost(
         composable(AppRoutes.LOGIN) { LoginScreen(navController, authViewModel) }
         composable(AppRoutes.SIGNUP) { SignUpScreen(navController, authViewModel) }
 
+        // 💡 PERBAIKAN: Kirim authViewModel ke SurveyScreen
         composable(AppRoutes.SURVEY) {
-            SurveyScreen(navController = navController)
+            SurveyScreen(navController = navController, authViewModel = authViewModel)
         }
 
         composable(AppRoutes.DASHBOARD) {
@@ -51,9 +52,9 @@ fun AppNavHost(
         composable(AppRoutes.EXERCISE) { AddExerciseScreen(navController, viewModel) }
         composable(AppRoutes.FOOD) { AddFoodScreen(navController, viewModel) }
 
+        // 💡 PERBAIKAN: Kirim authViewModel ke ProfileScreen untuk load data
         composable(AppRoutes.PROFILE) {
-            // 💡 Kirim authViewModel ke sini
-            ProfileScreen(navController, viewModel, authViewModel)
+            ProfileScreen(navController = navController, viewModel = viewModel, authViewModel = authViewModel)
         }
 
         composable(
