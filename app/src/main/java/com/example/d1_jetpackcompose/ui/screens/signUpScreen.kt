@@ -35,7 +35,7 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
         AlertDialog(
             onDismissRequest = { authViewModel.resetSignUpState() },
             title = { Text(if (result is AuthResult.Success) "Registration Success" else "Registration Failed") },
-            text = { Text(if (result is AuthResult.Success) result.message else (result as AuthResult.Error).message) },
+            text = { Text(if (result is AuthResult.Success) result.message else (result as AuthResult.Error).message, color = Color.Black) },
             confirmButton = {
                 TextButton(onClick = {
                     if (result is AuthResult.Success) {

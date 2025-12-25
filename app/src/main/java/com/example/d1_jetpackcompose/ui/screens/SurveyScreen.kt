@@ -26,7 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.d1_jetpackcompose.ui.navigation.AppRoutes // 💡 IMPORT INI PENTING
+import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 
 // --- DATA MODELS ---
@@ -137,13 +137,14 @@ fun SurveyScreen(
                     // --- LOGIC FINISH ---
                     calculateBMI(surveyData.value)
 
-                    // 1. Simpan ke Database
+                    // 1. Simpan ke Database (User akan terupdate, gender tidak lagi "-")
                     authViewModel.saveUserProfile(surveyData.value)
 
-                    // 2. Pindah ke Dashboard (Gunakan AppRoutes!)
+                    // 2. Pindah ke Dashboard & Reset Backstack
                     navController.navigate(AppRoutes.DASHBOARD) {
-                        // Hapus survey dari backstack agar tidak bisa kembali
-                        popUpTo(AppRoutes.SURVEY) { inclusive = true }
+                        // popUpTo(0) akan menghapus semua halaman (Login/Welcome/Survey)
+                        // sehingga tombol Back akan menutup aplikasi, bukan balik ke survey
+                        popUpTo(0) { inclusive = true }
                     }
                 } else {
                     val nextOrdinal = currentStep.ordinal + 1

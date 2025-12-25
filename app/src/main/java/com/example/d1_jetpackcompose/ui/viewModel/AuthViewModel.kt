@@ -29,7 +29,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.UserEntity
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
-import com.example.d1_jetpackcompose.ui.screens.UserSurveyData // Import Data Class dari Survey
+import com.example.d1_jetpackcompose.ui.screens.UserSurveyData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,11 +39,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// --- 1. VIEW MODEL LOGIC ---
-
 class AuthViewModel(
     private val repository: AuthRepository,
-    private val sharedPreferences: SharedPreferences // Inject SharedPreferences
+    private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
     // States
@@ -56,21 +54,17 @@ class AuthViewModel(
     private val _signUpState = MutableStateFlow<AuthResult?>(null)
     val signUpState = _signUpState.asStateFlow()
 
-    // State untuk menyimpan Username user yang sedang aktif
     private val _currentUsername = MutableStateFlow("Guest")
     val currentUsername = _currentUsername.asStateFlow()
 
-    // State untuk status login (dicek saat splash/awal app)
     private val _isSessionValid = MutableStateFlow(false)
     val isSessionValid = _isSessionValid.asStateFlow()
 
-    // --- NEW: REALTIME USER DATA FLOW ---
-    // Mengambil data lengkap user (tinggi, berat, dll) setiap kali username berubah
+    // --- REALTIME USER DATA ---
     val currentUser: StateFlow<UserEntity?> = _currentUsername
         .flatMapLatest { username -> repository.getCurrentUserFlow(username) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    // INIT: Cek apakah ada sesi tersimpan saat ViewModel dibuat
     init {
         checkSession()
     }
@@ -87,26 +81,25 @@ class AuthViewModel(
         }
     }
 
-    // --- FUNGSI LOGOUT ---
-    fun logout() {
-        // 1. Hapus data di SharedPreferences (Sesi Permanen)
-        sharedPreferences.edit().clear().apply()
+    // --- HELPER BARU: CEK STATUS SURVEY ---
+    // Mengembalikan true jika user sudah pernah mengisi survey (gender tidak "-")
+    fun isSurveyCompleted(user: UserEntity?): Boolean {
+        return user != null && user.gender != "-"
+    }
 
-        // 2. Reset state di Memory (Sesi Aktif Aplikasi)
+    fun logout() {
+        sharedPreferences.edit().clear().apply()
         _currentUsername.value = "Guest"
         _isSessionValid.value = false
         _loginState.value = null
     }
 
-    // --- FUNGSI BARU: SAVE USER PROFILE (DARI SURVEY) ---
     fun saveUserProfile(surveyData: UserSurveyData) {
         viewModelScope.launch {
             val username = _currentUsername.value
-            // Ambil data user saat ini dari database berdasarkan username
             val existingUser = repository.getUserByUsername(username)
 
             if (existingUser != null) {
-                // Update object user dengan data baru dari Survey
                 val updatedUser = existingUser.copy(
                     gender = surveyData.gender,
                     age = surveyData.age.toIntOrNull() ?: 0,
@@ -117,46 +110,38 @@ class AuthViewModel(
                     activityLevel = surveyData.activityLevel,
                     dailyStepsGoal = surveyData.dailySteps.toIntOrNull() ?: 5000
                 )
-                // Simpan perubahan ke database
                 repository.updateUserProfile(updatedUser)
             }
         }
     }
 
-    // Fungsi Sign Up
     fun signUp(username: String, email: String, pass: String, confirmPass: String) {
         viewModelScope.launch {
             _isLoading.value = true
-
-            // Validasi Ketat
             if (username.isEmpty() || email.isEmpty() || pass.isEmpty()) {
                 _signUpState.value = AuthResult.Error("All fields are required")
                 _isLoading.value = false
                 return@launch
             }
-
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 _signUpState.value = AuthResult.Error("Invalid email address format")
                 _isLoading.value = false
                 return@launch
             }
-
             if (pass.length < 6) {
                 _signUpState.value = AuthResult.Error("Password must be at least 6 characters")
                 _isLoading.value = false
                 return@launch
             }
-
             if (pass != confirmPass) {
                 _signUpState.value = AuthResult.Error("Passwords do not match")
                 _isLoading.value = false
                 return@launch
             }
 
-            // Proses ke Database
+            // Saat Register, data survey masih default ("-")
             val success = repository.registerUser(UserEntity(username = username, email = email, password = pass))
-
-            delay(1000) // Simulasi loading sebentar
+            delay(1000)
 
             if (success) {
                 _signUpState.value = AuthResult.Success("Account created successfully!")
@@ -167,44 +152,34 @@ class AuthViewModel(
         }
     }
 
-    // Fungsi Login (Updated dengan Remember Me)
     fun login(email: String, pass: String, rememberMe: Boolean) {
         viewModelScope.launch {
             _isLoading.value = true
-
-            // Validasi Input
             if (email.isEmpty() || pass.isEmpty()) {
                 _loginState.value = AuthResult.Error("Please fill in all fields")
                 _isLoading.value = false
                 return@launch
             }
-
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 _loginState.value = AuthResult.Error("Invalid email format")
                 _isLoading.value = false
                 return@launch
             }
-
-            // Simulasi Loading Screen Perpindahan
             delay(2000)
-
             val user = repository.loginUser(email, pass)
 
             if (user != null) {
-                // Simpan sesi jika user mencentang Remember Me
                 if (rememberMe) {
                     sharedPreferences.edit()
                         .putString("USER_NAME", user.username)
                         .putBoolean("IS_REMEMBERED", true)
                         .apply()
                 } else {
-                    // Jika tidak dicentang, pastikan sesi bersih
                     sharedPreferences.edit().clear().apply()
                 }
 
-                // Update state username saat ini
                 _currentUsername.value = user.username
-                _isSessionValid.value = true // Set sesi valid agar MainScreen tahu
+                _isSessionValid.value = true
                 _loginState.value = AuthResult.Success("Login Successful! Welcome ${user.username}")
             } else {
                 _loginState.value = AuthResult.Error("Wrong email or password")
@@ -213,21 +188,18 @@ class AuthViewModel(
         }
     }
 
-    // Reset State
     fun resetLoginState() { _loginState.value = null }
     fun resetSignUpState() { _signUpState.value = null }
 }
 
-// Helper Class untuk hasil Auth
 sealed class AuthResult {
     data class Success(val message: String) : AuthResult()
     data class Error(val message: String) : AuthResult()
 }
 
-// Factory untuk ViewModel (Updated dengan SharedPreferences)
 class AuthViewModelFactory(
     private val repository: AuthRepository,
-    private val sharedPreferences: SharedPreferences // Inject
+    private val sharedPreferences: SharedPreferences
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
@@ -238,7 +210,7 @@ class AuthViewModelFactory(
     }
 }
 
-// --- UI COMPONENTS TETAP SAMA (TIDAK DISENTUH) ---
+// --- UI COMPONENTS (Tetap Sama) ---
 @Composable
 fun AuthInput(
     modifier: Modifier = Modifier,
@@ -279,7 +251,6 @@ fun AuthInput(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-
                 if (isPassword) {
                     Spacer(modifier = Modifier.width(8.dp))
                     Box(modifier = Modifier.size(24.dp).clickable { passwordVisible = !passwordVisible }) {

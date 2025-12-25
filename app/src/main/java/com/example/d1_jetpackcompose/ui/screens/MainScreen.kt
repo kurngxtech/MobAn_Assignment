@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -32,43 +33,54 @@ fun MainScreen() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // 1. Inisialisasi Database & SharedPreferences
+    // 1. Inisialisasi Database
     val database = AppDatabase.getDatabase(context)
     val activityRepository = ActivityRepository(database.activityDao())
     val authRepository = AuthRepository(database.userDao())
-    val sharedPreferences = context.getSharedPreferences("smartfit_prefs", Context.MODE_PRIVATE) // 💡 Prefs
+    val sharedPreferences = context.getSharedPreferences("smartfit_prefs", Context.MODE_PRIVATE)
 
     // 2. ViewModels
     val sharedViewModel: SharedViewModel = viewModel(
         factory = SharedViewModelFactory(activityRepository)
     )
-
-    // ViewModel Auth Baru dengan SharedPreferences
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModelFactory(authRepository, sharedPreferences)
     )
 
-    // 💡 3. CEK STATUS AUTO-LOGIN
-    // Jika sesi valid (Remember Me true & ada data), langsung ke DASHBOARD
+    // 3. LOGIKA START DESTINATION (AUTO LOGIN & SURVEY CHECK)
     val isSessionValid by authViewModel.isSessionValid.collectAsState()
-    val startDestination = if (isSessionValid) AppRoutes.DASHBOARD else AppRoutes.WELCOME
+    val currentUser by authViewModel.currentUser.collectAsState()
 
-    // 4. LOGIKA NAVBAR DINAMIS
+    // Jika sesi valid, cek apakah survey sudah selesai
+    val startDestination = remember(isSessionValid, currentUser) {
+        if (isSessionValid) {
+            val user = currentUser
+            // Jika user belum selesai survey (gender == "-"), ke SURVEY. Jika sudah, ke DASHBOARD.
+            if (user != null && authViewModel.isSurveyCompleted(user)) {
+                AppRoutes.DASHBOARD
+            } else {
+                AppRoutes.SURVEY
+            }
+        } else {
+            AppRoutes.WELCOME
+        }
+    }
+
+    // 4. NAVBAR LOGIC
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val showBottomBar = currentRoute !in listOf(
         AppRoutes.WELCOME,
         AppRoutes.LOGIN,
-        AppRoutes.SIGNUP
+        AppRoutes.SIGNUP,
+        AppRoutes.SURVEY
     )
 
     val globalBackgroundColor = MaterialTheme.colorScheme.background
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(globalBackgroundColor)
+        modifier = Modifier.fillMaxSize().background(globalBackgroundColor)
     ) {
         // Konten Utama
         Box(
@@ -81,15 +93,13 @@ fun MainScreen() {
                 modifier = Modifier.fillMaxSize(),
                 viewModel = sharedViewModel,
                 authViewModel = authViewModel,
-                startDestination = startDestination // 💡 Kirim Start Destination Dinamis
+                startDestination = startDestination
             )
         }
 
-        // Navbar di bagian bawah
+        // Navbar
         if (showBottomBar) {
-            Box(
-                modifier = Modifier.align(Alignment.BottomCenter)
-            ) {
+            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
                 BubbleNavigationBar(navController = navController)
             }
         }

@@ -30,45 +30,46 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
 
-    // Logic State Observers
     val isLoading by authViewModel.isLoading.collectAsState()
     val loginResult by authViewModel.loginState.collectAsState()
-    val loginState by authViewModel.loginState.collectAsState()
 
-    // --- 💡 LOGIKA LOGIN & NAVIGASI ---
-    loginResult?.let { result ->
-        if (result is AuthResult.Success) {
-            LaunchedEffect(loginState) {
-                if (loginState is AuthResult.Success) {
-                    // Cek apakah data profile sudah ada di database/sharedprefs
-                    // Jika data profile (Height/Weight/Gender) masih kosong -> ke SURVEY
-                    // Jika sudah ada -> ke DASHBOARD
+    // 💡 OBSERVASI USER UNTUK CEK SURVEY
+    val currentUser by authViewModel.currentUser.collectAsState()
 
-                    val isProfileEmpty = true // Ganti dengan logic cek data Anda
-
-                    if (isProfileEmpty) {
-                        navController.navigate(AppRoutes.SURVEY) {
-                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(AppRoutes.DASHBOARD) {
-                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
-                        }
+    // LOGIKA LOGIN SUKSES
+    LaunchedEffect(loginResult, currentUser) {
+        if (loginResult is AuthResult.Success) {
+            val user = currentUser
+            // Tunggu sampai data user ter-load dari database
+            if (user != null) {
+                if (authViewModel.isSurveyCompleted(user)) {
+                    // Jika data sudah ada -> Dashboard
+                    navController.navigate(AppRoutes.DASHBOARD) {
+                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                    }
+                } else {
+                    // Jika data masih kosong ("-") -> Survey
+                    navController.navigate(AppRoutes.SURVEY) {
+                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
                 }
             }
-        } else if (result is AuthResult.Error) {
-            AlertDialog(
-                onDismissRequest = { authViewModel.resetLoginState() },
-                title = { Text("Login Failed") },
-                text = { Text(result.message) },
-                confirmButton = {
-                    TextButton(onClick = { authViewModel.resetLoginState() }) {
-                        Text("Try Again", color = Color.Red, fontWeight = FontWeight.Bold)
-                    }
-                }
-            )
         }
+    }
+
+    // Tampilkan Alert Error
+    if (loginResult is AuthResult.Error) {
+        val errorMsg = (loginResult as AuthResult.Error).message
+        AlertDialog(
+            onDismissRequest = { authViewModel.resetLoginState() },
+            title = { Text("Login Failed") },
+            text = { Text(errorMsg, color = Color.Black) },
+            confirmButton = {
+                TextButton(onClick = { authViewModel.resetLoginState() }) {
+                    Text("Try Again", color = Color.Red, fontWeight = FontWeight.Bold)
+                }
+            }
+        )
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -146,7 +147,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
             PrimaryAuthButton(
                 text = "Log in",
-                // 💡 Kirim status rememberMe ke ViewModel
                 onClick = { authViewModel.login(email, password, rememberMe) }
             )
 
@@ -169,7 +169,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             }
         }
 
-        // --- 💡 LOADING OVERLAY ---
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.7f)),
