@@ -1,8 +1,10 @@
 package com.example.d1_jetpackcompose.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -11,12 +13,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.d1_jetpackcompose.data.local.AppDatabase
+import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.viewModel.AuthInput
@@ -28,27 +35,24 @@ import com.example.d1_jetpackcompose.ui.viewModel.PrimaryAuthButton
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var rememberMe by remember { mutableStateOf(false) }
+    // 💡 REMOVED: var rememberMe
 
     val isLoading by authViewModel.isLoading.collectAsState()
     val loginResult by authViewModel.loginState.collectAsState()
 
-    // 💡 OBSERVASI USER UNTUK CEK SURVEY
+    // OBSERVASI USER UNTUK CEK SURVEY
     val currentUser by authViewModel.currentUser.collectAsState()
 
     // LOGIKA LOGIN SUKSES
     LaunchedEffect(loginResult, currentUser) {
         if (loginResult is AuthResult.Success) {
             val user = currentUser
-            // Tunggu sampai data user ter-load dari database
             if (user != null) {
                 if (authViewModel.isSurveyCompleted(user)) {
-                    // Jika data sudah ada -> Dashboard
                     navController.navigate(AppRoutes.DASHBOARD) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
                 } else {
-                    // Jika data masih kosong ("-") -> Survey
                     navController.navigate(AppRoutes.SURVEY) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
@@ -57,7 +61,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         }
     }
 
-    // Tampilkan Alert Error
+    // Alert Error
     if (loginResult is AuthResult.Error) {
         val errorMsg = (loginResult as AuthResult.Error).message
         AlertDialog(
@@ -78,11 +82,10 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp)
-                .padding(top = 40.dp),
+                .padding(24.dp),
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
 
+            Spacer(modifier = Modifier.height(150.dp))
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -115,39 +118,13 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 isPassword = true
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Checkbox(
-                        checked = rememberMe,
-                        onCheckedChange = { rememberMe = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = MaterialTheme.colorScheme.primary
-                        )
-                    )
-                    Text(text = "Remember me", fontSize = 14.sp, color = Color.Gray)
-                }
-
-                Text(
-                    text = "Forgot Password?",
-                    fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.clickable { /* Navigate to Forgot Pass */ }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(15.dp))
+            // 💡 REMOVED: Row "Remember Me" & "Forgot Password"
+            Spacer(modifier = Modifier.height(30.dp)) // Tambahkan spacer pengganti agar tidak terlalu rapat
 
             PrimaryAuthButton(
                 text = "Log in",
-                onClick = { authViewModel.login(email, password, rememberMe) }
+                // 💡 UPDATED: Panggil login tanpa parameter rememberMe
+                onClick = { authViewModel.login(email, password) }
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -181,5 +158,26 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun LoginScreenPreview() {
+    val context = LocalContext.current
+
+    // 💡 Gunakan 'remember' untuk menghindari instansiasi ulang yang menyebabkan error lint
+    val authViewModel = remember {
+        val database = AppDatabase.getDatabase(context)
+        val repository = AuthRepository(database.userDao())
+        val sharedPrefs = context.getSharedPreferences("preview_prefs", Context.MODE_PRIVATE)
+        AuthViewModel(repository, sharedPrefs)
+    }
+
+    SmartFitTheme {
+        LoginScreen(
+            navController = rememberNavController(),
+            authViewModel = authViewModel
+        )
     }
 }

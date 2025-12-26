@@ -19,7 +19,6 @@ class AuthRepository(private val userDao: UserDao) {
         return userDao.login(email, password)
     }
 
-    // --- BARU ---
     suspend fun updateUserProfile(user: UserEntity) {
         userDao.updateUser(user)
     }
@@ -30,5 +29,10 @@ class AuthRepository(private val userDao: UserDao) {
 
     suspend fun getUserByUsername(username: String): UserEntity? {
         return userDao.getUserByUsername(username)
+    }
+
+    // --- FUNGSI BARU: DELETE ACCOUNT ---
+    suspend fun deleteUser(username: String) {
+        userDao.deleteUserByUsername(username)
     }
 }

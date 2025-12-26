@@ -81,8 +81,22 @@ class AuthViewModel(
         }
     }
 
-    // --- HELPER BARU: CEK STATUS SURVEY ---
-    // Mengembalikan true jika user sudah pernah mengisi survey (gender tidak "-")
+    // --- FUNGSI BARU: DELETE ACCOUNT ---
+    fun deleteAccount(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val username = _currentUsername.value
+
+            // 1. Hapus user dari database
+            repository.deleteUser(username)
+
+            // 2. Bersihkan sesi login
+            logout()
+
+            // 3. Callback navigasi
+            onComplete()
+        }
+    }
+
     fun isSurveyCompleted(user: UserEntity?): Boolean {
         return user != null && user.gender != "-"
     }
@@ -139,7 +153,6 @@ class AuthViewModel(
                 return@launch
             }
 
-            // Saat Register, data survey masih default ("-")
             val success = repository.registerUser(UserEntity(username = username, email = email, password = pass))
             delay(1000)
 
@@ -152,7 +165,7 @@ class AuthViewModel(
         }
     }
 
-    fun login(email: String, pass: String, rememberMe: Boolean) {
+    fun login(email: String, pass: String) {
         viewModelScope.launch {
             _isLoading.value = true
             if (email.isEmpty() || pass.isEmpty()) {
@@ -169,14 +182,10 @@ class AuthViewModel(
             val user = repository.loginUser(email, pass)
 
             if (user != null) {
-                if (rememberMe) {
-                    sharedPreferences.edit()
-                        .putString("USER_NAME", user.username)
-                        .putBoolean("IS_REMEMBERED", true)
-                        .apply()
-                } else {
-                    sharedPreferences.edit().clear().apply()
-                }
+                sharedPreferences.edit()
+                    .putString("USER_NAME", user.username)
+                    .putBoolean("IS_REMEMBERED", true)
+                    .apply()
 
                 _currentUsername.value = user.username
                 _isSessionValid.value = true
@@ -210,7 +219,6 @@ class AuthViewModelFactory(
     }
 }
 
-// --- UI COMPONENTS (Tetap Sama) ---
 @Composable
 fun AuthInput(
     modifier: Modifier = Modifier,
@@ -276,24 +284,5 @@ fun PrimaryAuthButton(text: String, onClick: () -> Unit, modifier: Modifier = Mo
         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
         Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-    }
-}
-
-@Composable
-fun GoogleSignInButton(onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(50.dp),
-        shape = RoundedCornerShape(50),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.3f)),
-        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(20.dp)) {
-                Image(painter = painterResource(id = R.drawable.google), contentDescription = "Google Logo", modifier = Modifier.fillMaxSize())
-            }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(text = "Sign up with Google", color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
-        }
     }
 }
