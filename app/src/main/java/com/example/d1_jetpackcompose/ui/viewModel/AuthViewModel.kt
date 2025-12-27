@@ -1,6 +1,8 @@
 package com.example.d1_jetpackcompose.ui.viewModel
 
+import android.content.Context
 import android.content.SharedPreferences
+import android.net.Uri
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,6 +32,7 @@ import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.UserEntity
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.screens.UserSurveyData
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,6 +41,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
 
 class AuthViewModel(
     private val repository: AuthRepository,
@@ -60,45 +66,140 @@ class AuthViewModel(
     private val _isSessionValid = MutableStateFlow(false)
     val isSessionValid = _isSessionValid.asStateFlow()
 
+    private val _isCheckingSession = MutableStateFlow(true)
+    val isCheckingSession = _isCheckingSession.asStateFlow()
+
     // --- REALTIME USER DATA ---
     val currentUser: StateFlow<UserEntity?> = _currentUsername
         .flatMapLatest { username -> repository.getCurrentUserFlow(username) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
+    // --- FUNGSI UPDATE GAMBAR ---
+    fun updateProfilePicture(context: Context, imageUri: Uri) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val newPath = copyImageToInternalStorage(context, imageUri)
+            delay(1500)
+            if (newPath != null) {
+                val user = currentUser.value
+                if (user != null) {
+                    val updatedUser = user.copy(profilePicturePath = newPath)
+                    repository.updateUserProfile(updatedUser)
+                }
+            }
+            _isLoading.value = false
+        }
+    }
+
+    private suspend fun copyImageToInternalStorage(context: Context, uri: Uri): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val inputStream = context.contentResolver.openInputStream(uri) ?: return@withContext null
+                val fileName = "profile_${System.currentTimeMillis()}.jpg"
+                val file = File(context.filesDir, fileName)
+                val outputStream = FileOutputStream(file)
+                inputStream.copyTo(outputStream)
+                inputStream.close()
+                outputStream.close()
+                return@withContext file.absolutePath
+            } catch (e: Exception) {
+                e.printStackTrace()
+                return@withContext null
+            }
+        }
+    }
+
+    // --- UPDATE DATA AKUN ---
+    fun updateUserAccount(
+        newUsername: String,
+        newAge: String,
+        newGender: String,
+        newHeight: String,
+        newWeight: String,
+        onSuccess: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val user = currentUser.value
+            if (user != null) {
+                val updatedUser = user.copy(
+                    username = newUsername,
+                    age = newAge.toIntOrNull() ?: user.age,
+                    gender = newGender,
+                    height = newHeight.toFloatOrNull() ?: user.height,
+                    weight = newWeight.toFloatOrNull() ?: user.weight,
+                    bmi = calculateBmiInternal(newHeight.toFloatOrNull(), newWeight.toFloatOrNull()) ?: user.bmi
+                )
+                repository.updateUserProfile(updatedUser)
+                if (user.username != newUsername) {
+                    sharedPreferences.edit().putString("USER_NAME", newUsername).apply()
+                    _currentUsername.value = newUsername
+                }
+                delay(1500)
+                onSuccess()
+            }
+            _isLoading.value = false
+        }
+    }
+
+    private fun calculateBmiInternal(height: Float?, weight: Float?): Float? {
+        if (height == null || weight == null || height <= 0) return null
+        val heightM = height / 100f
+        return weight / (heightM * heightM)
+    }
+
     init {
         checkSession()
     }
 
+    // 💡 PERBAIKAN UTAMA: LOGIKA CEK SESI YANG LEBIH AMAN
     private fun checkSession() {
-        val savedUsername = sharedPreferences.getString("USER_NAME", null)
-        val isRemembered = sharedPreferences.getBoolean("IS_REMEMBERED", false)
+        viewModelScope.launch {
+            _isCheckingSession.value = true
 
-        if (isRemembered && !savedUsername.isNullOrEmpty()) {
-            _currentUsername.value = savedUsername
-            _isSessionValid.value = true
-        } else {
-            _isSessionValid.value = false
+            try {
+                val savedUsername = sharedPreferences.getString("USER_NAME", null)
+                val isRemembered = sharedPreferences.getBoolean("IS_REMEMBERED", false)
+
+                delay(500)
+
+                if (isRemembered && !savedUsername.isNullOrEmpty()) {
+                    // 💡 VALIDASI KE DB: Cek apakah usernya masih ada di database?
+                    val dbUser = repository.getUserByUsername(savedUsername)
+
+                    if (dbUser != null) {
+                        // User ada, sesi valid
+                        _currentUsername.value = savedUsername
+                        _isSessionValid.value = true
+                    } else {
+                        // KASUS STUCK: User ada di Prefs tapi hilang di DB (karena update versi)
+                        // Solusi: Hapus sesi, paksa logout agar tidak stuck loading
+                        logout()
+                    }
+                } else {
+                    _isSessionValid.value = false
+                }
+            } catch (e: Exception) {
+                // Jika ada error lain, anggap sesi tidak valid agar bisa masuk ke Welcome
+                _isSessionValid.value = false
+            } finally {
+                // Pastikan loading screen dimatikan apapun yang terjadi
+                _isCheckingSession.value = false
+            }
         }
     }
 
-    // --- FUNGSI BARU: DELETE ACCOUNT ---
     fun deleteAccount(onComplete: () -> Unit) {
         viewModelScope.launch {
             val username = _currentUsername.value
-
-            // 1. Hapus user dari database
             repository.deleteUser(username)
-
-            // 2. Bersihkan sesi login
             logout()
-
-            // 3. Callback navigasi
             onComplete()
         }
     }
 
     fun isSurveyCompleted(user: UserEntity?): Boolean {
-        return user != null && user.gender != "-"
+        return user != null && user.gender != "-" && user.gender.isNotEmpty()
     }
 
     fun logout() {
@@ -112,7 +213,6 @@ class AuthViewModel(
         viewModelScope.launch {
             val username = _currentUsername.value
             val existingUser = repository.getUserByUsername(username)
-
             if (existingUser != null) {
                 val updatedUser = existingUser.copy(
                     gender = surveyData.gender,
@@ -152,15 +252,10 @@ class AuthViewModel(
                 _isLoading.value = false
                 return@launch
             }
-
             val success = repository.registerUser(UserEntity(username = username, email = email, password = pass))
             delay(1000)
-
-            if (success) {
-                _signUpState.value = AuthResult.Success("Account created successfully!")
-            } else {
-                _signUpState.value = AuthResult.Error("Email already registered")
-            }
+            if (success) _signUpState.value = AuthResult.Success("Account created successfully!")
+            else _signUpState.value = AuthResult.Error("Email already registered")
             _isLoading.value = false
         }
     }
@@ -180,13 +275,8 @@ class AuthViewModel(
             }
             delay(2000)
             val user = repository.loginUser(email, pass)
-
             if (user != null) {
-                sharedPreferences.edit()
-                    .putString("USER_NAME", user.username)
-                    .putBoolean("IS_REMEMBERED", true)
-                    .apply()
-
+                sharedPreferences.edit().putString("USER_NAME", user.username).putBoolean("IS_REMEMBERED", true).apply()
                 _currentUsername.value = user.username
                 _isSessionValid.value = true
                 _loginState.value = AuthResult.Success("Login Successful! Welcome ${user.username}")
@@ -219,6 +309,7 @@ class AuthViewModelFactory(
     }
 }
 
+// ... Sisa Composable AuthInput & PrimaryAuthButton sama ...
 @Composable
 fun AuthInput(
     modifier: Modifier = Modifier,
@@ -230,45 +321,28 @@ fun AuthInput(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
-
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.onSurfaceVariant)
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.onSurfaceVariant).padding(horizontal = 16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Box(modifier = Modifier.weight(1f)) {
-                    if (value.isEmpty()) {
-                        Text(text = label, color = Color.Gray, fontSize = 14.sp)
-                    }
+                    if (value.isEmpty()) Text(text = label, color = Color.Gray, fontSize = 14.sp)
                     BasicTextField(
-                        value = value,
-                        onValueChange = onValueChange,
+                        value = value, onValueChange = onValueChange,
                         textStyle = TextStyle(fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface),
                         keyboardOptions = keyboardOptions,
                         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        singleLine = true, modifier = Modifier.fillMaxWidth()
                     )
                 }
                 if (isPassword) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(modifier = Modifier.size(24.dp).clickable { passwordVisible = !passwordVisible }) {
-                        Image(
-                            painter = painterResource(id = R.drawable.hide_pass),
-                            contentDescription = "Toggle Password",
-                            modifier = Modifier.fillMaxSize(),
-                            colorFilter = ColorFilter.tint(Color.Gray)
-                        )
-                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.hide_pass),
+                        contentDescription = "Toggle Password", modifier = Modifier.size(24.dp).clickable { passwordVisible = !passwordVisible },
+                        colorFilter = ColorFilter.tint(Color.Gray)
+                    )
                 }
             }
         }
@@ -278,10 +352,8 @@ fun AuthInput(
 @Composable
 fun PrimaryAuthButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth().height(50.dp),
-        shape = RoundedCornerShape(50),
-        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        onClick = onClick, modifier = modifier.fillMaxWidth().height(50.dp),
+        shape = RoundedCornerShape(50), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
         Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
     }

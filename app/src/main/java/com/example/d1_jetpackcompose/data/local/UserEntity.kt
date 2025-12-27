@@ -18,5 +18,8 @@ data class UserEntity(
     val bmi: Float = 0f,
     val activityLevel: String = "",
     val goal: String = "",
-    val dailyStepsGoal: Int = 5000
+    val dailyStepsGoal: Int = 5000,
+
+    // 💡 FIELD BARU: Path Foto Profil
+    val profilePicturePath: String? = null
 )

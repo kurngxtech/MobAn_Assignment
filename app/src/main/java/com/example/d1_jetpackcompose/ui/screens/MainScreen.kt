@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -47,60 +48,82 @@ fun MainScreen() {
         factory = AuthViewModelFactory(authRepository, sharedPreferences)
     )
 
-    // 3. LOGIKA START DESTINATION (AUTO LOGIN & SURVEY CHECK)
+    // 3. LOGIKA SPLASH / START DESTINATION
+    val isCheckingSession by authViewModel.isCheckingSession.collectAsState()
     val isSessionValid by authViewModel.isSessionValid.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
 
-    // Jika sesi valid, cek apakah survey sudah selesai
-    val startDestination = remember(isSessionValid, currentUser) {
-        if (isSessionValid) {
-            val user = currentUser
-            // Jika user belum selesai survey (gender == "-"), ke SURVEY. Jika sudah, ke DASHBOARD.
-            if (user != null && authViewModel.isSurveyCompleted(user)) {
-                AppRoutes.DASHBOARD
-            } else {
-                AppRoutes.SURVEY
-            }
-        } else {
-            AppRoutes.WELCOME
-        }
-    }
-
-    // 4. NAVBAR LOGIC
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    val showBottomBar = currentRoute !in listOf(
-        AppRoutes.WELCOME,
-        AppRoutes.LOGIN,
-        AppRoutes.SIGNUP,
-        AppRoutes.SURVEY
-    )
+    // 💡 LOGIKA UTAMA: Aplikasi siap HANYA JIKA session check selesai.
+    // Jika session valid (user login), kita juga harus menunggu 'currentUser' tidak null.
+    val isAppReady = !isCheckingSession && if (isSessionValid) currentUser != null else true
 
     val globalBackgroundColor = MaterialTheme.colorScheme.background
 
     Box(
-        modifier = Modifier.fillMaxSize().background(globalBackgroundColor)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(globalBackgroundColor)
     ) {
-        // Konten Utama
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(bottom = if (showBottomBar) 90.dp else 0.dp)
-        ) {
-            AppNavHost(
-                navController = navController,
+        if (!isAppReady) {
+            // 💡 TAMPILKAN LOADING SCREEN SELAMA CEK SESI/DATA
+            Box(
                 modifier = Modifier.fillMaxSize(),
-                viewModel = sharedViewModel,
-                authViewModel = authViewModel,
-                startDestination = startDestination
-            )
-        }
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            }
+        } else {
+            // 💡 APLIKASI SIAP DIRENDER
 
-        // Navbar
-        if (showBottomBar) {
-            Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-                BubbleNavigationBar(navController = navController)
+            // Hitung start destination setelah data siap
+            val startDestination = remember(isSessionValid, currentUser) {
+                if (isSessionValid) {
+                    val user = currentUser
+                    // Pengecekan aman karena user dijamin tidak null di blok ini
+                    if (user != null && authViewModel.isSurveyCompleted(user)) {
+                        AppRoutes.DASHBOARD
+                    } else {
+                        AppRoutes.SURVEY
+                    }
+                } else {
+                    AppRoutes.WELCOME
+                }
+            }
+
+            // Navbar Logic
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+
+            val showBottomBar = currentRoute !in listOf(
+                AppRoutes.WELCOME,
+                AppRoutes.LOGIN,
+                AppRoutes.SIGNUP,
+                AppRoutes.SURVEY,
+                AppRoutes.EXERCISE, // Tambahkan ini agar navbar hilang di form exercise
+                AppRoutes.FOOD,
+                AppRoutes.EDIT_PROFILE
+            )
+
+            // Konten Utama
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(bottom = if (showBottomBar) 90.dp else 0.dp)
+            ) {
+                AppNavHost(
+                    navController = navController,
+                    modifier = Modifier.fillMaxSize(),
+                    viewModel = sharedViewModel,
+                    authViewModel = authViewModel,
+                    startDestination = startDestination
+                )
+            }
+
+            // Navbar
+            if (showBottomBar) {
+                Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+                    BubbleNavigationBar(navController = navController)
+                }
             }
         }
     }

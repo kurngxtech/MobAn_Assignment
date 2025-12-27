@@ -18,6 +18,7 @@ object AppRoutes {
     const val DASHBOARD = "dashboard"
     const val ACTIVITY = "activity"
     const val PROFILE = "profile"
+    const val EDIT_PROFILE = "edit_profile" // 💡 RUTE BARU
     const val EXERCISE = "exercise"
     const val FOOD = "food"
     const val SURVEY = "survey"
@@ -39,11 +40,7 @@ fun AppNavHost(
         composable(AppRoutes.WELCOME) { WelcomePage(navController = navController) }
         composable(AppRoutes.LOGIN) { LoginScreen(navController, authViewModel) }
         composable(AppRoutes.SIGNUP) { SignUpScreen(navController, authViewModel) }
-
-        // 💡 PERBAIKAN: Kirim authViewModel ke SurveyScreen
-        composable(AppRoutes.SURVEY) {
-            SurveyScreen(navController = navController, authViewModel = authViewModel)
-        }
+        composable(AppRoutes.SURVEY) { SurveyScreen(navController, authViewModel) }
 
         composable(AppRoutes.DASHBOARD) {
             DashboardScreen(navController, viewModel, authViewModel)
@@ -51,10 +48,13 @@ fun AppNavHost(
         composable(AppRoutes.ACTIVITY) { ActivityLogScreen(navController, viewModel) }
         composable(AppRoutes.EXERCISE) { AddExerciseScreen(navController, viewModel) }
         composable(AppRoutes.FOOD) { AddFoodScreen(navController, viewModel) }
-
-        // 💡 PERBAIKAN: Kirim authViewModel ke ProfileScreen untuk load data
         composable(AppRoutes.PROFILE) {
-            ProfileScreen(navController = navController, viewModel = viewModel, authViewModel = authViewModel)
+            ProfileScreen(navController, viewModel, authViewModel)
+        }
+
+        // 💡 HALAMAN BARU: EDIT PROFILE
+        composable(AppRoutes.EDIT_PROFILE) {
+            EditProfileScreen(navController, authViewModel)
         }
 
         composable(

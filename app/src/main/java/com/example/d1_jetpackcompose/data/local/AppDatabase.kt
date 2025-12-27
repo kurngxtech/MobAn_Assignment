@@ -5,8 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-// Pastikan version dinaikkan jika ada perubahan struktur tabel
-@Database(entities = [ActivityEntity::class, UserEntity::class], version = 3, exportSchema = false)
+// Versi 4
+@Database(entities = [ActivityEntity::class, UserEntity::class], version = 4, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun activityDao(): ActivityDao
     abstract fun userDao(): UserDao
@@ -22,7 +22,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "smartfit_database"
                 )
-                    .fallbackToDestructiveMigration() // Reset data jika versi berubah
+                    // 💡 KOREKSI: Gunakan tanpa parameter untuk reset data yang aman
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

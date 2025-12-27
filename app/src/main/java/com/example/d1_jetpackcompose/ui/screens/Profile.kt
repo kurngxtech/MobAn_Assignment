@@ -1,5 +1,7 @@
 package com.example.d1_jetpackcompose.ui.screens
 
+import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,38 +11,39 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.d1_jetpackcompose.R
-import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
-import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
-import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.platform.LocalContext
-import android.content.Context
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.ui.graphics.ColorFilter
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.AppDatabase
 import com.example.d1_jetpackcompose.data.repository.ActivityRepository
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
+import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
+import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 
 val CardWhite = Color.White
 
+@SuppressLint("DefaultLocale")
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -76,8 +79,14 @@ fun ProfileScreen(
 
         // --- PROFILE IMAGE & NAME ---
         Box(modifier = Modifier.size(120.dp).clip(CircleShape)) {
-            Image(
-                painter = painterResource(id = R.drawable.profile_picture),
+            // 💡 GANTI IMAGE BIASA DENGAN ASYNC IMAGE
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(user?.profilePicturePath ?: R.drawable.profile_picture) // Prioritas Path file, fallback ke Resource
+                    .crossfade(true)
+                    .build(),
+                placeholder = painterResource(id = R.drawable.profile_picture),
+                error = painterResource(id = R.drawable.profile_picture),
                 contentDescription = "Profile Picture",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -97,7 +106,7 @@ fun ProfileScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         Button(
-            onClick = { /* TODO */ },
+            onClick = { navController.navigate(AppRoutes.EDIT_PROFILE) },
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.onSurface
             ),
@@ -127,6 +136,8 @@ fun ProfileScreen(
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             ProfileStatCard(label = "Gender", value = user?.gender ?: "-", modifier = Modifier.weight(1f))
+
+            // --- KARTU BMI DENGAN WARNA DINAMIS ---
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = CardWhite),
@@ -139,6 +150,8 @@ fun ProfileScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     val bmi = user?.bmi ?: 0f
+
+                    // Logic Label Kategori
                     val bmiLabel = when {
                         bmi < 18.5 -> "Underweight"
                         bmi < 25.0 -> "Normal"
@@ -146,13 +159,22 @@ fun ProfileScreen(
                         else -> "Obese"
                     }
 
+                    // 💡 LOGIC WARNA (Sesuai Request)
+                    val bmiColor = when {
+                        bmi < 18.5 -> Color(0xFF1A237E) // 1. Biru Tua Elegan (Underweight)
+                        bmi < 25.0 -> MaterialTheme.colorScheme.primary // 2. Hijau (Normal)
+                        else -> Color(0xFFE53935) // 3. Merah Menyala (Overweight & Obese)
+                    }
+
                     Text(text = "BMI $bmiLabel", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+
                     Spacer(modifier = Modifier.height(4.dp))
+
                     Box(contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
                             progress = { (bmi / 40f).coerceIn(0f, 1f) },
                             modifier = Modifier.size(60.dp),
-                            color = MaterialTheme.colorScheme.primary,
+                            color = bmiColor, // 💡 Terapkan warna dinamis di sini
                             strokeWidth = 6.dp,
                             trackColor = Color(0xFFE0E0E0),
                             strokeCap = StrokeCap.Round,
@@ -174,7 +196,7 @@ fun ProfileScreen(
 
         MenuContainer {
             MenuItem(R.drawable.user_logo, "Personal Info") {}
-            Divider(color = Color.Gray.copy(alpha = 0.1f), thickness = 1.dp)
+            HorizontalDivider(color = Color.Gray.copy(alpha = 0.1f), thickness = 1.dp)
             MenuItem(R.drawable.password_logo, "Change Password") {}
         }
 
@@ -187,7 +209,7 @@ fun ProfileScreen(
         MenuContainer {
             // 1. FAQ
             MenuItem(R.drawable.faq_logo, "FAQ") {}
-            Divider(color = Color.Gray.copy(alpha = 0.1f), thickness = 1.dp)
+            HorizontalDivider(color = Color.Gray.copy(alpha = 0.1f), thickness = 1.dp)
 
             // 2. DELETE ACCOUNT (Custom Image Manual)
             MenuItem(
@@ -311,7 +333,7 @@ fun MenuItem(
             color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
-        Icon(Icons.Default.KeyboardArrowRight, "Go", tint = Color.Gray, modifier = Modifier.size(24.dp))
+        Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Go", tint = Color.Gray, modifier = Modifier.size(24.dp))
     }
 }
 
