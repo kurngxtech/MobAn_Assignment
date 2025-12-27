@@ -32,16 +32,22 @@ class SharedViewModel(private val repository: ActivityRepository) : ViewModel() 
     private val _selectedCategory = MutableStateFlow(CategoryFilter.ALL)
     val selectedCategory = _selectedCategory.asStateFlow()
 
-    private val filteredActivities = combine(
+    // --- HELPER: Cek Kesesuaian Waktu ---
+    private fun isMatchPeriod(activity: ActivityEntity, period: TimePeriod): Boolean {
+        return when (period) {
+            TimePeriod.DAILY -> isSameDay(activity.timestamp, System.currentTimeMillis())
+            TimePeriod.WEEKLY -> isSameWeek(activity.timestamp, System.currentTimeMillis())
+        }
+    }
+
+    // 1. FILTER KHUSUS DASHBOARD (Period + Category)
+    private val dashboardFilteredList = combine(
         _allActivities,
         _selectedPeriod,
         _selectedCategory
     ) { list, period, category ->
         list.filter { activity ->
-            val matchesTime = when (period) {
-                TimePeriod.DAILY -> isSameDay(activity.timestamp, System.currentTimeMillis())
-                TimePeriod.WEEKLY -> isSameWeek(activity.timestamp, System.currentTimeMillis())
-            }
+            val matchesTime = isMatchPeriod(activity, period)
             val matchesCategory = when (category) {
                 CategoryFilter.ALL -> true
                 CategoryFilter.EXERCISE -> activity.type == ActivityType.EXERCISE
@@ -51,10 +57,22 @@ class SharedViewModel(private val repository: ActivityRepository) : ViewModel() 
         }
     }
 
+    // 2. FILTER KHUSUS ACTIVITY LOG (Hanya Period)
+    // 💡 PERBAIKAN: Stream ini MENGABAIKAN _selectedCategory
+    private val activityLogFilteredList = combine(
+        _allActivities,
+        _selectedPeriod
+    ) { list, period ->
+        list.filter { activity ->
+            isMatchPeriod(activity, period)
+        }
+    }
+
     private val _userProfile = MutableStateFlow<String?>(null)
     val userProfile = _userProfile.asStateFlow()
 
-    val dashboardStats: StateFlow<DashboardStats> = filteredActivities.map { list ->
+    // OUTPUT KE DASHBOARD UI
+    val dashboardStats: StateFlow<DashboardStats> = dashboardFilteredList.map { list ->
         DashboardStats(
             totalCaloriesIntake = list.filter { it.type == ActivityType.FOOD }.sumOf { it.calories },
             totalCaloriesBurned = list.filter { it.type == ActivityType.EXERCISE }.sumOf { it.calories },
@@ -64,17 +82,18 @@ class SharedViewModel(private val repository: ActivityRepository) : ViewModel() 
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DashboardStats())
 
-    val activityLogList: StateFlow<List<ActivityEntity>> = filteredActivities
+    // OUTPUT KE ACTIVITY LOG UI (Menggunakan list yang tidak terfilter kategori)
+    val activityLogList: StateFlow<List<ActivityEntity>> = activityLogFilteredList
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _selectedActivity = MutableStateFlow<ActivityEntity?>(null)
     val selectedActivity: StateFlow<ActivityEntity?> = _selectedActivity.asStateFlow()
 
-    // --- FUNGSI RESET DATABASE ---
+    // --- FUNGSI LAINNYA ---
     fun logout() {
         _userProfile.value = null
         viewModelScope.launch {
-            repository.clearUserData() // Ini akan menghapus semua history dari database
+            repository.clearUserData()
         }
     }
 

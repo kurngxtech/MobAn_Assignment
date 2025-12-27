@@ -45,35 +45,50 @@ android {
 
 dependencies {
 
-    // --- CORE ---
-    implementation("io.coil-kt:coil-compose:2.7.0")
+    // --- CORE & UTILS ---
+    implementation(libs.coil.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.androidx.compose.material.icons.extended)
 
-    // --- COMPOSE ---
-    implementation(platform(libs.androidx.compose.bom))
+    // --- COMPOSE BOM (Bill of Materials) ---
+    // Menggunakan versi terbaru Desember 2025 untuk mendukung fitur animasi paling stabil
+    implementation(platform(libs.androidx.compose.bom.v20251200))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui.tooling.preview)
     debugImplementation(libs.androidx.compose.ui.tooling)
-    implementation(libs.accompanist.systemuicontroller)
+
+    // --- ANIMATION & INTERACTIVITY ---
+    // Pustaka eksplisit untuk memastikan fitur animasi transisi berjalan lancar
+    implementation(libs.androidx.compose.animation)
+    implementation(libs.androidx.compose.foundation)
+
+    // Lottie untuk animasi kompleks (seperti loading 'orang berlari' atau checkmark)
+    implementation(libs.lottie.compose)
+
+    // --- SPLASH SCREEN & STARTUP ---
+    // Digunakan untuk menangani loading awal saat aplikasi dibuka (isCheckingSession)
+    implementation(libs.androidx.core.splashscreen)
 
     // --- NAVIGATION ---
-    implementation(libs.androidx.navigation.compose)
+    // Diperbarui ke versi yang mendukung transisi halaman secara bawaan
+    implementation(libs.androidx.navigation.compose.v285)
 
     // --- ROOM DATABASE ---
-    val roomVersion = "2.8.4"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
+    val roomVersion = "2.6.1" // Versi stabil terbaru untuk Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // --- TESTING ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(libs.androidx.compose.bom.v20251201)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

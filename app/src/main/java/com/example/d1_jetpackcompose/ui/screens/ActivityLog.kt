@@ -1,5 +1,6 @@
 package com.example.d1_jetpackcompose.ui.screens
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -67,8 +68,9 @@ fun Modifier.customDropShadowActivity(
 @Composable
 fun ActivityLogScreen(
     navController: NavController,
-    viewModel: SharedViewModel // Tambahkan ViewModel sebagai parameter
+    viewModel: SharedViewModel
 ) {
+    // 💡 Sekarang mengambil data yang SUDAH DIBERSIHKAN dari filter kategori
     val activityList by viewModel.activityLogList.collectAsState()
     val currentPeriod by viewModel.selectedPeriod.collectAsState()
 
@@ -141,13 +143,13 @@ fun ActivityLogScreen(
                 selectedPeriod = currentPeriod,
                 onSelect = { viewModel.setTimePeriod(it) },
                 activeColor = MaterialTheme.colorScheme.primary,
-                inactiveColor = Color(0xFFE8E8E8) // Sesuaikan warna background card di sini
+                inactiveColor = Color(0xFFE8E8E8)
             )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- 💡 2. MAIN CONTENT CARD (DYNAMIC LIST) ---
+        // --- MAIN CONTENT CARD (DYNAMIC LIST) ---
         Card(
             shape = RoundedCornerShape(32.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -164,11 +166,12 @@ fun ActivityLogScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp),
+                        .padding(horizontal = 20.dp)
+                        .animateContentSize(), // 💡 Animasi halus saat list berubah
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (activityList.isEmpty()) {
-                        Column(modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        Column(modifier = Modifier.fillMaxSize().height(300.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                             Text(
                                 "No activities found\n Add any activities you want.",
                                 color = Color.Gray,
@@ -176,7 +179,7 @@ fun ActivityLogScreen(
                             )
                         }
                     } else {
-                        // 💡 3. LOOP DATA DARI DATABASE
+                        // Loop Data
                         activityList.forEach { activity ->
                             val dateString = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(activity.timestamp))
                             val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
@@ -187,7 +190,6 @@ fun ActivityLogScreen(
                                 subtitle = "$dateString | ${activity.calories} cal $typeLabel",
                                 iconRes = icon,
                                 modifier = Modifier.clickable {
-                                    // 💡 4. NAVIGASI KE DETAIL DENGAN ID
                                     navController.navigate("detail_log/${activity.id}")
                                 }
                             )
@@ -200,6 +202,8 @@ fun ActivityLogScreen(
 }
 
 // --- COMPONENTS ---
+// TopActionCard dan HistoryItem tetap sama seperti file sebelumnya.
+// Pastikan menyertakan kode komponen tersebut di sini jika belum ada di file Anda.
 
 @Composable
 fun TopActionCard(
@@ -256,10 +260,10 @@ fun HistoryItem(
     title: String,
     subtitle: String,
     iconRes: Int? = null,
-    modifier: Modifier = Modifier // 💡 TAMBAHKAN MODIFIER AGAR BISA CLICKABLE
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier // Gunakan modifier di sini
+        modifier = modifier
             .fillMaxWidth()
             .customDropShadowActivity(
                 color = Color.Black.copy(alpha = 0.15f),
@@ -290,7 +294,7 @@ fun HistoryItem(
                             painter = painterResource(id = iconRes),
                             contentDescription = title,
                             modifier = Modifier.size(24.dp),
-                            colorFilter = ColorFilter.tint(Color.White) // 💡 Ikon jadi putih agar kontras
+                            colorFilter = ColorFilter.tint(Color.White)
                         )
                     }
                 }
@@ -310,6 +314,3 @@ fun HistoryItem(
         }
     }
 }
-
-
-
