@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,9 +37,17 @@ import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
+import androidx.compose.ui.composed
 
 // --- THEME SETUP ---
 private val HistoryCardGray = Color(0xFFE8E8E8)
+
+// Extension No Ripple
+private fun Modifier.noRippleClickableActivity(onClick: () -> Unit): Modifier = composed {
+    this.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+}
 
 // --- MODIFIER CUSTOM SHADOW ---
 fun Modifier.customDropShadowActivity(
@@ -70,7 +77,6 @@ fun ActivityLogScreen(
     navController: NavController,
     viewModel: SharedViewModel
 ) {
-    // 💡 Sekarang mengambil data yang SUDAH DIBERSIHKAN dari filter kategori
     val activityList by viewModel.activityLogList.collectAsState()
     val currentPeriod by viewModel.selectedPeriod.collectAsState()
 
@@ -78,10 +84,11 @@ fun ActivityLogScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp)
-            .padding(top = 36.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Spacer(modifier = Modifier.height(60.dp))
+
         // --- HEADER ---
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -99,7 +106,7 @@ fun ActivityLogScreen(
                 color = Color.Gray,
                 fontWeight = FontWeight.Medium,
                 fontSize = 15.sp,
-                textAlign = TextAlign.Center,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
         }
 
@@ -139,17 +146,16 @@ fun ActivityLogScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
+            // Period Selector (Sliding Animation from Dashboard.kt)
             PeriodSelector(
                 selectedPeriod = currentPeriod,
-                onSelect = { viewModel.setTimePeriod(it) },
-                activeColor = MaterialTheme.colorScheme.primary,
-                inactiveColor = Color(0xFFE8E8E8)
+                onSelect = { viewModel.setTimePeriod(it) }
             )
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- MAIN CONTENT CARD (DYNAMIC LIST) ---
+        // --- MAIN CONTENT CARD ---
         Card(
             shape = RoundedCornerShape(32.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -167,7 +173,7 @@ fun ActivityLogScreen(
                         .fillMaxSize()
                         .verticalScroll(rememberScrollState())
                         .padding(horizontal = 20.dp)
-                        .animateContentSize(), // 💡 Animasi halus saat list berubah
+                        .animateContentSize(),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     if (activityList.isEmpty()) {
@@ -175,11 +181,10 @@ fun ActivityLogScreen(
                             Text(
                                 "No activities found\n Add any activities you want.",
                                 color = Color.Gray,
-                                textAlign = TextAlign.Center
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
                             )
                         }
                     } else {
-                        // Loop Data
                         activityList.forEach { activity ->
                             val dateString = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(activity.timestamp))
                             val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
@@ -189,7 +194,7 @@ fun ActivityLogScreen(
                                 title = activity.title,
                                 subtitle = "$dateString | ${activity.calories} cal $typeLabel",
                                 iconRes = icon,
-                                modifier = Modifier.clickable {
+                                modifier = Modifier.noRippleClickableActivity {
                                     navController.navigate("detail_log/${activity.id}")
                                 }
                             )
@@ -201,10 +206,6 @@ fun ActivityLogScreen(
     }
 }
 
-// --- COMPONENTS ---
-// TopActionCard dan HistoryItem tetap sama seperti file sebelumnya.
-// Pastikan menyertakan kode komponen tersebut di sini jika belum ada di file Anda.
-
 @Composable
 fun TopActionCard(
     modifier: Modifier = Modifier,
@@ -215,7 +216,7 @@ fun TopActionCard(
 ) {
     Box(
         modifier = modifier
-            .clickable(onClick = onClick)
+            .noRippleClickableActivity(onClick = onClick)
             .aspectRatio(1f)
             .customDropShadowActivity(
                 color = Color.Black.copy(alpha = 0.15f),
@@ -232,8 +233,8 @@ fun TopActionCard(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, textAlign = TextAlign.Center)
-            Text(text = subtitle, color = Color.Gray, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 14.sp)
+            Text(text = title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+            Text(text = subtitle, color = Color.Gray, fontSize = 11.sp, textAlign = androidx.compose.ui.text.style.TextAlign.Center, lineHeight = 14.sp)
             Spacer(modifier = Modifier.height(16.dp))
             Box(
                 modifier = Modifier
@@ -262,11 +263,12 @@ fun HistoryItem(
     iconRes: Int? = null,
     modifier: Modifier = Modifier
 ) {
+    // 💡 APPLIED SHADOW HERE
     Box(
         modifier = modifier
             .fillMaxWidth()
             .customDropShadowActivity(
-                color = Color.Black.copy(alpha = 0.15f),
+                color = Color.Black.copy(alpha = 0.15f), // Match TopActionCard
                 borderRadius = 24.dp,
                 blurRadius = 5.dp,
                 offsetY = 6.dp

@@ -7,9 +7,14 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -21,6 +26,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -42,6 +48,15 @@ import com.example.d1_jetpackcompose.data.local.AppDatabase
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
+
+// --- EXTENSION: NO RIPPLE CLICK ---
+private fun Modifier.noRippleClickableEditProfile(onClick: () -> Unit): Modifier = composed {
+    this.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )
+}
 
 @Composable
 fun EditProfileScreen(
@@ -74,23 +89,19 @@ fun EditProfileScreen(
         }
     }
 
-    // --- 1. PHOTO PICKER LAUNCHER ---
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             if (uri != null) {
-                // Proses gambar via ViewModel
                 authViewModel.updateProfilePicture(context, uri)
             }
         }
     )
 
-    // --- 2. PERMISSION LAUNCHER (Untuk Pop-up Trust) ---
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (isGranted) {
-                // Jika diizinkan, buka picker
                 photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             } else {
                 Toast.makeText(context, "Permission Denied. Cannot change photo.", Toast.LENGTH_SHORT).show()
@@ -117,7 +128,7 @@ fun EditProfileScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { navController.popBackStack() }
+                        .noRippleClickableEditProfile { navController.popBackStack() }
                         .padding(vertical = 8.dp),
                 ) {
                     Image(
@@ -138,7 +149,7 @@ fun EditProfileScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- 3. PROFILE PICTURE SECTION ---
+            // --- PROFILE PICTURE SECTION ---
             Box(contentAlignment = Alignment.BottomEnd) {
                 Box(
                     modifier = Modifier
@@ -146,10 +157,9 @@ fun EditProfileScreen(
                         .clip(CircleShape)
                         .background(Color.Gray)
                 ) {
-                    // Gunakan AsyncImage dari Coil
                     AsyncImage(
                         model = ImageRequest.Builder(context)
-                            .data(currentPhotoPath ?: R.drawable.profile_picture) // Path file atau Default Res
+                            .data(currentPhotoPath ?: R.drawable.profile_picture)
                             .crossfade(true)
                             .build(),
                         placeholder = painterResource(R.drawable.profile_picture),
@@ -160,21 +170,16 @@ fun EditProfileScreen(
                     )
                 }
 
-                // Tombol Edit Foto
                 Box(
                     modifier = Modifier
                         .offset(x = 2.dp, y = 2.dp)
                         .size(32.dp)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary)
-                        .clickable {
-                            // 💡 LOGIC TRUST POP-UP: Cek versi Android
+                        .noRippleClickableEditProfile {
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                // Android 13+ pake Photo Picker langsung (Permission less but secure)
-                                // Tapi jika mau maksa permission check:
                                 permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
                             } else {
-                                // Android lama butuh READ_EXTERNAL_STORAGE
                                 permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                             }
                         }
@@ -205,19 +210,15 @@ fun EditProfileScreen(
                     EditProfileInput(label = "Username", value = username, onValueChange = { username = it })
                     EditProfileInput(label = "Age", value = age, onValueChange = { age = it }, isNumber = true)
 
+                    // 💡 GENDER SELECTOR DENGAN ANIMASI SLIDING
                     Column {
                         Text(text = "Gender", fontSize = 12.sp, color = Color.Gray)
                         Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFFE0E0E0))
-                        ) {
-                            GenderSegmentButton("Male", gender == "Male", Modifier.weight(1f)) { gender = "Male" }
-                            GenderSegmentButton("Female", gender == "Female", Modifier.weight(1f)) { gender = "Female" }
-                        }
+
+                        SlidingGenderSelector(
+                            selectedGender = gender,
+                            onGenderSelected = { gender = it }
+                        )
                     }
 
                     EditProfileInput(label = "Height", value = height, onValueChange = { height = it }, isNumber = true, suffix = "cm")
@@ -265,6 +266,74 @@ fun EditProfileScreen(
     }
 }
 
+// --- 💡 KOMPONEN BARU: SLIDING GENDER SELECTOR ---
+@Composable
+fun SlidingGenderSelector(
+    selectedGender: String,
+    onGenderSelected: (String) -> Unit
+) {
+    val items = listOf("Male", "Female")
+    val selectedIndex = if (selectedGender == "Male") 0 else 1
+
+    // Container Abu-abu
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clip(RoundedCornerShape(12.dp)) // Bentuk container sesuai desain form
+            .background(Color(0xFFF5F5F5)) // Warna track abu
+            .padding(4.dp) // Padding untuk efek 'track'
+    ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val itemWidth = maxWidth / 2
+
+            // 1. Animasi Posisi Indikator
+            val indicatorOffset by animateDpAsState(
+                targetValue = itemWidth * selectedIndex,
+                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                label = "genderSlide"
+            )
+
+            // Layer 1: Indikator Hijau Bergerak
+            Box(
+                modifier = Modifier
+                    .width(itemWidth)
+                    .fillMaxHeight()
+                    .offset(x = indicatorOffset)
+                    .clip(RoundedCornerShape(10.dp)) // Radius sedikit lebih kecil dari container
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+
+            // Layer 2: Teks Item (Overlay)
+            Row(modifier = Modifier.fillMaxSize()) {
+                items.forEachIndexed { index, text ->
+                    Box(
+                        modifier = Modifier
+                            .width(itemWidth)
+                            .fillMaxHeight()
+                            .noRippleClickableEditProfile { onGenderSelected(text) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        // Animasi Warna Teks
+                        val textColor by animateColorAsState(
+                            targetValue = if (index == selectedIndex) Color.White else Color.Gray,
+                            animationSpec = tween(durationMillis = 300),
+                            label = "textColor"
+                        )
+
+                        Text(
+                            text = text,
+                            color = textColor,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun EditProfileInput(
     label: String,
@@ -298,30 +367,6 @@ fun EditProfileInput(
         )
         Spacer(modifier = Modifier.height(8.dp))
         HorizontalDivider(color = Color.Gray.copy(alpha = 0.5f))
-    }
-}
-
-@Composable
-fun GenderSegmentButton(
-    text: String,
-    isSelected: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(4.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = text,
-            color = if (isSelected) Color.White else Color.Gray,
-            fontWeight = FontWeight.Bold
-        )
     }
 }
 

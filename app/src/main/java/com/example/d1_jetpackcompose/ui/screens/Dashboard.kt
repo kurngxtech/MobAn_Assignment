@@ -1,13 +1,13 @@
 package com.example.d1_jetpackcompose.ui.screens
 
+import android.content.Context
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -24,25 +24,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityEntity
 import com.example.d1_jetpackcompose.data.local.ActivityType
+import com.example.d1_jetpackcompose.data.local.AppDatabase
+import com.example.d1_jetpackcompose.data.repository.ActivityRepository
+import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
+import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.CategoryFilter
@@ -50,6 +59,38 @@ import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.TimePeriod
 
 private val HistoryCardGray = Color(0xFFE8E8E8)
+
+// --- EXTENSION: NO RIPPLE CLICK ---
+fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
+    this.clickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick
+    )
+}
+
+// --- 💡 ADDED: CUSTOM SHADOW EXTENSION (Sama seperti di ActivityLog) ---
+fun Modifier.customDropShadow(
+    color: Color = Color.Black.copy(alpha = 0.2f),
+    borderRadius: Dp = 24.dp,
+    blurRadius: Dp = 8.dp,
+    offsetY: Dp = 4.dp
+) = this.drawBehind {
+    this.drawIntoCanvas { canvas ->
+        val paint = Paint()
+        val frameworkPaint = paint.asFrameworkPaint()
+        frameworkPaint.color = android.graphics.Color.TRANSPARENT
+        frameworkPaint.style = android.graphics.Paint.Style.FILL
+        frameworkPaint.setShadowLayer(
+            blurRadius.toPx(),
+            0f,
+            offsetY.toPx(),
+            color.toArgb()
+        )
+        val outline = RoundedCornerShape(borderRadius).createOutline(size, layoutDirection, this)
+        canvas.drawOutline(outline = outline, paint = paint)
+    }
+}
 
 @Composable
 fun DashboardScreen(
@@ -71,9 +112,10 @@ fun DashboardScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .padding(20.dp)
-            .padding(top = 40.dp)
             .verticalScroll(rememberScrollState())
     ) {
+        Spacer(modifier = Modifier.height(60.dp))
+
         HeaderProfileSection(name = username, profilePath = profilePath)
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -87,12 +129,10 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // Period Selector
+        // Period Selector (Sliding Animation)
         PeriodSelector(
             selectedPeriod = currentPeriod,
-            onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) },
-            activeColor = MaterialTheme.colorScheme.primary,
-            inactiveColor = MaterialTheme.colorScheme.onBackground
+            onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -107,12 +147,10 @@ fun DashboardScreen(
 
         Spacer(modifier = Modifier.height(25.dp))
 
-        // Category Filter
+        // Category Filter (Sliding Animation)
         CategoryFilterSelector(
             selectedFilter = currentCategory,
-            onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) },
-            activeColor = MaterialTheme.colorScheme.primary,
-            inactiveColor = MaterialTheme.colorScheme.onBackground
+            onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) }
         )
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -129,15 +167,118 @@ fun DashboardScreen(
             underlineColor = MaterialTheme.colorScheme.primary,
             cardColor = MaterialTheme.colorScheme.onBackground
         )
+
+        Spacer(modifier = Modifier.height(30.dp))
     }
 }
 
-// ... (Komponen Header, History, DailySummaryGrid, DailyGoalCard, OnlineTipsCard, HistoryItemDashboard TETAP SAMA)
+// --- SLIDING SELECTOR ENGINE ---
+@Composable
+fun SlidingSelector(
+    items: List<String>,
+    selectedIndex: Int,
+    onIndexSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        shape = RoundedCornerShape(50),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
+        modifier = modifier.height(50.dp)
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(4.dp)
+        ) {
+            val maxWidth = maxWidth
+            val itemWidth = maxWidth / items.size
+
+            val indicatorOffset by animateDpAsState(
+                targetValue = itemWidth * selectedIndex,
+                animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+                label = "indicatorSlide"
+            )
+
+            Box(
+                modifier = Modifier
+                    .width(itemWidth)
+                    .fillMaxHeight()
+                    .offset(x = indicatorOffset)
+                    .clip(RoundedCornerShape(50))
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+
+            Row(modifier = Modifier.fillMaxSize()) {
+                items.forEachIndexed { index, text ->
+                    Box(
+                        modifier = Modifier
+                            .width(itemWidth)
+                            .fillMaxHeight()
+                            .noRippleClickable { onIndexSelected(index) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val textColor by animateColorAsState(
+                            targetValue = if (index == selectedIndex) Color.White else Color.Gray,
+                            animationSpec = tween(durationMillis = 200),
+                            label = "textColor"
+                        )
+
+                        Text(
+                            text = text,
+                            color = textColor,
+                            fontWeight = if (index == selectedIndex) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PeriodSelector(selectedPeriod: TimePeriod, onSelect: (TimePeriod) -> Unit) {
+    val items = listOf("Daily", "Weekly")
+    val selectedIndex = if (selectedPeriod == TimePeriod.DAILY) 0 else 1
+    SlidingSelector(
+        items = items,
+        selectedIndex = selectedIndex,
+        onIndexSelected = { if (it == 0) onSelect(TimePeriod.DAILY) else onSelect(TimePeriod.WEEKLY) },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun CategoryFilterSelector(selectedFilter: CategoryFilter, onSelect: (CategoryFilter) -> Unit) {
+    val items = listOf("All", "Exercise", "Foods")
+    val selectedIndex = when (selectedFilter) {
+        CategoryFilter.ALL -> 0
+        CategoryFilter.EXERCISE -> 1
+        CategoryFilter.FOOD -> 2
+    }
+    SlidingSelector(
+        items = items,
+        selectedIndex = selectedIndex,
+        onIndexSelected = {
+            when (it) {
+                0 -> onSelect(CategoryFilter.ALL)
+                1 -> onSelect(CategoryFilter.EXERCISE)
+                2 -> onSelect(CategoryFilter.FOOD)
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+// --- COMPONENTS ---
 
 @Composable
 fun HeaderProfileSection(name: String, profilePath: String?) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).padding(horizontal = 8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp)
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AsyncImage(
@@ -147,40 +288,96 @@ fun HeaderProfileSection(name: String, profilePath: String?) {
             placeholder = painterResource(id = R.drawable.profile_picture),
             error = painterResource(id = R.drawable.profile_picture),
             contentDescription = "Profile",
-            modifier = Modifier.size(56.dp).clip(CircleShape),
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column {
-            Text("Hi $name !", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                "Hi $name !",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Text("Let's start your journey today", fontSize = 14.sp, color = Color.Gray)
         }
     }
 }
 
 @Composable
-fun HistorySection(navController: NavController, recentActivities: List<ActivityEntity>, cardColor: Color) {
-    Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = cardColor), modifier = Modifier.fillMaxWidth().wrapContentHeight()) {
-        Column(modifier = Modifier.fillMaxWidth().padding(20.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("History Activities", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Text("View Detail", fontSize = 12.sp, color = Color.Gray, modifier = Modifier.clickable {
-                    navController.navigate(AppRoutes.ACTIVITY) { popUpTo(AppRoutes.DASHBOARD) { saveState = true }; launchSingleTop = true; restoreState = true }
-                })
+fun HistorySection(
+    navController: NavController,
+    recentActivities: List<ActivityEntity>,
+    cardColor: Color
+) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .customDropShadowActivity(
+                color = Color.Black.copy(alpha = 0.15f),
+                borderRadius = 32.dp,
+                blurRadius = 5.dp,
+                offsetY = 6.dp
+            )
+    ) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "History Activities",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    "View Detail",
+                    fontSize = 12.sp,
+                    color = Color.Gray,
+                    modifier = Modifier.noRippleClickable {
+                        navController.navigate(AppRoutes.ACTIVITY) {
+                            popUpTo(AppRoutes.DASHBOARD) {
+                                saveState = true
+                            }; launchSingleTop = true; restoreState = true
+                        }
+                    })
             }
             Spacer(modifier = Modifier.height(15.dp))
             if (recentActivities.isEmpty()) {
-                Box(modifier = Modifier.fillMaxWidth().height(100.dp), contentAlignment = Alignment.Center) {
-                    Text("No activities found\n Add any activities you want.", color = Color.Gray, textAlign = TextAlign.Center)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "No activities found\n Add any activities you want.",
+                        color = Color.Gray,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     recentActivities.forEach { activity ->
-                        val icon = if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
-                        val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
-                        // 💡 Pastikan detail_log dipanggil agar animasinya terlihat
-                        Box(modifier = Modifier.clickable { navController.navigate("detail_log/${activity.id}") }) {
-                            HistoryItemDashboard(title = activity.title, subtitle = "${activity.calories} kcal | $typeLabel", iconRes = icon)
+                        val icon =
+                            if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
+                        val typeLabel =
+                            if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
+                        Box(modifier = Modifier.noRippleClickable { navController.navigate("detail_log/${activity.id}") }) {
+                            HistoryItemDashboard(
+                                title = activity.title,
+                                subtitle = "${activity.calories} kcal | $typeLabel",
+                                iconRes = icon
+                            )
                         }
                     }
                 }
@@ -190,19 +387,48 @@ fun HistorySection(navController: NavController, recentActivities: List<Activity
 }
 
 @Composable
-fun DailySummaryGrid(cardColor: Color, distance: String, intake: String, time: String, burned: String) {
-    Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = cardColor), modifier = Modifier.fillMaxWidth()) {
+fun DailySummaryGrid(
+    cardColor: Color,
+    distance: String,
+    intake: String,
+    time: String,
+    burned: String
+) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
+        modifier = Modifier
+            .fillMaxWidth()
+            .customDropShadowActivity(
+                color = Color.Black.copy(alpha = 0.15f),
+                borderRadius = 32.dp,
+                blurRadius = 5.dp,
+                offsetY = 6.dp
+            )
+    ) {
         Column(modifier = Modifier.padding(20.dp)) {
-            Text("Daily Summary", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(
+                "Daily Summary",
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
                 SummaryItem(label = "Distance", value = distance, modifier = Modifier.weight(1f))
-                SummaryItem(label = "Calories Intake", value = intake, modifier = Modifier.weight(1f))
+                SummaryItem(
+                    label = "Calories Intake",
+                    value = intake,
+                    modifier = Modifier.weight(1f)
+                )
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
                 SummaryItem(label = "Time Usage", value = time, modifier = Modifier.weight(1f))
-                SummaryItem(label = "Calories Burned", value = burned, modifier = Modifier.weight(1f))
+                SummaryItem(
+                    label = "Calories Burned",
+                    value = burned,
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
@@ -212,31 +438,78 @@ fun DailySummaryGrid(cardColor: Color, distance: String, intake: String, time: S
 fun SummaryItem(label: String, value: String, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Text(text = label, fontSize = 12.sp, color = Color.Gray)
-        Text(text = value, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+        Text(
+            text = value,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
 @Composable
 fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
-    val progressValue = if (total > 0) (current.toFloat() / total.toFloat()).coerceIn(0f, 1f) else 0f
+    val progressValue =
+        if (total > 0) (current.toFloat() / total.toFloat()).coerceIn(0f, 1f) else 0f
     val percentageInt = (progressValue * 100).toInt()
-    Card(shape = RoundedCornerShape(32.dp), colors = CardDefaults.cardColors(containerColor = cardColor), modifier = Modifier.fillMaxWidth()) {
+    Card(
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
+        modifier = Modifier
+            .fillMaxWidth()
+            .customDropShadowActivity(
+                color = Color.Black.copy(alpha = 0.15f),
+                borderRadius = 32.dp,
+                blurRadius = 5.dp,
+                offsetY = 6.dp
+            )
+    ) {
         Row(modifier = Modifier.padding(24.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Image(painter = painterResource(id = R.drawable.daily_goal_icon), contentDescription = null, modifier = Modifier.size(20.dp))
+                    Image(
+                        painter = painterResource(id = R.drawable.daily_goal_icon),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
                     Spacer(modifier = Modifier.width(10.dp))
-                    Text("Daily Goal", fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface, fontSize = 20.sp)
+                    Text(
+                        "Daily Goal",
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 20.sp
+                    )
                 }
                 Spacer(modifier = Modifier.height(15.dp))
                 Row(verticalAlignment = Alignment.Bottom) {
-                    Text(text = "$current", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                    Text(text = " / $total", fontSize = 18.sp, color = Color.Gray, modifier = Modifier.padding(bottom = 4.dp))
+                    Text(
+                        text = "$current",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = " / $total",
+                        fontSize = 18.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
                 }
             }
             Box(contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(progress = { progressValue }, modifier = Modifier.size(80.dp), color = color, strokeWidth = 8.dp, trackColor = Color(0xFFE0E0E0), strokeCap = StrokeCap.Round)
-                Text(text = "$percentageInt %", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                CircularProgressIndicator(
+                    progress = { progressValue },
+                    modifier = Modifier.size(80.dp),
+                    color = color,
+                    strokeWidth = 8.dp,
+                    trackColor = Color(0xFFE0E0E0),
+                    strokeCap = StrokeCap.Round
+                )
+                Text(
+                    text = "$percentageInt %",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         }
     }
@@ -244,113 +517,127 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
 
 @Composable
 fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
-    Card(shape = RoundedCornerShape(24.dp), colors = CardDefaults.cardColors(containerColor = cardColor), modifier = Modifier.fillMaxWidth().height(120.dp).clickable {}) {
-        Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.Center) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text(text = "Online Tips", fontFamily = robotoFontFamily, fontSize = 24.sp, color = MaterialTheme.colorScheme.onSurface)
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = cardColor),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(150.dp)
+            .customDropShadowActivity(
+                color = Color.Black.copy(alpha = 0.15f),
+                borderRadius = 32.dp,
+                blurRadius = 5.dp,
+                offsetY = 6.dp
+            )
+            .noRippleClickable {}) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .padding(vertical = 15.dp),
+            verticalArrangement = Arrangement.Top
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Online Tips",
+                    fontFamily = robotoFontFamily,
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
                 Image(painter = painterResource(R.drawable.arrow_icon), contentDescription = null)
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Box(modifier = Modifier.fillMaxWidth().height(2.dp).background(underlineColor))
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .height(2.dp)
+                .background(underlineColor))
         }
     }
 }
 
 @Composable
 fun HistoryItemDashboard(title: String, subtitle: String, iconRes: Int? = null) {
-    Box(modifier = Modifier.fillMaxWidth().background(HistoryCardGray, RoundedCornerShape(24.dp))) {
-        Row(modifier = Modifier.padding(12.dp).padding(horizontal = 8.dp).fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+    // 💡 APPLIED SHADOW HERE
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .customDropShadow(
+                color = Color.Black.copy(alpha = 0.15f),
+                borderRadius = 24.dp,
+                blurRadius = 5.dp,
+                offsetY = 6.dp
+            )
+            .background(HistoryCardGray, RoundedCornerShape(24.dp))
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(modifier = Modifier.size(48.dp).clip(CircleShape).background(MaterialTheme.colorScheme.onSurface), contentAlignment = Alignment.Center) {
-                    if (iconRes != null) Image(painter = painterResource(id = iconRes), contentDescription = null, modifier = Modifier.size(24.dp), colorFilter = ColorFilter.tint(Color.White))
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.onSurface),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (iconRes != null) Image(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
+                    )
                 }
                 Spacer(modifier = Modifier.size(12.dp))
                 Column {
-                    Text(text = title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface, fontSize = 16.sp)
-                    Text(text = subtitle, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f), fontSize = 12.sp)
+                    Text(
+                        text = title,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 16.sp
+                    )
+                    Text(
+                        text = subtitle,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        fontSize = 12.sp
+                    )
                 }
             }
-            Image(painter = painterResource(id = R.drawable.right_arrow_icon), contentDescription = null, colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface), modifier = Modifier.size(15.dp))
+            Image(
+                painter = painterResource(id = R.drawable.right_arrow_icon),
+                contentDescription = null,
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                modifier = Modifier.size(15.dp)
+            )
         }
     }
 }
 
+@Preview(showBackground = true, name = "Dashboard Preview", heightDp = 1000)
 @Composable
-fun PeriodSelector(selectedPeriod: TimePeriod, onSelect: (TimePeriod) -> Unit, activeColor: Color, inactiveColor: Color) {
-    Card(shape = RoundedCornerShape(50), colors = CardDefaults.cardColors(containerColor = inactiveColor), modifier = Modifier.fillMaxWidth().height(50.dp)) {
-        Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(25.dp)).background(Color.White)) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                SelectorItem(text = "Daily", isActive = selectedPeriod == TimePeriod.DAILY, activeColor = activeColor, modifier = Modifier.weight(1f), onClick = { onSelect(TimePeriod.DAILY) })
-                SelectorItem(text = "Weekly", isActive = selectedPeriod == TimePeriod.WEEKLY, activeColor = activeColor, modifier = Modifier.weight(1f), onClick = { onSelect(TimePeriod.WEEKLY) })
-            }
-        }
-    }
-}
-
-@Composable
-fun CategoryFilterSelector(selectedFilter: CategoryFilter, onSelect: (CategoryFilter) -> Unit, activeColor: Color, inactiveColor: Color) {
-    Card(shape = RoundedCornerShape(50), colors = CardDefaults.cardColors(containerColor = inactiveColor), modifier = Modifier.fillMaxWidth().height(50.dp)) {
-        Box(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(25.dp)).background(Color.White)) {
-            Row(modifier = Modifier.fillMaxSize()) {
-                SelectorItem(text = "All", isActive = selectedFilter == CategoryFilter.ALL, activeColor = activeColor, modifier = Modifier.weight(1f), onClick = { onSelect(CategoryFilter.ALL) })
-                SelectorItem(text = "Exercise", isActive = selectedFilter == CategoryFilter.EXERCISE, activeColor = activeColor, modifier = Modifier.weight(1f), onClick = { onSelect(CategoryFilter.EXERCISE) })
-                SelectorItem(text = "Foods", isActive = selectedFilter == CategoryFilter.FOOD, activeColor = activeColor, modifier = Modifier.weight(1f), onClick = { onSelect(CategoryFilter.FOOD) })
-            }
-        }
-    }
-}
-
-// --- BOUNCY CLICK MODIFIER ---
-enum class ButtonState { Pressed, Idle }
-
-fun Modifier.bounceClick() = composed {
-    var buttonState by remember { mutableStateOf(ButtonState.Idle) }
-    val scale by animateFloatAsState(if (buttonState == ButtonState.Pressed) 0.95f else 1f, label = "Bounce")
-
-    this
-        .graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        }
-        .clickable(
-            interactionSource = remember { MutableInteractionSource() },
-            indication = null,
-            onClick = { }
+fun DashboardScreenPreview() {
+    val context = LocalContext.current
+    val navController = rememberNavController()
+    val database = AppDatabase.getDatabase(context)
+    val activityRepository = ActivityRepository(database.activityDao())
+    val authRepository = AuthRepository(database.userDao())
+    val sharedPreferences = context.getSharedPreferences("preview_prefs", Context.MODE_PRIVATE)
+    val authViewModel = remember { AuthViewModel(authRepository, sharedPreferences) }
+    val sharedViewModel = remember { SharedViewModel(activityRepository) }
+    SmartFitTheme {
+        DashboardScreen(
+            navController = navController,
+            viewModel = sharedViewModel,
+            authViewModel = authViewModel
         )
-        .pointerInput(buttonState) {
-            awaitPointerEventScope {
-                buttonState = if (buttonState == ButtonState.Pressed) {
-                    waitForUpOrCancellation()
-                    ButtonState.Idle
-                } else {
-                    awaitFirstDown(false)
-                    ButtonState.Pressed
-                }
-            }
-        }
-}
-
-@Composable
-fun SelectorItem(
-    text: String,
-    isActive: Boolean,
-    activeColor: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    val animatedBackgroundColor by animateColorAsState(targetValue = if (isActive) activeColor else Color.Transparent, animationSpec = tween(300), label = "BgAnim")
-    val animatedTextColor by animateColorAsState(targetValue = if (isActive) Color.White else Color.Gray, animationSpec = tween(300), label = "TextAnim")
-
-    Box(
-        modifier = modifier
-            .fillMaxHeight()
-            .padding(4.dp)
-            .clip(RoundedCornerShape(25.dp))
-            .background(animatedBackgroundColor)
-            .bounceClick() // 💡 Efek Bouncy ditambahkan disini
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = text, color = animatedTextColor, fontWeight = if (isActive) FontWeight.Bold else FontWeight.Medium, fontSize = 13.sp)
     }
 }

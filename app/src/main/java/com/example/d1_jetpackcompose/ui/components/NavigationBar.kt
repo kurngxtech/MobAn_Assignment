@@ -42,12 +42,13 @@ fun BubbleNavigationBar(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 30.dp, vertical = 24.dp)
+            .padding(bottom = 35.dp)
     ) {
         Card(
             shape = RoundedCornerShape(50.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             elevation = CardDefaults.cardElevation(defaultElevation = 15.dp),
-            modifier = Modifier.fillMaxWidth().height(72.dp)
+            modifier = Modifier.fillMaxWidth().height(60.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),

@@ -1,9 +1,9 @@
 package com.example.d1_jetpackcompose.ui.navigation
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -26,7 +26,11 @@ object AppRoutes {
     const val EXERCISE = "exercise"
     const val FOOD = "food"
     const val SURVEY = "survey"
+    const val DETAIL_LOG_ROUTE = "detail_log/{activityId}"
 }
+
+// Konstanta durasi animasi agar konsisten
+private const val ANIM_DURATION = 500
 
 @Composable
 fun AppNavHost(
@@ -40,98 +44,210 @@ fun AppNavHost(
         modifier = modifier,
         navController = navController,
         startDestination = startDestination,
-        // 1. GLOBAL ENTER TRANSITION (Masuk)
+
+        // 1. GLOBAL ENTER TRANSITION (Saat halaman MUNCUL)
         enterTransition = {
-            val initialRoute = initialState.destination.route
-            val targetRoute = targetState.destination.route
+            val initial = initialState.destination.route
+            val target = targetState.destination.route
 
-            // Logic: Jika pindah antar Menu Navbar -> Slide Cerdas
-            if (isBottomNavRoute(initialRoute) && isBottomNavRoute(targetRoute)) {
-                val initialIndex = getBottomNavIndex(initialRoute)
-                val targetIndex = getBottomNavIndex(targetRoute)
-                if (targetIndex < initialIndex) {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(500))
-                } else {
-                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(500))
+            when {
+                // Welcome -> Login (Login muncul diam di tengah, Welcome naik)
+                initial == AppRoutes.WELCOME && target == AppRoutes.LOGIN -> {
+                    EnterTransition.None
                 }
-            } else {
-                // Default Slide (Maju)
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(500))
+
+                // Login -> Sign Up (Forward: Slide Left)
+                initial == AppRoutes.LOGIN && target == AppRoutes.SIGNUP -> {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        tween(ANIM_DURATION)
+                    )
+                }
+
+                // Sign Up -> Login (Backward: Slide Right)
+                initial == AppRoutes.SIGNUP && target == AppRoutes.LOGIN -> {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        tween(ANIM_DURATION)
+                    )
+                }
+
+                // Login -> Dashboard (Dashboard muncul diam di tengah, Login naik)
+                initial == AppRoutes.LOGIN && target == AppRoutes.DASHBOARD -> {
+                    EnterTransition.None
+                }
+
+                // Survey -> Dashboard (Dashboard muncul diam di tengah, Survey naik)
+                initial == AppRoutes.SURVEY && target == AppRoutes.DASHBOARD -> {
+                    EnterTransition.None
+                }
+
+                // Navigasi Menu Bawah (Slide Horizontal Cerdas)
+                isBottomNavRoute(initial) && isBottomNavRoute(target) -> {
+                    val initialIndex = getBottomNavIndex(initial)
+                    val targetIndex = getBottomNavIndex(target)
+                    if (targetIndex < initialIndex) {
+                        slideIntoContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Right,
+                            tween(ANIM_DURATION)
+                        )
+                    } else {
+                        slideIntoContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Left,
+                            tween(ANIM_DURATION)
+                        )
+                    }
+                }
+
+                // Halaman "Overlay" (Add Exercise/Food) - Muncul dari Bawah (Slide Up)
+                isOverlayRoute(target) -> {
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Up,
+                        tween(ANIM_DURATION)
+                    )
+                }
+
+                // Default
+                else -> slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(ANIM_DURATION)
+                )
             }
         },
 
-        // 2. GLOBAL EXIT TRANSITION (Keluar/Ditinggalkan)
+        // 2. GLOBAL EXIT TRANSITION (Saat halaman PERGI)
         exitTransition = {
-            val initialRoute = initialState.destination.route
-            val targetRoute = targetState.destination.route
+            val initial = initialState.destination.route
+            val target = targetState.destination.route
 
-            // 💡 PERBAIKAN: Jika tujuan adalah "Fade Route" (Add/Detail),
-            // halaman saat ini (Activity Log) harus Fade Out, JANGAN Slide.
-            if (isFadeRoute(targetRoute)) {
-                fadeOut(tween(500))
-            }
-            else if (isBottomNavRoute(initialRoute) && isBottomNavRoute(targetRoute)) {
-                // Logic Slide Navbar
-                val initialIndex = getBottomNavIndex(initialRoute)
-                val targetIndex = getBottomNavIndex(targetRoute)
-                if (targetIndex < initialIndex) {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(500))
-                } else {
-                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(500))
+            when {
+                // Welcome -> Login (Welcome Naik ke Atas)
+                initial == AppRoutes.WELCOME && target == AppRoutes.LOGIN -> {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Up,
+                        tween(ANIM_DURATION)
+                    )
                 }
-            } else {
-                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(500))
+
+                // Login -> Sign Up (Login Geser Kiri)
+                initial == AppRoutes.LOGIN && target == AppRoutes.SIGNUP -> {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        tween(ANIM_DURATION)
+                    )
+                }
+
+                // Sign Up -> Login (Sign Up Geser Kanan - Balik)
+                initial == AppRoutes.SIGNUP && target == AppRoutes.LOGIN -> {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        tween(ANIM_DURATION)
+                    )
+                }
+
+                // Login -> Dashboard (Login Naik ke Atas)
+                initial == AppRoutes.LOGIN && target == AppRoutes.DASHBOARD -> {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Up,
+                        tween(ANIM_DURATION)
+                    )
+                }
+
+                // Survey -> Dashboard (Survey Naik ke Atas)
+                initial == AppRoutes.SURVEY && target == AppRoutes.DASHBOARD -> {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Up,
+                        tween(ANIM_DURATION)
+                    )
+                }
+
+                // Navigasi Menu Bawah
+                isBottomNavRoute(initial) && isBottomNavRoute(target) -> {
+                    val initialIndex = getBottomNavIndex(initial)
+                    val targetIndex = getBottomNavIndex(target)
+                    if (targetIndex < initialIndex) {
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Right,
+                            tween(ANIM_DURATION)
+                        )
+                    } else {
+                        slideOutOfContainer(
+                            AnimatedContentTransitionScope.SlideDirection.Left,
+                            tween(ANIM_DURATION)
+                        )
+                    }
+                }
+
+                // Halaman "Overlay" Ditutup (Turun ke Bawah)
+                isOverlayRoute(initial) -> {
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Down,
+                        tween(ANIM_DURATION)
+                    )
+                }
+
+                // Default
+                else -> slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(ANIM_DURATION)
+                )
             }
         },
 
-        // 3. GLOBAL POP ENTER (Kembali ke halaman ini)
+        // 3. POP ENTER (Saat tombol Back ditekan / kembali ke halaman ini)
         popEnterTransition = {
-            val initialRoute = initialState.destination.route // Route yang kita tinggalkan
-
-            // 💡 PERBAIKAN: Jika kita kembali DARI halaman Add/Detail,
-            // halaman ini (Activity Log) harus Fade In, JANGAN Slide.
-            if (isFadeRoute(initialRoute)) {
-                fadeIn(tween(500))
+            val initial = initialState.destination.route
+            // Jika kembali dari halaman Overlay, halaman ini diam di tempat
+            if (isOverlayRoute(initial)) {
+                EnterTransition.None
             } else {
-                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(500))
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(ANIM_DURATION)
+                )
             }
         },
 
-        // 4. GLOBAL POP EXIT (Halaman ini ditutup/back)
+        // 4. POP EXIT (Saat halaman ini ditutup via Back)
         popExitTransition = {
-            slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(500))
+            val initial = initialState.destination.route
+            // Jika halaman Overlay ditutup, dia turun ke bawah
+            if (isOverlayRoute(initial)) {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Down,
+                    tween(ANIM_DURATION)
+                )
+            } else {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(ANIM_DURATION)
+                )
+            }
         }
     ) {
         composable(AppRoutes.WELCOME) { WelcomePage(navController = navController) }
         composable(AppRoutes.LOGIN) { LoginScreen(navController, authViewModel) }
         composable(AppRoutes.SIGNUP) { SignUpScreen(navController, authViewModel) }
-        composable(AppRoutes.SURVEY) { SurveyScreen(navController = navController, authViewModel = authViewModel) }
+        composable(AppRoutes.SURVEY) {
+            SurveyScreen(
+                navController = navController,
+                authViewModel = authViewModel
+            )
+        }
 
         composable(AppRoutes.DASHBOARD) {
             DashboardScreen(navController, viewModel, authViewModel)
         }
         composable(AppRoutes.ACTIVITY) { ActivityLogScreen(navController, viewModel) }
 
-        // --- ROUTES DENGAN ANIMASI FADE (ADD/DETAIL) ---
-        // (Enter/Exit di sini menimpa global untuk halaman INI saja)
+        // --- HALAMAN OVERLAY (ADD/DETAIL) ---
+        // Transisi lokal di sini akan mengikuti logika Global di atas (Slide Up/Down)
 
-        composable(
-            route = AppRoutes.EXERCISE,
-            enterTransition = { fadeIn(tween(500)) },
-            exitTransition = { fadeOut(tween(500)) },
-            popEnterTransition = { fadeIn(tween(500)) }, // Tidak terpakai jika popBackStack, tapi aman
-            popExitTransition = { fadeOut(tween(500)) }
-        ) {
+        composable(AppRoutes.EXERCISE) {
             AddExerciseScreen(navController, viewModel)
         }
 
-        composable(
-            route = AppRoutes.FOOD,
-            enterTransition = { fadeIn(tween(500)) },
-            exitTransition = { fadeOut(tween(500)) },
-            popEnterTransition = { fadeIn(tween(500)) },
-            popExitTransition = { fadeOut(tween(500)) }
-        ) {
+        composable(AppRoutes.FOOD) {
             AddFoodScreen(navController, viewModel)
         }
 
@@ -144,12 +260,8 @@ fun AppNavHost(
         }
 
         composable(
-            route = "detail_log/{activityId}",
-            arguments = listOf(navArgument("activityId") { type = NavType.IntType }),
-            enterTransition = { fadeIn(tween(500)) },
-            exitTransition = { fadeOut(tween(500)) },
-            popEnterTransition = { fadeIn(tween(500)) },
-            popExitTransition = { fadeOut(tween(500)) }
+            route = AppRoutes.DETAIL_LOG_ROUTE,
+            arguments = listOf(navArgument("activityId") { type = NavType.IntType })
         ) { backStackEntry ->
             val id = backStackEntry.arguments?.getInt("activityId") ?: 0
             DetailLogScreen(navController, id, viewModel)
@@ -163,8 +275,8 @@ fun isBottomNavRoute(route: String?): Boolean {
     return route in listOf(AppRoutes.DASHBOARD, AppRoutes.ACTIVITY, AppRoutes.PROFILE)
 }
 
-// 💡 HELPER BARU: Cek apakah route tujuan memerlukan Fade Animation
-fun isFadeRoute(route: String?): Boolean {
+// Helper baru untuk mendeteksi rute overlay (Add/Detail)
+fun isOverlayRoute(route: String?): Boolean {
     if (route == null) return false
     return route == AppRoutes.EXERCISE ||
             route == AppRoutes.FOOD ||

@@ -1,6 +1,9 @@
 package com.example.d1_jetpackcompose.ui.screens
 
 import android.content.Context
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,13 +37,11 @@ fun MainScreen() {
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // 1. Inisialisasi Database
     val database = AppDatabase.getDatabase(context)
     val activityRepository = ActivityRepository(database.activityDao())
     val authRepository = AuthRepository(database.userDao())
     val sharedPreferences = context.getSharedPreferences("smartfit_prefs", Context.MODE_PRIVATE)
 
-    // 2. ViewModels
     val sharedViewModel: SharedViewModel = viewModel(
         factory = SharedViewModelFactory(activityRepository)
     )
@@ -48,15 +49,11 @@ fun MainScreen() {
         factory = AuthViewModelFactory(authRepository, sharedPreferences)
     )
 
-    // 3. LOGIKA SPLASH / START DESTINATION
     val isCheckingSession by authViewModel.isCheckingSession.collectAsState()
     val isSessionValid by authViewModel.isSessionValid.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
 
-    // 💡 LOGIKA UTAMA: Aplikasi siap HANYA JIKA session check selesai.
-    // Jika session valid (user login), kita juga harus menunggu 'currentUser' tidak null.
     val isAppReady = !isCheckingSession && if (isSessionValid) currentUser != null else true
-
     val globalBackgroundColor = MaterialTheme.colorScheme.background
 
     Box(
@@ -65,21 +62,13 @@ fun MainScreen() {
             .background(globalBackgroundColor)
     ) {
         if (!isAppReady) {
-            // 💡 TAMPILKAN LOADING SCREEN SELAMA CEK SESI/DATA
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
-            // 💡 APLIKASI SIAP DIRENDER
-
-            // Hitung start destination setelah data siap
             val startDestination = remember(isSessionValid, currentUser) {
                 if (isSessionValid) {
                     val user = currentUser
-                    // Pengecekan aman karena user dijamin tidak null di blok ini
                     if (user != null && authViewModel.isSurveyCompleted(user)) {
                         AppRoutes.DASHBOARD
                     } else {
@@ -94,21 +83,31 @@ fun MainScreen() {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
 
+            // 💡 LOGIC SEMBUNYIKAN NAVBAR
+            // Navbar disembunyikan jika rute saat ini ada di dalam list ini
             val showBottomBar = currentRoute !in listOf(
                 AppRoutes.WELCOME,
                 AppRoutes.LOGIN,
                 AppRoutes.SIGNUP,
                 AppRoutes.SURVEY,
-                AppRoutes.EXERCISE, // Tambahkan ini agar navbar hilang di form exercise
+                AppRoutes.EXERCISE,
                 AppRoutes.FOOD,
-                AppRoutes.EDIT_PROFILE
+                AppRoutes.EDIT_PROFILE,
+                AppRoutes.DETAIL_LOG_ROUTE // 💡 DITAMBAHKAN: Sembunyikan di detail page
+            )
+
+            // 1. ANIMASI PADDING KONTEN
+            val animatedBottomPadding by animateDpAsState(
+                targetValue = if (showBottomBar) 110.dp else 0.dp, // Sesuaikan tinggi navbar
+                animationSpec = tween(durationMillis = 500),
+                label = "PaddingAnimation"
             )
 
             // Konten Utama
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(bottom = if (showBottomBar) 90.dp else 0.dp)
+                    .padding(bottom = animatedBottomPadding)
             ) {
                 AppNavHost(
                     navController = navController,
@@ -119,11 +118,20 @@ fun MainScreen() {
                 )
             }
 
-            // Navbar
-            if (showBottomBar) {
-                Box(modifier = Modifier.align(Alignment.BottomCenter)) {
-                    BubbleNavigationBar(navController = navController)
-                }
+            // 2. ANIMASI NAVBAR (SLIDE)
+            AnimatedVisibility(
+                visible = showBottomBar,
+                enter = slideInVertically(
+                    initialOffsetY = { it }, // Muncul dari bawah
+                    animationSpec = tween(durationMillis = 500)
+                ),
+                exit = slideOutVertically(
+                    targetOffsetY = { it }, // Turun ke bawah
+                    animationSpec = tween(durationMillis = 500)
+                ),
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                BubbleNavigationBar(navController = navController)
             }
         }
     }

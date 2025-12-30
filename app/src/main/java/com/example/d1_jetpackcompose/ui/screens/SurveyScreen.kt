@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.composed
 
 // --- DATA MODELS ---
 data class UserSurveyData(
@@ -46,6 +48,10 @@ data class UserSurveyData(
 enum class SurveyStep { GENDER, BODY_STATS, GOAL, ACTIVITY, WORKOUT_PREF, STEP_GOAL }
 
 val SurveyInputGray = Color(0xFFD1D1D1)
+
+private fun Modifier.noRippleClickableSurvey(onClick: () -> Unit): Modifier = composed {
+    this.clickable(interactionSource = remember { MutableInteractionSource() }, indication = null, onClick = onClick)
+}
 
 @Composable
 fun SurveyScreen(
@@ -162,7 +168,7 @@ fun SurveyScreen(
                 color = Color.White
             )
         }
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 

@@ -127,7 +127,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 onClick = { authViewModel.login(email, password) }
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
