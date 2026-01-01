@@ -91,4 +91,13 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.bom.v20251201)
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    // Networking: Retrofit
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+// JSON Converter: Mengubah JSON dari API menjadi Object Kotlin secara otomatis
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+// Logging: Untuk melihat log data API di Logcat (Sangat membantu proses debugging)
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+// Image Loading: Coil (Anda sudah memakainya, pastikan versinya terbaru)
+    implementation("io.coil-kt:coil-compose:2.5.0")
 }
