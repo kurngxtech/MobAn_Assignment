@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import com.example.d1_jetpackcompose.ui.screens.*
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.TipsViewModel
 
 object AppRoutes {
     const val WELCOME = "welcome"
@@ -27,6 +28,8 @@ object AppRoutes {
     const val FOOD = "food"
     const val SURVEY = "survey"
     const val DETAIL_LOG_ROUTE = "detail_log/{activityId}"
+    const val TIPS_LIST = "tips_list"
+    const val TIP_DETAIL = "tip_detail/{tipId}"
 }
 
 // Konstanta durasi animasi agar konsisten
@@ -38,6 +41,7 @@ fun AppNavHost(
     modifier: Modifier = Modifier,
     viewModel: SharedViewModel,
     authViewModel: AuthViewModel,
+    tipViewModel: TipsViewModel,
     startDestination: String
 ) {
     NavHost(
@@ -235,8 +239,20 @@ fun AppNavHost(
             )
         }
 
+        composable(AppRoutes.TIPS_LIST) {
+            OnlineTipsListScreen(navController, tipViewModel)
+        }
+
+        composable(
+            route = AppRoutes.TIP_DETAIL,
+            arguments = listOf(navArgument("tipId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("tipId") ?: 0
+            TipDetailScreen(navController, tipViewModel, id)
+        }
+
         composable(AppRoutes.DASHBOARD) {
-            DashboardScreen(navController, viewModel, authViewModel)
+            DashboardScreen(navController, viewModel, authViewModel, tipViewModel)
         }
         composable(AppRoutes.ACTIVITY) { ActivityLogScreen(navController, viewModel) }
 

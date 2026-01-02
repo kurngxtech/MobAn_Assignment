@@ -67,7 +67,11 @@ fun ProfileScreen(
     navController: NavController, viewModel: SharedViewModel, authViewModel: AuthViewModel
 ) {
     val user by authViewModel.currentUser.collectAsState()
+
+    // --- STATE DIALOG ---
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) } // 💡 Dialog Logout
+
     var selectedTheme by remember { mutableStateOf(AppThemeMode.LIGHT) }
 
 
@@ -252,14 +256,14 @@ fun ProfileScreen(
                 text = "Sign Out",
                 isDestructive = true,
                 onClick = {
-                    viewModel.logout()
-                    authViewModel.logout()
-                    navController.navigate(AppRoutes.LOGIN) { popUpTo(0) { inclusive = true } }
+                    // 💡 Memunculkan Popup Logout bukan langsung keluar
+                    showLogoutDialog = true
                 })
         }
         Spacer(modifier = Modifier.height(16.dp))
     }
 
+    // --- POPUP DELETE ACCOUNT ---
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -286,9 +290,39 @@ fun ProfileScreen(
                 }
             })
     }
+
+    // --- 💡 POPUP LOGOUT (MIRIP DELETE) ---
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Sign Out?") },
+            text = {
+                Text(
+                    "Are you sure you want to sign out?", color = Color.Black
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.logout()
+                    authViewModel.logout()
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                    showLogoutDialog = false
+                }) {
+                    // Warna merah untuk aksi keluar
+                    Text("Sign Out", color = Color.Red, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancel", color = Color.Gray)
+                }
+            })
+    }
 }
 
-// --- 🧩 SLIDING THEME SELECTOR COMPONENT ---
+// ... (Sisa komponen SlidingThemeSelector, ProfileStatCard, MenuContainer, MenuItem dll tetap sama)
 @Composable
 fun SlidingThemeSelector(
     selectedTheme: AppThemeMode, onThemeSelected: (AppThemeMode) -> Unit
@@ -392,8 +426,6 @@ fun SlidingThemeSelector(
     }
 }
 
-// ... (Sisa komponen pendukung tetap sama)
-
 @Composable
 fun ProfileStatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
@@ -486,8 +518,9 @@ fun ProfileScreenPreview() {
     val authViewModel = remember {
         val database = AppDatabase.getDatabase(context)
         val authRepo = AuthRepository(database.userDao())
+        val activityRepo = ActivityRepository(database.activityDao()) // Mock
         val sharedPrefs = context.getSharedPreferences("preview_prefs", Context.MODE_PRIVATE)
-        AuthViewModel(authRepo, sharedPrefs)
+        AuthViewModel(authRepo, activityRepo, sharedPrefs)
     }
     val sharedViewModel = remember {
         val database = AppDatabase.getDatabase(context)

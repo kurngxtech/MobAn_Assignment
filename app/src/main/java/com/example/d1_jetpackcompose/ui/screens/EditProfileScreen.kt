@@ -369,18 +369,3 @@ fun EditProfileInput(
         HorizontalDivider(color = Color.Gray.copy(alpha = 0.5f))
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun EditProfileScreenPreview() {
-    val context = LocalContext.current
-    val authViewModel = remember {
-        val database = AppDatabase.getDatabase(context)
-        val authRepo = AuthRepository(database.userDao())
-        val sharedPrefs = context.getSharedPreferences("preview_prefs", Context.MODE_PRIVATE)
-        AuthViewModel(authRepo, sharedPrefs)
-    }
-    SmartFitTheme {
-        EditProfileScreen(navController = rememberNavController(), authViewModel = authViewModel)
-    }
-}

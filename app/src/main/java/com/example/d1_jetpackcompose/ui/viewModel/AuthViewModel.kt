@@ -30,6 +30,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.UserEntity
+import com.example.d1_jetpackcompose.data.repository.ActivityRepository
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.screens.UserSurveyData
 import kotlinx.coroutines.Dispatchers
@@ -47,6 +48,7 @@ import java.io.FileOutputStream
 
 class AuthViewModel(
     private val repository: AuthRepository,
+    private val activityRepository: ActivityRepository, // 💡 Tambahan: Untuk hapus data aktivitas
     private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
@@ -152,7 +154,7 @@ class AuthViewModel(
         checkSession()
     }
 
-    // 💡 PERBAIKAN UTAMA: LOGIKA CEK SESI YANG LEBIH AMAN
+    // LOGIKA CEK SESI
     private fun checkSession() {
         viewModelScope.launch {
             _isCheckingSession.value = true
@@ -164,36 +166,39 @@ class AuthViewModel(
                 delay(500)
 
                 if (isRemembered && !savedUsername.isNullOrEmpty()) {
-                    // 💡 VALIDASI KE DB: Cek apakah usernya masih ada di database?
                     val dbUser = repository.getUserByUsername(savedUsername)
 
                     if (dbUser != null) {
-                        // User ada, sesi valid
                         _currentUsername.value = savedUsername
                         _isSessionValid.value = true
                     } else {
-                        // KASUS STUCK: User ada di Prefs tapi hilang di DB (karena update versi)
-                        // Solusi: Hapus sesi, paksa logout agar tidak stuck loading
                         logout()
                     }
                 } else {
                     _isSessionValid.value = false
                 }
             } catch (e: Exception) {
-                // Jika ada error lain, anggap sesi tidak valid agar bisa masuk ke Welcome
                 _isSessionValid.value = false
             } finally {
-                // Pastikan loading screen dimatikan apapun yang terjadi
                 _isCheckingSession.value = false
             }
         }
     }
 
+    // 💡 PERBAIKAN: Hapus Total (User + Aktivitas + Sesi)
     fun deleteAccount(onComplete: () -> Unit) {
         viewModelScope.launch {
             val username = _currentUsername.value
+
+            // 1. Hapus User dari DB
             repository.deleteUser(username)
+
+            // 2. Hapus SEMUA Data Aktivitas (Cascade Manual)
+            activityRepository.clearUserData()
+
+            // 3. Bersihkan Sesi Lokal
             logout()
+
             onComplete()
         }
     }
@@ -296,20 +301,22 @@ sealed class AuthResult {
     data class Error(val message: String) : AuthResult()
 }
 
+// 💡 PERBAIKAN: Factory kini menerima ActivityRepository
 class AuthViewModelFactory(
     private val repository: AuthRepository,
+    private val activityRepository: ActivityRepository,
     private val sharedPreferences: SharedPreferences
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AuthViewModel(repository, sharedPreferences) as T
+            return AuthViewModel(repository, activityRepository, sharedPreferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
 
-// ... Sisa Composable AuthInput & PrimaryAuthButton sama ...
+// ... (Bagian Composable UI AuthInput dll tetap sama)
 @Composable
 fun AuthInput(
     modifier: Modifier = Modifier,

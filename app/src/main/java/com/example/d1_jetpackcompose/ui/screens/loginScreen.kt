@@ -160,24 +160,3 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         }
     }
 }
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun LoginScreenPreview() {
-    val context = LocalContext.current
-
-    // 💡 Gunakan 'remember' untuk menghindari instansiasi ulang yang menyebabkan error lint
-    val authViewModel = remember {
-        val database = AppDatabase.getDatabase(context)
-        val repository = AuthRepository(database.userDao())
-        val sharedPrefs = context.getSharedPreferences("preview_prefs", Context.MODE_PRIVATE)
-        AuthViewModel(repository, sharedPrefs)
-    }
-
-    SmartFitTheme {
-        LoginScreen(
-            navController = rememberNavController(),
-            authViewModel = authViewModel
-        )
-    }
-}

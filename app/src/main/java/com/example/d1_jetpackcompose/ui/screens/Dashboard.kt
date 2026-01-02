@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -48,8 +49,10 @@ import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityEntity
 import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.data.local.AppDatabase
+import com.example.d1_jetpackcompose.data.remote.model.HealthTip
 import com.example.d1_jetpackcompose.data.repository.ActivityRepository
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
+import com.example.d1_jetpackcompose.data.repository.TipsRepository
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
@@ -57,6 +60,9 @@ import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.CategoryFilter
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.TimePeriod
+import com.example.d1_jetpackcompose.ui.viewModel.TipsViewModel
+import kotlin.collections.first
+import kotlin.collections.isNotEmpty
 
 private val HistoryCardGray = Color(0xFFE8E8E8)
 
@@ -96,16 +102,26 @@ fun Modifier.customDropShadow(
 fun DashboardScreen(
     navController: NavController,
     viewModel: SharedViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    tipViewModel: TipsViewModel
 ) {
+    LaunchedEffect(Unit) {
+        tipViewModel.fetchTips()
+    }
+
     val stats by viewModel.dashboardStats.collectAsState()
     val currentPeriod by viewModel.selectedPeriod.collectAsState()
     val currentCategory by viewModel.selectedCategory.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
 
+    val personalizedTips by tipViewModel.personalizedTips.collectAsState()
+    val isTipsLoading by tipViewModel.isLoading.collectAsState()
+
     val username = currentUser?.username ?: "Guest"
     val dailyGoal = currentUser?.dailyStepsGoal ?: 5000
     val profilePath = currentUser?.profilePicturePath
+    val showTips by tipViewModel.showTipsCard.collectAsState()
+
 
     Column(
         modifier = Modifier
@@ -164,11 +180,70 @@ fun DashboardScreen(
         Spacer(modifier = Modifier.height(25.dp))
 
         OnlineTipsCard(
-            underlineColor = MaterialTheme.colorScheme.primary,
-            cardColor = MaterialTheme.colorScheme.onBackground
+            underlineColor = MaterialTheme.colorScheme.primary, // Ganti sesuai tema Anda
+            cardColor = MaterialTheme.colorScheme.onBackground,
+            tips = personalizedTips,
+            isLoading = isTipsLoading,
+            onClick = {
+                // Hanya navigasi jika tips tidak kosong
+                if (personalizedTips.isNotEmpty()) {
+                    navController.navigate(AppRoutes.TIPS_LIST)
+                }
+            }
         )
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+}
 
-        Spacer(modifier = Modifier.height(30.dp))
+@Composable
+fun OnlineTipsCard(onClick: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Icon Lampu / Tips
+            Box(
+                modifier = Modifier
+                    .size(50.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.3f)),
+                contentAlignment = Alignment.Center
+            ) {
+                // Ganti dengan Icon yang sesuai, misal R.drawable.ic_bulb atau Icons.Default.Info
+                Text("💡", fontSize = 24.sp)
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "New Insights Available!",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Text(
+                    text = "Based on your activity today.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                )
+            }
+
+            // Panah
+            Text(
+                "→",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
     }
 }
 
@@ -325,9 +400,11 @@ fun HistorySection(
                 offsetY = 6.dp
             )
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -516,27 +593,36 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
 }
 
 @Composable
-fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
+fun OnlineTipsCard(
+    underlineColor: Color,
+    cardColor: Color,
+    tips: List<HealthTip>,
+    isLoading: Boolean,
+    onClick: () -> Unit
+) {
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = cardColor),
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp)
+            .wrapContentHeight() // Ubah ke wrap agar fleksibel
+            .padding(bottom = 20.dp) // Beri jarak bawah
             .customDropShadowActivity(
                 color = Color.Black.copy(alpha = 0.15f),
                 borderRadius = 32.dp,
                 blurRadius = 5.dp,
                 offsetY = 6.dp
             )
-            .noRippleClickable {}) {
+            .noRippleClickable { onClick() }
+    ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .padding(vertical = 15.dp),
             verticalArrangement = Arrangement.Top
         ) {
+            // --- HEADER (Tetap seperti aslinya) ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -549,13 +635,98 @@ fun OnlineTipsCard(underlineColor: Color, cardColor: Color) {
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 )
-                Image(painter = painterResource(R.drawable.arrow_icon), contentDescription = null)
+                Image(
+                    painter = painterResource(R.drawable.arrow_icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
             }
             Spacer(modifier = Modifier.height(8.dp))
-            Box(modifier = Modifier
-                .fillMaxWidth()
-                .height(2.dp)
-                .background(underlineColor))
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)
+                    .background(underlineColor)
+            )
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            // --- KONTEN DINAMIS (Teaser Section) ---
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(80.dp),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(30.dp)
+                            .align(Alignment.Center),
+                        color = underlineColor
+                    )
+                } else if (tips.isEmpty()) {
+                    // TAMPILAN SAAT BELUM ADA ACTIVITY LOG (TEASER)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(50.dp)
+                                .background(underlineColor.copy(alpha = 0.1f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("💡", fontSize = 24.sp)
+                        }
+                        Spacer(modifier = Modifier.width(15.dp))
+                        Column {
+                            Text(
+                                "No activity logged today",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                "Log your workout to get personalized tips!",
+                                fontSize = 11.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                } else {
+                    // TAMPILAN SAAT TIPS SUDAH MUNCUL (RELEVAN)
+                    val displayTip = tips.first()
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(displayTip.thumbnailUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(60.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                        )
+                        Spacer(modifier = Modifier.width(15.dp))
+                        Column {
+                            Text(
+                                text = displayTip.title,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = displayTip.description,
+                                fontSize = 12.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -619,25 +790,5 @@ fun HistoryItemDashboard(title: String, subtitle: String, iconRes: Int? = null) 
                 modifier = Modifier.size(15.dp)
             )
         }
-    }
-}
-
-@Preview(showBackground = true, name = "Dashboard Preview", heightDp = 1000)
-@Composable
-fun DashboardScreenPreview() {
-    val context = LocalContext.current
-    val navController = rememberNavController()
-    val database = AppDatabase.getDatabase(context)
-    val activityRepository = ActivityRepository(database.activityDao())
-    val authRepository = AuthRepository(database.userDao())
-    val sharedPreferences = context.getSharedPreferences("preview_prefs", Context.MODE_PRIVATE)
-    val authViewModel = remember { AuthViewModel(authRepository, sharedPreferences) }
-    val sharedViewModel = remember { SharedViewModel(activityRepository) }
-    SmartFitTheme {
-        DashboardScreen(
-            navController = navController,
-            viewModel = sharedViewModel,
-            authViewModel = authViewModel
-        )
     }
 }

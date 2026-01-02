@@ -79,7 +79,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose.v285)
 
     // --- ROOM DATABASE ---
-    val roomVersion = "2.6.1" // Versi stabil terbaru untuk Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
@@ -93,11 +92,17 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     // Networking: Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation(libs.retrofit)
 // JSON Converter: Mengubah JSON dari API menjadi Object Kotlin secara otomatis
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation(libs.converter.gson)
 // Logging: Untuk melihat log data API di Logcat (Sangat membantu proses debugging)
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 // Image Loading: Coil (Anda sudah memakainya, pastikan versinya terbaru)
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.coil.compose.v250)
+
+    // Unit Testing
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
 }
