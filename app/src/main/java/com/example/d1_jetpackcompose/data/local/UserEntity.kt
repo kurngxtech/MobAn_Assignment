@@ -20,6 +20,9 @@ data class UserEntity(
     val goal: String = "",
     val dailyStepsGoal: Int = 5000,
 
-    // 💡 FIELD BARU: Path Foto Profil
+    // 💡 UPDATE: Tambahan Field Preferred Workout
+    val preferredWorkout: String = "-",
+
+    // Path Foto Profil
     val profilePicturePath: String? = null
 )

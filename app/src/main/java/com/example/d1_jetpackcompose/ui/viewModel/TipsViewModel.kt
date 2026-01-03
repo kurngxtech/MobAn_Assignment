@@ -18,7 +18,7 @@ import java.util.*
 
 class TipsViewModel(
     private val repository: TipsRepository,
-    private val activityRepository: ActivityRepository // 💡 Tambahkan ini
+    private val activityRepository: ActivityRepository
 ) : ViewModel() {
 
     private var allRemoteTips: List<HealthTip> = emptyList()
@@ -46,43 +46,52 @@ class TipsViewModel(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Fetch dari API
+                // 1. Fetch data API sekali saja (cache memory)
                 if (allRemoteTips.isEmpty()) {
                     allRemoteTips = repository.getOnlineTips()
                 }
 
-                // Cek Aktivitas Harian
+                // 2. Ambil Aktivitas Harian User
                 val activities = activityRepository.allActivities.first()
                 val todayActivities = activities.filter { isToday(it.timestamp) }
 
+                // --- 💡 PERBAIKAN LOGIKA DISINI ---
+
                 if (todayActivities.isEmpty()) {
+                    // SKENARIO 0: Belum ada aktivitas -> KOSONGKAN LIST
+                    // Ini akan memicu UI Dashboard menampilkan state "No activity logged today"
                     _personalizedTips.value = emptyList()
                 } else {
-                    val matched = mutableListOf<HealthTip>()
+                    val finalRecommendations = mutableListOf<HealthTip>()
 
-                    // 💡 Cek apakah ada aktivitas olahraga (Exercise)
-                    val hasExercise = todayActivities.any { it.type == ActivityType.EXERCISE }
+                    // Hitung jumlah aktivitas spesifik
+                    val exerciseCount = todayActivities.count { it.type == ActivityType.EXERCISE }
+                    val mealCount = todayActivities.count { it.type == ActivityType.FOOD }
 
-                    // 💡 Cek apakah ada aktivitas makan (Food)
-                    val hasMeal = todayActivities.any { it.type == ActivityType.FOOD }
-
-                    val filteredList = allRemoteTips.filter { tip ->
-                        (hasExercise && tip.category == "Exercise Tips") ||
-                                (hasMeal && tip.category == "Meal Tips")
+                    // A. Logika Exercise
+                    if (exerciseCount > 0) {
+                        val exerciseTips = allRemoteTips.filter { it.category == "Exercise Tips" }
+                        val limit = if (exerciseCount == 1) 2 else 4
+                        finalRecommendations.addAll(exerciseTips.shuffled().take(limit))
                     }
 
-                    if (matched.isEmpty()) {
-                        // Jika tidak ada aktivitas, tampilkan semua secara acak
-                        _personalizedTips.value = allRemoteTips.shuffled()
-                    } else {
-                        // 💡 SOLUSI: Tambahkan .shuffled() sebelum dikirim ke UI
-                        _personalizedTips.value = matched.distinct().shuffled()
+                    // B. Logika Meal
+                    if (mealCount > 0) {
+                        val mealTips = allRemoteTips.filter { it.category == "Meal Tips" }
+                        val limit = if (mealCount == 1) 2 else 4
+                        finalRecommendations.addAll(mealTips.shuffled().take(limit))
                     }
 
-                    _personalizedTips.value = filteredList
+                    // 3. Finalisasi Data (Max 5 items)
+                    _personalizedTips.value = finalRecommendations
+                        .distinct()
+                        .shuffled()
+                        .take(5)
                 }
+
             } catch (e: Exception) {
                 Log.e("TIPS_ERROR", "Error: ${e.message}")
+                _personalizedTips.value = emptyList()
             } finally {
                 _isLoading.value = false
             }
@@ -94,7 +103,6 @@ class TipsViewModel(
     }
 }
 
-// 💡 Update Factory agar menerima dua parameter
 class TipViewModelFactory(
     private val repository: TipsRepository,
     private val activityRepository: ActivityRepository

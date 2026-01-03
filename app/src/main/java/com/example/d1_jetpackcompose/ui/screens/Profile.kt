@@ -47,9 +47,6 @@ import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 
-val CardWhite = Color.White
-val InactiveTrackGrayProfile = Color(0xFFF5F5F5)
-
 // UI State untuk Tema
 enum class AppThemeMode { LIGHT, DARK, SYSTEM }
 
@@ -158,7 +155,7 @@ fun ProfileScreen(
             )
             Card(
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = CardWhite),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
                 elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
                 modifier = Modifier
                     .weight(1f)
@@ -222,9 +219,14 @@ fun ProfileScreen(
         Text("Account", Modifier.fillMaxWidth(), color = Color.Gray, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(8.dp))
         MenuContainer {
-            MenuItem(R.drawable.user_logo, "Personal Info") {}
+            // 💡 UPDATE: Menambahkan navigasi ke PERSONAL_INFO
+            MenuItem(R.drawable.user_logo, "Personal Info") {
+                navController.navigate(AppRoutes.PERSONAL_INFO)
+            }
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.1f), thickness = 1.dp)
-            MenuItem(R.drawable.password_logo, "Change Password") {}
+            MenuItem(R.drawable.password_logo, "Change Password") {
+                navController.navigate(AppRoutes.CHANGE_PASSWORD)
+            }
         }
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -242,7 +244,9 @@ fun ProfileScreen(
         Text("Help", Modifier.fillMaxWidth(), color = Color.Gray, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(8.dp))
         MenuContainer {
-            MenuItem(R.drawable.faq_logo, "FAQ") {}
+            MenuItem(R.drawable.faq_logo, "FAQ") {
+                navController.navigate(AppRoutes.FAQ)
+            }
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.1f), thickness = 1.dp)
             MenuItem(
                 iconId = 0,
@@ -329,7 +333,7 @@ fun SlidingThemeSelector(
 ) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -348,7 +352,7 @@ fun SlidingThemeSelector(
                     .fillMaxWidth()
                     .height(50.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(InactiveTrackGrayProfile)
+                    .background(MaterialTheme.colorScheme.tertiary)
                     .padding(4.dp)
             ) {
                 // Konfigurasi Item (Text & Icon Placeholder)
@@ -430,7 +434,7 @@ fun SlidingThemeSelector(
 fun ProfileStatCard(label: String, value: String, modifier: Modifier = Modifier) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
         modifier = modifier.height(110.dp)
     ) {
@@ -458,7 +462,7 @@ fun ProfileStatCard(label: String, value: String, modifier: Modifier = Modifier)
 fun MenuContainer(content: @Composable ColumnScope.() -> Unit) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = CardWhite),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
         elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
         modifier = Modifier.fillMaxWidth()
     ) {

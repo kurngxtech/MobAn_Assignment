@@ -7,7 +7,7 @@ import com.example.d1_jetpackcompose.data.remote.model.HealthTip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// 💡 Tambahkan konstruktor agar bisa dimasukkan API palsu saat testing
+// Menggunakan konstruktor default agar mudah dipanggil
 class TipsRepository(private val api: ApiService = RetrofitClient.instance) {
 
     suspend fun getOnlineTips(): List<HealthTip> {

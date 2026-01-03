@@ -21,7 +21,7 @@ object SmartFitColors {
     val LightCardColor = Color(0xFFFDFFFD)
     val DeleteColor = Color(0xFF8E3838)
     val SecondaryWhite = Color(0xFFc9d4c9)
-    val CardGray = Color(0xFFE8E8E8)
+    val LightGray = Color(0xFFF5F5F5)
     val DarkerCardGray = Color(0xFFDADADA)
 
     // Kategori: Warna Status & Notifikasi

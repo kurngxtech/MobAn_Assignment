@@ -3,6 +3,7 @@ package com.example.d1_jetpackcompose.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +32,6 @@ import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
 
-// Tambahkan parameter navController agar navigasi bisa jalan
 @Composable
 fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) {
     // State untuk form input
@@ -38,15 +40,23 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
     var distance by remember { mutableStateOf("") }
     var duration by remember { mutableStateOf("") }
     var caloriesBurned by remember { mutableStateOf("") }
-    var caloriesIntake by remember { mutableStateOf("") }
 
+    // 💡 ADDED: Focus Manager
+    val focusManager = LocalFocusManager.current
+
+    // 💡 MODIFIED: Root Column dengan pointerInput
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
-            .padding(top = 56.dp), // Padding atas disesuaikan untuk tombol back
+            .padding(top = 56.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -64,9 +74,8 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     }
                     .padding(vertical = 8.dp),
             ) {
-                // Wadah Image untuk Icon Arrow
                 Image(
-                    painter = painterResource(id = R.drawable.back_arrow), // Ganti dengan ID icon-mu
+                    painter = painterResource(id = R.drawable.back_arrow),
                     contentDescription = "Back",
                     modifier = Modifier.size(20.dp),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
@@ -103,12 +112,11 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                         .background(MaterialTheme.colorScheme.onSurface),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Image Placeholder
                     Image(
-                        painter = painterResource(id = R.drawable.walk_icon), // Ganti sesuai asset
+                        painter = painterResource(id = R.drawable.walk_icon),
                         contentDescription = "Exercise Icon",
                         modifier = Modifier.size(60.dp),
-                        colorFilter = ColorFilter.tint(Color.White) // Opsional: jika icon ingin putih
+                        colorFilter = ColorFilter.tint(Color.White)
                     )
                 }
 
@@ -187,6 +195,7 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
         // 3. Bottom Button
         Button(
             onClick = {
+                focusManager.clearFocus() // Tutup keyboard saat simpan
                 if (exerciseName.isNotEmpty()) {
                     viewModel.addActivity(
                         title = exerciseName,
@@ -195,7 +204,6 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                         distance = distance.toDoubleOrNull() ?: 0.0,
                         duration = duration.toIntOrNull() ?: 0
                     )
-                    // Navigasi Balik -> Data Otomatis Muncul di Log & Dashboard
                     navController.popBackStack()
                 }
             },
@@ -221,26 +229,24 @@ fun CustomUnderlinedInput(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            color = Color.Gray, // Label kecil warna abu
+            color = Color.Gray,
             fontSize = 12.sp
         )
 
-        // BasicTextField memungkinkan kita mengatur layout tanpa box bawaan Material
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             textStyle = TextStyle(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface // Text utama bold & gelap
+                color = MaterialTheme.colorScheme.onSurface
             ),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 8.dp) // Jarak antara text dan garis
+                .padding(vertical = 8.dp)
         )
 
-        // Garis Bawah (Underline)
         HorizontalDivider(
             thickness = 1.dp,
             color = Color.Gray.copy(alpha = 0.5f)
@@ -261,13 +267,11 @@ fun CategoryRadioButton(
             .clickable { onSelect() }
             .padding(vertical = 6.dp)
     ) {
-        // Custom Radio Button Visual
-        // Kita menggunakan RadioButton bawaan tapi mengatur warnanya
         RadioButton(
             selected = selected,
             onClick = onSelect,
             colors = RadioButtonDefaults.colors(
-                selectedColor = MaterialTheme.colorScheme.onSurface, // Hijau tua saat aktif
+                selectedColor = MaterialTheme.colorScheme.onSurface,
                 unselectedColor = Color.Gray
             ),
             modifier = Modifier.size(20.dp)
@@ -283,11 +287,3 @@ fun CategoryRadioButton(
         )
     }
 }
-
-//@Preview(showBackground = true, heightDp = 1000)
-//@Composable
-//fun PreviewAddExercise() {
-//    SmartFitTheme {
-//        AddExerciseScreen(navController = rememberNavController(), viewModel = SharedViewModel())
-//    }
-//}

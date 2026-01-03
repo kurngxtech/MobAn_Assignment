@@ -3,6 +3,7 @@ package com.example.d1_jetpackcompose.ui.screens
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
@@ -13,7 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -35,7 +38,9 @@ import com.example.d1_jetpackcompose.ui.viewModel.PrimaryAuthButton
 fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    // 💡 REMOVED: var rememberMe
+
+    // 💡 ADDED: Focus Manager untuk menutup keyboard
+    val focusManager = LocalFocusManager.current
 
     val isLoading by authViewModel.isLoading.collectAsState()
     val loginResult by authViewModel.loginState.collectAsState()
@@ -76,7 +81,16 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // 💡 MODIFIED: Tambahkan pointerInput di root Box
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus() // Tutup keyboard saat tap di luar
+                })
+            }
+    ) {
         Column(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
@@ -118,19 +132,22 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
                 isPassword = true
             )
 
-            // 💡 REMOVED: Row "Remember Me" & "Forgot Password"
-            Spacer(modifier = Modifier.height(30.dp)) // Tambahkan spacer pengganti agar tidak terlalu rapat
+            Spacer(modifier = Modifier.height(30.dp))
 
             PrimaryAuthButton(
                 text = "Log in",
-                // 💡 UPDATED: Panggil login tanpa parameter rememberMe
-                onClick = { authViewModel.login(email, password) }
+                onClick = {
+                    focusManager.clearFocus() // Tutup keyboard sebelum proses
+                    authViewModel.login(email, password)
+                }
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(text = "New to SmartFit? ", color = Color.Gray, fontSize = 14.sp)
@@ -148,7 +165,9 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
 
         if (isLoading) {
             Box(
-                modifier = Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.7f)),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.7f)),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

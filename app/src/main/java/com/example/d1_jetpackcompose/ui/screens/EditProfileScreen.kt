@@ -14,6 +14,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -30,8 +31,10 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,7 +52,6 @@ import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 
-// --- EXTENSION: NO RIPPLE CLICK ---
 private fun Modifier.noRippleClickableEditProfile(onClick: () -> Unit): Modifier = composed {
     this.clickable(
         interactionSource = remember { MutableInteractionSource() },
@@ -67,6 +69,9 @@ fun EditProfileScreen(
     val currentUser by authViewModel.currentUser.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
 
+    // 💡 ADDED: Focus Manager
+    val focusManager = LocalFocusManager.current
+
     // State untuk Form
     var username by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
@@ -74,7 +79,7 @@ fun EditProfileScreen(
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
 
-    // State untuk path gambar (preview lokal)
+    // State untuk path gambar
     var currentPhotoPath by remember { mutableStateOf<String?>(null) }
 
     // Isi form saat data user tersedia
@@ -109,7 +114,16 @@ fun EditProfileScreen(
         }
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // 💡 MODIFIED: Root Box dengan pointerInput
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -210,7 +224,6 @@ fun EditProfileScreen(
                     EditProfileInput(label = "Username", value = username, onValueChange = { username = it })
                     EditProfileInput(label = "Age", value = age, onValueChange = { age = it }, isNumber = true)
 
-                    // 💡 GENDER SELECTOR DENGAN ANIMASI SLIDING
                     Column {
                         Text(text = "Gender", fontSize = 12.sp, color = Color.Gray)
                         Spacer(modifier = Modifier.height(8.dp))
@@ -230,6 +243,7 @@ fun EditProfileScreen(
 
             Button(
                 onClick = {
+                    focusManager.clearFocus() // Tutup keyboard saat simpan
                     authViewModel.updateUserAccount(
                         newUsername = username,
                         newAge = age,
@@ -266,7 +280,6 @@ fun EditProfileScreen(
     }
 }
 
-// --- 💡 KOMPONEN BARU: SLIDING GENDER SELECTOR ---
 @Composable
 fun SlidingGenderSelector(
     selectedGender: String,
@@ -275,36 +288,32 @@ fun SlidingGenderSelector(
     val items = listOf("Male", "Female")
     val selectedIndex = if (selectedGender == "Male") 0 else 1
 
-    // Container Abu-abu
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(48.dp)
-            .clip(RoundedCornerShape(12.dp)) // Bentuk container sesuai desain form
-            .background(Color(0xFFF5F5F5)) // Warna track abu
-            .padding(4.dp) // Padding untuk efek 'track'
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF5F5F5))
+            .padding(4.dp)
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val itemWidth = maxWidth / 2
 
-            // 1. Animasi Posisi Indikator
             val indicatorOffset by animateDpAsState(
                 targetValue = itemWidth * selectedIndex,
                 animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
                 label = "genderSlide"
             )
 
-            // Layer 1: Indikator Hijau Bergerak
             Box(
                 modifier = Modifier
                     .width(itemWidth)
                     .fillMaxHeight()
                     .offset(x = indicatorOffset)
-                    .clip(RoundedCornerShape(10.dp)) // Radius sedikit lebih kecil dari container
+                    .clip(RoundedCornerShape(10.dp))
                     .background(MaterialTheme.colorScheme.primary)
             )
 
-            // Layer 2: Teks Item (Overlay)
             Row(modifier = Modifier.fillMaxSize()) {
                 items.forEachIndexed { index, text ->
                     Box(
@@ -314,7 +323,6 @@ fun SlidingGenderSelector(
                             .noRippleClickableEditProfile { onGenderSelected(text) },
                         contentAlignment = Alignment.Center
                     ) {
-                        // Animasi Warna Teks
                         val textColor by animateColorAsState(
                             targetValue = if (index == selectedIndex) Color.White else Color.Gray,
                             animationSpec = tween(durationMillis = 300),

@@ -3,6 +3,7 @@ package com.example.d1_jetpackcompose.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -17,6 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,25 +31,33 @@ import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityType
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 
-// import com.example.d1_jetpackcompose.navigation.AppRoutes // Uncomment jika AppRoutes ada di file terpisah
 @Composable
 fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
     // State untuk form input
     var foodName by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("") } // Breakfast, Lunch, Dinner, Snacks
+    var selectedCategory by remember { mutableStateOf("") }
     var totalCalories by remember { mutableStateOf("") }
 
+    // 💡 ADDED: Focus Manager
+    val focusManager = LocalFocusManager.current
+
+    // 💡 MODIFIED: Root Column dengan pointerInput
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 24.dp)
-            .padding(top = 56.dp), // Padding atas standard agar Back Button tidak mentok status bar
+            .padding(top = 56.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // --- 1. BUTTON BACK (Strict Copy dari request) ---
+        // --- 1. BUTTON BACK ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
@@ -60,9 +71,8 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
                     }
                     .padding(vertical = 8.dp),
             ) {
-                // Wadah Image untuk Icon Arrow
                 Image(
-                    painter = painterResource(id = R.drawable.back_arrow), // Ganti dengan ID icon-mu
+                    painter = painterResource(id = R.drawable.back_arrow),
                     contentDescription = "Back",
                     modifier = Modifier.size(20.dp),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
@@ -96,15 +106,14 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
                     modifier = Modifier
                         .size(110.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.onSurface), // Warna Lingkaran (Hijau Tua/OnSurface)
+                        .background(MaterialTheme.colorScheme.onSurface),
                     contentAlignment = Alignment.Center
                 ) {
-                    // Placeholder Image Element (Silakan isi painterResource dengan icon tudung saji kamu)
                     Image(
-                        painter = painterResource(id = R.drawable.add_food_icon), // Ganti ID ini
+                        painter = painterResource(id = R.drawable.add_food_icon),
                         contentDescription = "Food Icon",
                         modifier = Modifier.size(60.dp),
-                        colorFilter = ColorFilter.tint(Color.White) // Opsional: jika icon ingin putih
+                        colorFilter = ColorFilter.tint(Color.White)
                     )
                 }
 
@@ -129,7 +138,7 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
                 // --- FORM INPUTS ---
 
                 // 1. Food Name
-                CustomUnderlinedInput(
+                CustomUnderlinedInputFood(
                     label = "Meal Name",
                     value = foodName,
                     onValueChange = { foodName = it }
@@ -174,6 +183,7 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
         // --- 4. BOTTOM BUTTON ---
         Button(
             onClick = {
+                focusManager.clearFocus() // Tutup keyboard saat simpan
                 if (foodName.isNotEmpty()) {
                     viewModel.addActivity(
                         title = foodName,
@@ -194,7 +204,7 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
     }
 }
 
-// --- REUSABLE COMPONENTS (Agar tidak error saat di-copy) ---
+// --- REUSABLE COMPONENTS ---
 
 @Composable
 fun CustomUnderlinedInputFood(
@@ -260,11 +270,3 @@ fun CategoryRadioButtonFood(
         )
     }
 }
-
-//@Preview(showBackground = true, heightDp = 1000)
-//@Composable
-//fun PreviewAddFood() {
-//    SmartFitTheme {
-//        AddFoodScreen(navController = rememberNavController())
-//    }
-//}

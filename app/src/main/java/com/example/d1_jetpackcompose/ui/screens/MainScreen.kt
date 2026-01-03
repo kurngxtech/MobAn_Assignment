@@ -104,6 +104,7 @@ fun MainScreen() {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
 
+            // 💡 UPDATE: Tambahkan AppRoutes.PERSONAL_INFO agar navbar hilang
             val showBottomBar = currentRoute !in listOf(
                 AppRoutes.WELCOME,
                 AppRoutes.LOGIN,
@@ -114,8 +115,12 @@ fun MainScreen() {
                 TIPS_LIST,
                 AppRoutes.TIP_DETAIL,
                 AppRoutes.EDIT_PROFILE,
+                AppRoutes.PERSONAL_INFO,
+                AppRoutes.CHANGE_PASSWORD,
+                AppRoutes.FAQ,
 
-                ) && currentRoute?.startsWith("detail_log") == false
+
+            ) && currentRoute?.startsWith("detail_log") == false
 
             // Konten Utama
             Box(

@@ -18,6 +18,7 @@ import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DeleteColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjects
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightBackground
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightCardColor
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightGray
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.SecondaryGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.TextColor
@@ -25,6 +26,7 @@ import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.TextColor
 private val lightColorScheme = lightColorScheme(
     primary = LightGreen,
     secondary = SecondaryGreen,
+    tertiary = LightGray,
     background = LightBackground,
     onBackground = LightCardColor,
     surface = HistoryObjects,

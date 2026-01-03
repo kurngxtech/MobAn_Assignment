@@ -3,6 +3,7 @@ package com.example.d1_jetpackcompose.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -18,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -46,10 +49,13 @@ fun DetailLogScreen(
 
     val activityData by viewModel.selectedActivity.collectAsState()
 
+    // 💡 ADDED: Focus Manager
+    val focusManager = LocalFocusManager.current
+
     // --- STATES UTAMA ---
-    var isEditMode by remember { mutableStateOf(false) } // Status Mode Edit
-    var showEditConfirmation by remember { mutableStateOf(false) } // Pop-up Edit
-    var showDeleteConfirmation by remember { mutableStateOf(false) } // Pop-up Delete
+    var isEditMode by remember { mutableStateOf(false) }
+    var showEditConfirmation by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     // --- FORM STATES (Untuk Edit) ---
     var title by remember { mutableStateOf("") }
@@ -105,7 +111,7 @@ fun DetailLogScreen(
                 TextButton(
                     onClick = {
                         showDeleteConfirmation = false
-                        activityData?.let { viewModel.deleteActivity(it) } // ✅ HAPUS DATA
+                        activityData?.let { viewModel.deleteActivity(it) }
                         navController.popBackStack()
                     }
                 ) {
@@ -130,10 +136,16 @@ fun DetailLogScreen(
         val dateString = SimpleDateFormat("EEEE dd MMMM yyyy HH:mm a", Locale.getDefault())
             .format(Date(data.timestamp))
 
+        // 💡 MODIFIED: Root Column dengan pointerInput
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = {
+                        focusManager.clearFocus()
+                    })
+                }
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
                 .padding(top = 56.dp),
@@ -275,6 +287,7 @@ fun DetailLogScreen(
                 // TAMPILAN MODE EDIT: Tombol Save (Hijau)
                 Button(
                     onClick = {
+                        focusManager.clearFocus() // Tutup keyboard
                         // SIMPAN PERUBAHAN
                         val updatedItem = data.copy(
                             title = title,

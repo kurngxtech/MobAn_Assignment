@@ -3,6 +3,7 @@ package com.example.d1_jetpackcompose.ui.screens
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -12,7 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -34,10 +37,13 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    // 💡 ADDED: Focus Manager
+    val focusManager = LocalFocusManager.current
+
     val isLoading by authViewModel.isLoading.collectAsState()
     val signUpResult by authViewModel.signUpState.collectAsState()
 
-    // --- 💡 POP UP LOGIC ---
+    // --- POP UP LOGIC ---
     signUpResult?.let { result ->
         AlertDialog(
             onDismissRequest = { authViewModel.resetSignUpState() },
@@ -63,7 +69,16 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    // 💡 MODIFIED: Root box deteksi tap
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = {
+                    focusManager.clearFocus()
+                })
+            }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -126,10 +141,11 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
 
             PrimaryAuthButton(
                 text = "Sign Up",
-                onClick = { authViewModel.signUp(username, email, password, confirmPassword) }
+                onClick = {
+                    focusManager.clearFocus()
+                    authViewModel.signUp(username, email, password, confirmPassword)
+                }
             )
-
-            // 💡 REMOVED: Divider "or sign up with" & GoogleSignInButton
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -144,7 +160,7 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // --- 💡 LOADING OVERLAY ---
+        // --- LOADING OVERLAY ---
         if (isLoading) {
             Box(
                 modifier = Modifier

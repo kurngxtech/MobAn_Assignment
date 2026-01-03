@@ -48,7 +48,7 @@ import java.io.FileOutputStream
 
 class AuthViewModel(
     private val repository: AuthRepository,
-    private val activityRepository: ActivityRepository, // 💡 Tambahan: Untuk hapus data aktivitas
+    private val activityRepository: ActivityRepository,
     private val sharedPreferences: SharedPreferences
 ) : ViewModel() {
 
@@ -75,6 +75,56 @@ class AuthViewModel(
     val currentUser: StateFlow<UserEntity?> = _currentUsername
         .flatMapLatest { username -> repository.getCurrentUserFlow(username) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // --- 💡 FITUR BARU: CHANGE PASSWORD ---
+    fun changePassword(
+        currentPass: String,
+        newPass: String,
+        confirmPass: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            _isLoading.value = true
+
+            // 1. Validasi Input Dasar
+            if (newPass.length < 6) {
+                onError("New password must be at least 6 characters")
+                _isLoading.value = false
+                return@launch
+            }
+            if (newPass != confirmPass) {
+                onError("New passwords do not match")
+                _isLoading.value = false
+                return@launch
+            }
+
+            // 2. Ambil data user saat ini untuk cek password lama
+            val user = currentUser.value
+            if (user == null) {
+                onError("User session invalid")
+                _isLoading.value = false
+                return@launch
+            }
+
+            // 3. Verifikasi Password Lama
+            if (user.password != currentPass) {
+                delay(1000) // Fake delay untuk keamanan (mencegah brute force cepat)
+                onError("Incorrect current password")
+                _isLoading.value = false
+                return@launch
+            }
+
+            // 4. Proses Update Password
+            delay(1500) // Simulasi loading sistem
+
+            val updatedUser = user.copy(password = newPass)
+            repository.updateUserProfile(updatedUser)
+
+            _isLoading.value = false
+            onSuccess()
+        }
+    }
 
     // --- FUNGSI UPDATE GAMBAR ---
     fun updateProfilePicture(context: Context, imageUri: Uri) {
@@ -185,7 +235,7 @@ class AuthViewModel(
         }
     }
 
-    // 💡 PERBAIKAN: Hapus Total (User + Aktivitas + Sesi)
+    // Hapus Total (User + Aktivitas + Sesi)
     fun deleteAccount(onComplete: () -> Unit) {
         viewModelScope.launch {
             val username = _currentUsername.value
@@ -227,7 +277,8 @@ class AuthViewModel(
                     bmi = surveyData.bmi,
                     goal = surveyData.goal,
                     activityLevel = surveyData.activityLevel,
-                    dailyStepsGoal = surveyData.dailySteps.toIntOrNull() ?: 5000
+                    dailyStepsGoal = surveyData.dailySteps.toIntOrNull() ?: 5000,
+                    preferredWorkout = surveyData.workoutPreference
                 )
                 repository.updateUserProfile(updatedUser)
             }
@@ -301,7 +352,6 @@ sealed class AuthResult {
     data class Error(val message: String) : AuthResult()
 }
 
-// 💡 PERBAIKAN: Factory kini menerima ActivityRepository
 class AuthViewModelFactory(
     private val repository: AuthRepository,
     private val activityRepository: ActivityRepository,
@@ -316,7 +366,7 @@ class AuthViewModelFactory(
     }
 }
 
-// ... (Bagian Composable UI AuthInput dll tetap sama)
+// --- REUSABLE COMPONENT (PUBLIC) ---
 @Composable
 fun AuthInput(
     modifier: Modifier = Modifier,
@@ -345,9 +395,14 @@ fun AuthInput(
                     )
                 }
                 if (isPassword) {
+                    val iconId = if (passwordVisible) R.drawable.view_pass else R.drawable.hide_pass
+
                     Image(
-                        painter = painterResource(id = R.drawable.hide_pass),
-                        contentDescription = "Toggle Password", modifier = Modifier.size(24.dp).clickable { passwordVisible = !passwordVisible },
+                        painter = painterResource(id = iconId),
+                        contentDescription = "Toggle Password",
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clickable { passwordVisible = !passwordVisible },
                         colorFilter = ColorFilter.tint(Color.Gray)
                     )
                 }
