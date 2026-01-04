@@ -1,6 +1,5 @@
-package com.example.d1_jetpackcompose.ui.screens
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens
 
-import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -14,20 +13,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.d1_jetpackcompose.data.local.AppDatabase
-import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.viewModel.*
 
 @Composable

@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.screens
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.mainPanel
 
 import android.annotation.SuppressLint
 import android.content.Context

@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.screens
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel
 
 import android.util.Log
 import androidx.compose.foundation.background

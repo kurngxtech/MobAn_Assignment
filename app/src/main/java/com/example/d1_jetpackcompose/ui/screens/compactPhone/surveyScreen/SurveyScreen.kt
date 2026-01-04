@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.screens
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.surveyScreen
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -25,7 +25,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -33,6 +32,7 @@ import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.ui.composed
+import androidx.compose.ui.text.TextStyle
 
 // --- DATA MODELS ---
 data class UserSurveyData(
@@ -344,7 +344,7 @@ fun SurveyInput(
         )
         BasicTextField(
             value = value, onValueChange = onValueChange,
-            textStyle = androidx.compose.ui.text.TextStyle(
+            textStyle = TextStyle(
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

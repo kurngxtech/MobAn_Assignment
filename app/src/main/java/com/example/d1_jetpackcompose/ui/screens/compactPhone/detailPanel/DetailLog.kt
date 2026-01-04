@@ -1,18 +1,43 @@
-package com.example.d1_jetpackcompose.ui.screens
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,6 +56,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityType
+import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -42,28 +68,36 @@ fun DetailLogScreen(
     activityId: Int,
     viewModel: SharedViewModel
 ) {
-    // 1. Load Data
+    // 1. Deteksi Tablet
+    val isTablet = LocalAppDimens.current.isTablet
+
+    // --- DIMENSI ADAPTIF (Compact) ---
+    val topPadding = if (isTablet) 16.dp else 56.dp
+    val headerSpacer = if (isTablet) 12.dp else 24.dp
+    val iconContainerSize = if (isTablet) 80.dp else 110.dp
+    val iconSize = if (isTablet) 40.dp else 60.dp
+    val cardVerticalPadding = if (isTablet) 16.dp else 30.dp
+    val cardSpacer = if (isTablet) 16.dp else 32.dp
+    val elementSpacer = if (isTablet) 10.dp else 20.dp
+    val titleSize = if (isTablet) 22.sp else 28.sp
+    val editTitleSize = if (isTablet) 20.sp else 24.sp
+
     LaunchedEffect(activityId) {
         viewModel.loadActivityById(activityId)
     }
 
     val activityData by viewModel.selectedActivity.collectAsState()
-
-    // 💡 ADDED: Focus Manager
     val focusManager = LocalFocusManager.current
 
-    // --- STATES UTAMA ---
     var isEditMode by remember { mutableStateOf(false) }
     var showEditConfirmation by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    // --- FORM STATES (Untuk Edit) ---
     var title by remember { mutableStateOf("") }
     var calories by remember { mutableStateOf("") }
     var distance by remember { mutableStateOf("") }
     var duration by remember { mutableStateOf("") }
 
-    // Sinkronisasi data DB ke Form State saat data masuk
     LaunchedEffect(activityData) {
         activityData?.let {
             title = it.title
@@ -73,9 +107,7 @@ fun DetailLogScreen(
         }
     }
 
-    // --- POP-UP DIALOGS ---
-
-    // 1. Dialog Konfirmasi Mulai Edit
+    // --- DIALOGS (Tetap Sama) ---
     if (showEditConfirmation) {
         AlertDialog(
             onDismissRequest = { showEditConfirmation = false },
@@ -83,44 +115,45 @@ fun DetailLogScreen(
             title = { Text(text = "Edit Activity", fontWeight = FontWeight.Bold) },
             text = { Text("Do you want to edit this activity log?", color = Color.Black) },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showEditConfirmation = false
-                        isEditMode = true // ✅ AKTIFKAN FORM
-                    }
-                ) {
-                    Text("Yes, Edit", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                TextButton(onClick = { showEditConfirmation = false; isEditMode = true }) {
+                    Text(
+                        "Yes, Edit",
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditConfirmation = false }) {
-                    Text("Cancel", color = Color.Gray)
+                    Text(
+                        "Cancel",
+                        color = Color.Gray
+                    )
                 }
             }
         )
     }
 
-    // 2. Dialog Konfirmasi Delete
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
             containerColor = Color.White,
             title = { Text(text = "Delete Activity", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete this activity? This action cannot be undone.", color = Color.Black) },
+            text = { Text("Are you sure you want to delete this activity?", color = Color.Black) },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteConfirmation = false
-                        activityData?.let { viewModel.deleteActivity(it) }
-                        navController.popBackStack()
-                    }
-                ) {
+                TextButton(onClick = {
+                    showDeleteConfirmation =
+                        false; activityData?.let { viewModel.deleteActivity(it) }; navController.popBackStack()
+                }) {
                     Text("Delete", color = Color.Red, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
-                    Text("Cancel", color = Color.Gray)
+                    Text(
+                        "Cancel",
+                        color = Color.Gray
+                    )
                 }
             }
         )
@@ -133,22 +166,19 @@ fun DetailLogScreen(
         }
     } else {
         val data = activityData!!
-        val dateString = SimpleDateFormat("EEEE dd MMMM yyyy HH:mm a", Locale.getDefault())
-            .format(Date(data.timestamp))
+        val dateString = SimpleDateFormat(
+            "EEEE dd MMMM yyyy HH:mm a",
+            Locale.getDefault()
+        ).format(Date(data.timestamp))
 
-        // 💡 MODIFIED: Root Column dengan pointerInput
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = {
-                        focusManager.clearFocus()
-                    })
-                }
+                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp)
-                .padding(top = 56.dp),
+                .padding(top = topPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header Back Button
@@ -164,7 +194,7 @@ fun DetailLogScreen(
                         painter = painterResource(id = R.drawable.back_arrow),
                         contentDescription = "Back",
                         modifier = Modifier.size(20.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
+                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
                     )
                 }
             }
@@ -173,36 +203,37 @@ fun DetailLogScreen(
                 text = "Detail Log",
                 color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold,
-                fontSize = 28.sp
+                fontSize = titleSize
             )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(headerSpacer))
 
             // Icon
             Box(
                 modifier = Modifier
-                    .size(110.dp)
+                    .size(iconContainerSize)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onSurface),
                 contentAlignment = Alignment.Center
             ) {
-                val icon = if (data.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
+                val icon =
+                    if (data.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
                 Image(
                     painter = painterResource(id = icon),
                     contentDescription = "Activity Icon",
-                    modifier = Modifier.size(60.dp),
+                    modifier = Modifier.size(iconSize),
                     colorFilter = ColorFilter.tint(Color.White)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 16.dp))
 
-            // --- JUDUL ACTIVITY (Bisa Diedit) ---
+            // Title
             if (isEditMode) {
                 BasicTextField(
                     value = title,
                     onValueChange = { title = it },
                     textStyle = TextStyle(
-                        fontSize = 24.sp,
+                        fontSize = editTitleSize,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
@@ -210,69 +241,70 @@ fun DetailLogScreen(
                     modifier = Modifier.fillMaxWidth(),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
                 )
-                // Indikator garis bawah saat edit
-                HorizontalDivider(modifier = Modifier.width(120.dp).padding(top = 4.dp), color = MaterialTheme.colorScheme.primary, thickness = 2.dp)
+                HorizontalDivider(
+                    modifier = Modifier
+                        .width(120.dp)
+                        .padding(top = 4.dp),
+                    color = MaterialTheme.colorScheme.primary,
+                    thickness = 2.dp
+                )
             } else {
                 Text(
                     text = title,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 24.sp,
+                    fontSize = editTitleSize,
                     textAlign = TextAlign.Center
                 )
             }
 
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = dateString, color = Color.Gray, fontSize = 12.sp)
+            Spacer(modifier = Modifier.height(cardSpacer))
 
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // --- FORM CARD ---
+            // Card Form
             Card(
-                shape = RoundedCornerShape(32.dp),
+                shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 30.dp),
+                        .padding(horizontal = 24.dp, vertical = cardVerticalPadding),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Kategori (Statis)
                     EditableDetailItem(
                         label = "Categories",
                         value = if (data.type == ActivityType.FOOD) "Meal" else "Exercise",
                         isEditable = false,
-                        onValueChange = {}
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
+                        onValueChange = {})
+                    Spacer(modifier = Modifier.height(elementSpacer))
 
                     if (data.type == ActivityType.EXERCISE) {
                         EditableDetailItem(
                             label = "Distance",
                             value = distance,
-                            suffix = " km", // Satuan otomatis
+                            suffix = " km",
                             isEditable = isEditMode,
                             onValueChange = { distance = it },
                             keyboardType = KeyboardType.Number
                         )
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(elementSpacer))
                         EditableDetailItem(
                             label = "Duration",
                             value = duration,
-                            suffix = " min", // Satuan otomatis
+                            suffix = " min",
                             isEditable = isEditMode,
                             onValueChange = { duration = it },
                             keyboardType = KeyboardType.Number
                         )
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(elementSpacer))
                     }
-
                     EditableDetailItem(
                         label = if (data.type == ActivityType.FOOD) "Calories Intake" else "Calories Burned",
                         value = calories,
-                        suffix = " kcal", // Satuan otomatis
+                        suffix = " kcal",
                         isEditable = isEditMode,
                         onValueChange = { calories = it },
                         keyboardType = KeyboardType.Number
@@ -280,59 +312,71 @@ fun DetailLogScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 12.dp else 20.dp))
 
-            // --- TOMBOL AKSI (DINAMIS) ---
+            // Buttons
             if (isEditMode) {
-                // TAMPILAN MODE EDIT: Tombol Save (Hijau)
                 Button(
                     onClick = {
-                        focusManager.clearFocus() // Tutup keyboard
-                        // SIMPAN PERUBAHAN
+                        focusManager.clearFocus();
                         val updatedItem = data.copy(
                             title = title,
                             calories = calories.toIntOrNull() ?: 0,
                             distance = distance.toDoubleOrNull() ?: 0.0,
                             duration = duration.toIntOrNull() ?: 0
-                        )
-                        viewModel.updateActivity(updatedItem)
-                        isEditMode = false // ✅ KEMBALI NON-AKTIF
+                        ); viewModel.updateActivity(updatedItem); isEditMode = false
                     },
-                    modifier = Modifier.fillMaxWidth().height(45.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(45.dp),
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text(text = "Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(
+                        text = "Save Changes",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
             } else {
-                // TAMPILAN NORMAL: Edit & Delete
                 Button(
-                    onClick = { showEditConfirmation = true }, // 💡 PANGGIL POP-UP
-                    modifier = Modifier.fillMaxWidth().height(45.dp),
+                    onClick = { showEditConfirmation = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(45.dp),
                     shape = RoundedCornerShape(50),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Text(text = "Edit Activities", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(
+                        text = "Edit Activities",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
-
                 Spacer(modifier = Modifier.height(10.dp))
-
                 Button(
-                    onClick = { showDeleteConfirmation = true }, // 💡 PANGGIL POP-UP
-                    modifier = Modifier.fillMaxWidth().height(45.dp),
+                    onClick = { showDeleteConfirmation = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(45.dp),
                     shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant) // Merah
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    Text(text = "Delete Activities", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    Text(
+                        text = "Delete Activities",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
             }
-
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(if (isTablet) 16.dp else 32.dp))
         }
     }
 }
 
-// --- KOMPONEN EDITABLE (Custom) ---
 @Composable
 fun EditableDetailItem(
     label: String,
@@ -344,16 +388,14 @@ fun EditableDetailItem(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(text = label, color = Color.Gray, fontSize = 12.sp)
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(4.dp))
         if (isEditable) {
-            // MODE EDIT: Form Input
             Row(verticalAlignment = Alignment.CenterVertically) {
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
                     textStyle = TextStyle(
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     ),
@@ -361,22 +403,22 @@ fun EditableDetailItem(
                     modifier = Modifier.weight(1f),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
                 )
-                // Satuan tetap terlihat tapi statis
-                if (suffix.isNotEmpty()) {
-                    Text(text = suffix, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
-                }
+                if (suffix.isNotEmpty()) Text(
+                    text = suffix,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray
+                )
             }
         } else {
-            // MODE READ-ONLY: Text Biasa
             Text(
                 text = value + suffix,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         HorizontalDivider(thickness = 1.dp, color = Color.Gray.copy(alpha = 0.5f))
     }
 }

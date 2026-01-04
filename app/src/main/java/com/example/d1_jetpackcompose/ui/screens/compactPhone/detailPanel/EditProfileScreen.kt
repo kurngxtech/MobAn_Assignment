@@ -1,7 +1,6 @@
-package com.example.d1_jetpackcompose.ui.screens
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel
 
 import android.Manifest
-import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,17 +38,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.d1_jetpackcompose.R
-import com.example.d1_jetpackcompose.data.local.AppDatabase
-import com.example.d1_jetpackcompose.data.repository.AuthRepository
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 
 private fun Modifier.noRippleClickableEditProfile(onClick: () -> Unit): Modifier = composed {

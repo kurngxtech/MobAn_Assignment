@@ -32,7 +32,7 @@ import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.UserEntity
 import com.example.d1_jetpackcompose.data.repository.ActivityRepository
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
-import com.example.d1_jetpackcompose.ui.screens.UserSurveyData
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.surveyScreen.UserSurveyData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

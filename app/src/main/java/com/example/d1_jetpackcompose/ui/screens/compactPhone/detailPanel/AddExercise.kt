@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.screens
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,38 +29,47 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.data.local.ActivityType
+import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
-
 
 @Composable
 fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) {
-    // State untuk form input
+    // 1. Deteksi Tablet untuk Mode Compact
+    val isTablet = LocalAppDimens.current.isTablet
+
+    // --- DIMENSI ADAPTIF (Compact untuk Tablet agar Fit-to-Screen) ---
+    val topPadding = if (isTablet) 16.dp else 56.dp
+    val headerSpacer = if (isTablet) 12.dp else 24.dp
+    val cardVerticalPadding = if (isTablet) 16.dp else 32.dp
+    val sectionSpacer = if (isTablet) 16.dp else 32.dp
+    val elementSpacer = if (isTablet) 10.dp else 20.dp
+    val iconContainerSize = if (isTablet) 80.dp else 110.dp
+    val iconSize = if (isTablet) 40.dp else 60.dp
+    val titleSize = if (isTablet) 22.sp else 28.sp
+
+    // State form
     var exerciseName by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") }
     var distance by remember { mutableStateOf("") }
     var duration by remember { mutableStateOf("") }
     var caloriesBurned by remember { mutableStateOf("") }
 
-    // 💡 ADDED: Focus Manager
     val focusManager = LocalFocusManager.current
 
-    // 💡 MODIFIED: Root Column dengan pointerInput
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
+                detectTapGestures(onTap = { focusManager.clearFocus() })
             }
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()) // Scroll tetap ada sbg safety net, tapi seharusnya tidak terpakai
             .padding(horizontal = 24.dp)
-            .padding(top = 56.dp),
+            .padding(top = topPadding), // 💡 Padding Atas Dikurangi di Tablet
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
-        // --- TOMBOL BACK (POJOK KIRI ATAS) ---
+        // --- TOMBOL BACK ---
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Start
@@ -69,9 +78,7 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        navController.popBackStack()
-                    }
+                    .clickable { navController.popBackStack() }
                     .padding(vertical = 8.dp),
             ) {
                 Image(
@@ -88,26 +95,26 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
             text = "Add Exercise",
             color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
-            fontSize = 28.sp
+            fontSize = titleSize
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(headerSpacer))
 
         // 2. Main Form Card
         Card(
-            shape = RoundedCornerShape(32.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 32.dp),
+                    .padding(horizontal = 24.dp, vertical = cardVerticalPadding), // 💡 Padding Card Dikurangi
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // --- ICON SECTION ---
+                // --- ICON SECTION (Lebih Kecil di Tablet) ---
                 Box(
                     modifier = Modifier
-                        .size(110.dp)
+                        .size(iconContainerSize)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onSurface),
                     contentAlignment = Alignment.Center
@@ -115,27 +122,27 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     Image(
                         painter = painterResource(id = R.drawable.walk_icon),
                         contentDescription = "Exercise Icon",
-                        modifier = Modifier.size(60.dp),
+                        modifier = Modifier.size(iconSize),
                         colorFilter = ColorFilter.tint(Color.White)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 16.dp))
 
                 Text(
                     text = "Exercise Data",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 20.sp
+                    fontSize = if (isTablet) 18.sp else 20.sp
                 )
-                Spacer(modifier = Modifier.size(5.dp))
+                Spacer(modifier = Modifier.size(4.dp))
                 Text(
                     text = "Choose your exercise",
                     color = Color.Gray,
                     fontSize = 12.sp
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(sectionSpacer))
 
                 // --- FORM INPUTS ---
                 CustomUnderlinedInput(
@@ -144,11 +151,11 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     onValueChange = { exerciseName = it }
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(elementSpacer))
 
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(text = "Exercise Category", color = Color.Gray, fontSize = 12.sp)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     CategoryRadioButton(
                         text = "Walking",
                         selected = selectedCategory == "Walking",
@@ -161,7 +168,7 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     )
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(elementSpacer))
 
                 CustomUnderlinedInput(
                     label = "Distance (km)",
@@ -170,7 +177,7 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     keyboardType = KeyboardType.Number
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(elementSpacer))
 
                 CustomUnderlinedInput(
                     label = "Duration (min)",
@@ -179,7 +186,7 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     keyboardType = KeyboardType.Number
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(elementSpacer))
 
                 CustomUnderlinedInput(
                     label = "Calories Burned",
@@ -190,12 +197,12 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
             }
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(if (isTablet) 12.dp else 20.dp))
 
         // 3. Bottom Button
         Button(
             onClick = {
-                focusManager.clearFocus() // Tutup keyboard saat simpan
+                focusManager.clearFocus()
                 if (exerciseName.isNotEmpty()) {
                     viewModel.addActivity(
                         title = exerciseName,
@@ -214,11 +221,11 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
             Text("Add Activity", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(if (isTablet) 16.dp else 32.dp))
     }
 }
-// --- CUSTOM COMPONENTS ---
 
+// --- CUSTOM COMPONENTS (Sama) ---
 @Composable
 fun CustomUnderlinedInput(
     label: String,
@@ -227,63 +234,34 @@ fun CustomUnderlinedInput(
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            color = Color.Gray,
-            fontSize = 12.sp
-        )
-
+        Text(text = label, color = Color.Gray, fontSize = 12.sp)
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             textStyle = TextStyle(
-                fontSize = 18.sp,
+                fontSize = 16.sp, // Sedikit lebih kecil agar aman
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             ),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
+            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
         )
-
-        HorizontalDivider(
-            thickness = 1.dp,
-            color = Color.Gray.copy(alpha = 0.5f)
-        )
+        HorizontalDivider(thickness = 1.dp, color = Color.Gray.copy(alpha = 0.5f))
     }
 }
 
 @Composable
-fun CategoryRadioButton(
-    text: String,
-    selected: Boolean,
-    onSelect: () -> Unit
-) {
+fun CategoryRadioButton(text: String, selected: Boolean, onSelect: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onSelect() }
-            .padding(vertical = 6.dp)
+        modifier = Modifier.fillMaxWidth().clickable { onSelect() }.padding(vertical = 2.dp)
     ) {
         RadioButton(
-            selected = selected,
-            onClick = onSelect,
-            colors = RadioButtonDefaults.colors(
-                selectedColor = MaterialTheme.colorScheme.onSurface,
-                unselectedColor = Color.Gray
-            ),
+            selected = selected, onClick = onSelect,
+            colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.onSurface, unselectedColor = Color.Gray),
             modifier = Modifier.size(20.dp)
         )
-
         Spacer(modifier = Modifier.width(12.dp))
-
-        Text(
-            text = text,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Gray
-        )
+        Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color.Gray)
     }
 }

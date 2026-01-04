@@ -10,7 +10,22 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.d1_jetpackcompose.ui.screens.*
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.AddExerciseScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.AddFoodScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.ChangePasswordScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.DetailLogScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.EditProfileScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.FAQScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.OnlineTipsListScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.PersonalInfoScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.TipDetailScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.mainPanel.ActivityLogScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.mainPanel.DashboardScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.mainPanel.ProfileScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.surveyScreen.SurveyScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens.LoginScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens.SignUpScreen
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens.WelcomePage
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.TipsViewModel
@@ -36,6 +51,7 @@ object AppRoutes {
     const val TIP_DETAIL = "tip_detail/{tipId}"
 }
 
+// Konstanta durasi animasi agar konsisten
 private const val ANIM_DURATION = 500
 
 @Composable
@@ -51,30 +67,102 @@ fun AppNavHost(
         modifier = modifier,
         navController = navController,
         startDestination = startDestination,
-        // ... (Transisi biarkan sama, dipotong agar tidak terlalu panjang)
+
+        // 1. ENTER TRANSITION (Halaman yang baru muncul)
         enterTransition = {
-            slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left,
-                tween(ANIM_DURATION)
-            )
+            val initial = initialState.destination.route
+            val target = targetState.destination.route
+
+            if (isBottomNavRoute(initial) && isBottomNavRoute(target)) {
+                // Jika antar Bottom Nav, cek indeksnya
+                if (getBottomNavIndex(target) > getBottomNavIndex(initial)) {
+                    // Navigasi ke depan (Kanan): Muncul dari kanan ke kiri
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        tween(ANIM_DURATION)
+                    )
+                } else {
+                    // Navigasi ke belakang (Kiri): Muncul dari kiri ke kanan
+                    slideIntoContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        tween(ANIM_DURATION)
+                    )
+                }
+            } else if (isOverlayRoute(target)) {
+                // Halaman Overlay (Add/Detail) muncul dari bawah
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Up,
+                    tween(ANIM_DURATION)
+                )
+            } else {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(ANIM_DURATION)
+                )
+            }
         },
+
+        // 2. EXIT TRANSITION (Halaman lama yang pergi)
         exitTransition = {
-            slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Left,
-                tween(ANIM_DURATION)
-            )
+            val initial = initialState.destination.route
+            val target = targetState.destination.route
+
+            if (isBottomNavRoute(initial) && isBottomNavRoute(target)) {
+                if (getBottomNavIndex(target) > getBottomNavIndex(initial)) {
+                    // Navigasi ke depan: Pergi ke arah kiri
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Left,
+                        tween(ANIM_DURATION)
+                    )
+                } else {
+                    // Navigasi ke belakang: Pergi ke arah kanan
+                    slideOutOfContainer(
+                        AnimatedContentTransitionScope.SlideDirection.Right,
+                        tween(ANIM_DURATION)
+                    )
+                }
+            } else if (isOverlayRoute(initial)) {
+                // Halaman Overlay ditutup ke arah bawah
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Down,
+                    tween(ANIM_DURATION)
+                )
+            } else {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    tween(ANIM_DURATION)
+                )
+            }
         },
+
+        // 3. POP ENTER (Kembali ke halaman sebelumnya)
         popEnterTransition = {
-            slideIntoContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right,
-                tween(ANIM_DURATION)
-            )
+            val initial = initialState.destination.route
+            if (isOverlayRoute(initial)) {
+                // Jika kembali dari overlay, halaman utama tetap diam
+                EnterTransition.None
+            } else {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(ANIM_DURATION)
+                )
+            }
         },
+
+        // 4. POP EXIT (Halaman saat ini ditutup)
         popExitTransition = {
-            slideOutOfContainer(
-                AnimatedContentTransitionScope.SlideDirection.Right,
-                tween(ANIM_DURATION)
-            )
+            val initial = initialState.destination.route
+            if (isOverlayRoute(initial)) {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Down,
+                    tween(ANIM_DURATION)
+                )
+            } else {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    tween(ANIM_DURATION)
+                )
+            }
         }
     ) {
         composable(AppRoutes.WELCOME) { WelcomePage(navController = navController) }
@@ -110,7 +198,6 @@ fun AppNavHost(
         composable(AppRoutes.PERSONAL_INFO) { PersonalInfoScreen(navController, authViewModel) }
         composable(AppRoutes.CHANGE_PASSWORD) { ChangePasswordScreen(navController, authViewModel) }
 
-        // 💡 UPDATE: Daftarkan Screen FAQ
         composable(AppRoutes.FAQ) {
             FAQScreen(navController)
         }
@@ -118,14 +205,15 @@ fun AppNavHost(
         composable(
             route = AppRoutes.DETAIL_LOG_ROUTE,
             arguments = listOf(navArgument("activityId") { type = NavType.IntType })
-        ) {
-            val id = it.arguments?.getInt("activityId") ?: 0
+        ) { backStackEntry ->
+            val id = backStackEntry.arguments?.getInt("activityId") ?: 0
             DetailLogScreen(navController, id, viewModel)
         }
     }
 }
 
-// ... (Helper functions tetap sama)
+// --- HELPER FUNCTIONS ---
+
 fun isBottomNavRoute(route: String?): Boolean {
     return route in listOf(AppRoutes.DASHBOARD, AppRoutes.ACTIVITY, AppRoutes.PROFILE)
 }

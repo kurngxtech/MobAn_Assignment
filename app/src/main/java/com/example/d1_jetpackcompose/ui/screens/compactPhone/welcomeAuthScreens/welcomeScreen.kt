@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.ui.screens // Assuming this is your package
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens // Assuming this is your package
 
 
 import androidx.compose.foundation.Image
