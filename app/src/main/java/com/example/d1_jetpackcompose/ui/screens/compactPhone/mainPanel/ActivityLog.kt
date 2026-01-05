@@ -34,6 +34,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -105,7 +106,7 @@ fun Modifier.customDropShadowActivity(
 
 enum class ActivityPanelState { NONE, ADD_EXERCISE, ADD_FOOD, DETAIL }
 
-@SuppressLint("UnusedBoxWithConstraintsScope")
+@SuppressLint("UnusedBoxWithConstraintsScope", "UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) {
     val dimens = LocalAppDimens.current
@@ -116,6 +117,7 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
     val showSplitView = panelState != ActivityPanelState.NONE
     val pageScrollState = rememberScrollState()
     val sideNavController = rememberNavController()
+    val horizontalPadding = dimens.screenPadding + 5.dp
 
     LaunchedEffect(panelState) {
         if (panelState != ActivityPanelState.NONE) {
@@ -125,7 +127,11 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
                 ActivityPanelState.DETAIL -> "detail_log"
                 else -> null
             }
-            if (route != null) sideNavController.navigate(route) { popUpTo("blank") { inclusive = false }; launchSingleTop = true }
+            if (route != null) sideNavController.navigate(route) {
+                popUpTo("blank") {
+                    inclusive = false
+                }; launchSingleTop = true
+            }
         }
     }
 
@@ -137,9 +143,51 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
         onDispose { sideNavController.removeOnDestinationChangedListener(listener) }
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    val activityLogTopBar: @Composable () -> Unit = {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = dimens.topPaddingScaffold) // Padding atas agar tidak terlalu mepet status bar (atau inset)
+                .padding(horizontal = horizontalPadding) // Padding horizontal agar sejajar dengan konten bawah
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Your Activities",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = if (isTablet) dimens.textSizeHeadline else 32.sp,
+                )
+                Text(
+                    text = "You can choose either edit or add new activity",
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = if (isTablet) dimens.textSizeBody else 15.sp,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         if (isTablet) {
             Row(modifier = Modifier.fillMaxSize()) {
+                Scaffold(
+                    topBar = activityLogTopBar,
+                    containerColor = Color.Transparent,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                ) {  paddingValues ->
+
+                }
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -147,10 +195,14 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
                         .verticalScroll(pageScrollState)
                 ) {
                     val contentModifier = if (showSplitView) {
-                        Modifier.fillMaxSize().padding(end = dimens.paddingMedium)
+                        Modifier
+                            .fillMaxSize()
+                            .padding(end = dimens.paddingMedium)
                     } else {
                         // PERBAIKAN: Center Alignment
-                        Modifier.fillMaxWidth(dimens.contentMaxWidthPercent).align(Alignment.Center)
+                        Modifier
+                            .fillMaxWidth(dimens.contentMaxWidthPercent)
+                            .align(Alignment.Center)
                     }
 
                     Box(modifier = contentModifier) {
@@ -159,7 +211,9 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
                             navController = navController,
                             onAddExercise = { panelState = ActivityPanelState.ADD_EXERCISE },
                             onAddFood = { panelState = ActivityPanelState.ADD_FOOD },
-                            onDetailClick = { id -> selectedActivityId = id; panelState = ActivityPanelState.DETAIL },
+                            onDetailClick = { id ->
+                                selectedActivityId = id; panelState = ActivityPanelState.DETAIL
+                            },
                             isTablet = true
                         )
                     }
@@ -169,7 +223,9 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
                     visible = showSplitView,
                     enter = slideInHorizontally { it } + fadeIn(),
                     exit = slideOutHorizontally { it } + fadeOut(),
-                    modifier = Modifier.width(450.dp).fillMaxHeight() // PERBAIKAN: Fill Max Height
+                    modifier = Modifier
+                        .width(450.dp)
+                        .fillMaxHeight() // PERBAIKAN: Fill Max Height
                 ) {
                     Box(
                         modifier = Modifier
@@ -181,9 +237,25 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
                     ) {
                         NavHost(navController = sideNavController, startDestination = "blank") {
                             composable("blank") { Box(modifier = Modifier.fillMaxSize()) }
-                            composable("add_exercise") { AddExerciseScreen(navController = sideNavController, viewModel = viewModel) }
-                            composable("add_food") { AddFoodScreen(navController = sideNavController, viewModel = viewModel) }
-                            composable("detail_log") { if (selectedActivityId != null) DetailLogScreen(navController = sideNavController, activityId = selectedActivityId!!, viewModel = viewModel) }
+                            composable("add_exercise") {
+                                AddExerciseScreen(
+                                    navController = sideNavController,
+                                    viewModel = viewModel
+                                )
+                            }
+                            composable("add_food") {
+                                AddFoodScreen(
+                                    navController = sideNavController,
+                                    viewModel = viewModel
+                                )
+                            }
+                            composable("detail_log") {
+                                if (selectedActivityId != null) DetailLogScreen(
+                                    navController = sideNavController,
+                                    activityId = selectedActivityId!!,
+                                    viewModel = viewModel
+                                )
+                            }
                         }
                     }
                 }
@@ -228,34 +300,40 @@ fun ActivityLogContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = paddingHorizontal, end = paddingHorizontal, top = paddingVertical, bottom = paddingVertical),
+            .padding(
+                start = paddingHorizontal,
+                end = paddingHorizontal,
+                top = paddingVertical,
+                bottom = paddingVertical
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (!isTablet) Spacer(modifier = Modifier.height(60.dp))
 
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Your Activities",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-                fontSize = if (isTablet) dimens.textSizeHeadline else 32.sp,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            val cardModifier =
+                if (isTablet) Modifier
+                    .weight(1f)
+                    .height(170.dp) else Modifier
+                    .weight(1f)
+                    .aspectRatio(1f)
+            TopActionCard(
+                title = "Add Exercise",
+                subtitle = "Running or Walking",
+                modifier = cardModifier,
+                iconRes = R.drawable.walk_icon,
+                onClick = onAddExercise
             )
-            Text(
-                text = "You can choose either edit or add new activity",
-                color = Color.Gray,
-                fontWeight = FontWeight.Medium,
-                fontSize = if (isTablet) dimens.textSizeBody else 15.sp,
-                textAlign = TextAlign.Center,
+            TopActionCard(
+                title = "Add Food",
+                subtitle = "Input meals and calories",
+                modifier = cardModifier,
+                iconRes = R.drawable.add_food_icon,
+                onClick = onAddFood
             )
-        }
-
-        Spacer(modifier = Modifier.size(24.dp))
-
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            val cardModifier = if (isTablet) Modifier.weight(1f).height(170.dp) else Modifier.weight(1f).aspectRatio(1f)
-            TopActionCard(title = "Add Exercise", subtitle = "Running or Walking", modifier = cardModifier, iconRes = R.drawable.walk_icon, onClick = onAddExercise)
-            TopActionCard(title = "Add Food", subtitle = "Input meals and calories", modifier = cardModifier, iconRes = R.drawable.add_food_icon, onClick = onAddFood)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -269,7 +347,9 @@ fun ActivityLogContent(
                 fontSize = if (isTablet) dimens.textSizeTitle else 20.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            PeriodSelector(selectedPeriod = currentPeriod, onSelect = { viewModel.setTimePeriod(it) })
+            PeriodSelector(
+                selectedPeriod = currentPeriod,
+                onSelect = { viewModel.setTimePeriod(it) })
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -277,9 +357,13 @@ fun ActivityLogContent(
         Card(
             shape = RoundedCornerShape(32.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier.fillMaxWidth().then(if (isTablet) Modifier.wrapContentHeight() else Modifier.height(450.dp))
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (isTablet) Modifier.wrapContentHeight() else Modifier.height(450.dp))
         ) {
-            Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -289,22 +373,35 @@ fun ActivityLogContent(
                 ) {
                     if (activityList.isEmpty()) {
                         Column(
-                            modifier = Modifier.fillMaxWidth().height(200.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text("No activities found\n Add any activities you want.", color = Color.Gray, textAlign = TextAlign.Center)
+                            Text(
+                                "No activities found\n Add any activities you want.",
+                                color = Color.Gray,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     } else {
                         activityList.forEach { activity ->
-                            val dateString = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(activity.timestamp))
-                            val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
-                            val icon = if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
+                            val dateString =
+                                SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(
+                                    Date(activity.timestamp)
+                                )
+                            val typeLabel =
+                                if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
+                            val icon =
+                                if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
                             HistoryItem(
                                 title = activity.title,
                                 subtitle = "$dateString | ${activity.calories} cal $typeLabel",
                                 iconRes = icon,
-                                modifier = Modifier.fillMaxWidth().noRippleClickableActivity { onDetailClick(activity.id) }
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .noRippleClickableActivity { onDetailClick(activity.id) }
                             )
                         }
                         Spacer(modifier = Modifier.height(10.dp))

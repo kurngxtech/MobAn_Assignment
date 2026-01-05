@@ -4,10 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -27,7 +23,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -46,6 +41,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -93,7 +89,6 @@ import com.example.d1_jetpackcompose.data.repository.ActivityRepository
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.data.repository.TipsRepository
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
-import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.SectionTitle
 import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.theme.robotoFontFamily
@@ -103,6 +98,13 @@ import com.example.d1_jetpackcompose.ui.viewModel.DashboardStats
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.TimePeriod
 import com.example.d1_jetpackcompose.ui.viewModel.TipsViewModel
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 
 private val HistoryCardGray = Color(0xFFE8E8E8)
 
@@ -154,41 +156,87 @@ fun DashboardScreen(
     var showSplitView by remember { mutableStateOf(false) }
     var selectedArticle by remember { mutableStateOf<HealthTip?>(null) }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    // Data User untuk TopBar
+    val username = currentUser?.username ?: "Guest"
+    val profilePath = currentUser?.profilePicturePath
+
+    // Padding Konsisten
+    val startPadding = dimens.startScaffoldPadding
+    val horizontalPadding = dimens.screenPadding + 5.dp
+
+    // Komponen TopBar (Reusable untuk HP & Tablet)
+    val dashboardTopBar: @Composable () -> Unit = {
+        if (isTablet) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = dimens.topPaddingScaffold) // Padding atas agar tidak terlalu mepet status bar (atau inset)
+                    .padding(start = startPadding)
+            ) {
+                HeaderProfileSection(name = username, profilePath = profilePath)
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = dimens.screenPadding) // Padding atas agar tidak terlalu mepet status bar (atau inset)
+                    .padding(horizontal = horizontalPadding) // Padding horizontal agar sejajar dengan konten bawah
+            ) {
+                HeaderProfileSection(name = username, profilePath = profilePath)
+            }
+        }
+    }
+
+    BoxWithConstraints(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)) {
         if (isTablet) {
             // --- TABLET LAYOUT ---
             Row(modifier = Modifier.fillMaxSize()) {
-                // PANEL KIRI
-                Box(
+                // PANEL KIRI (SCROLLABLE DENGAN SCAFFOLD)
+                // Kita bungkus Panel Kiri dengan Scaffold agar TopBar menempel di panel ini
+                Scaffold(
+                    topBar = dashboardTopBar,
+                    containerColor = Color.Transparent,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .verticalScroll(pageScrollStateDashboard),
-                    contentAlignment = Alignment.TopCenter // Default TopCenter untuk scroll
-                ) {
-                    val contentModifier = if (showSplitView) {
-                        Modifier.fillMaxSize().padding(end = dimens.paddingMedium)
-                    } else {
-                        // PERBAIKAN: Gunakan Center Alignment tegas
-                        Modifier.fillMaxWidth(dimens.contentMaxWidthPercent).align(Alignment.Center)
-                    }
+                ) { paddingValues ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues) // Padding dari Scaffold (TopBar height)
+                            .verticalScroll(pageScrollStateDashboard),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        val contentModifier = if (showSplitView) {
+                            Modifier
+                                .fillMaxSize()
+                                .padding(end = dimens.paddingMedium)
+                        } else {
+                            // PERBAIKAN: Gunakan Center Alignment tegas
+                            Modifier
+                                .fillMaxWidth(dimens.contentMaxWidthPercent)
+                                .align(Alignment.Center)
+                        }
 
-                    Box(modifier = contentModifier) {
-                        DashboardContent(
-                            navController = navController,
-                            viewModel = viewModel,
-                            authViewModel = authViewModel,
-                            stats = stats,
-                            currentPeriod = currentPeriod,
-                            currentCategory = currentCategory,
-                            currentUser = currentUser,
-                            personalizedTips = personalizedTips,
-                            isTipsLoading = isTipsLoading,
-                            onTipsClick = {
-                                showSplitView = true
-                                selectedArticle = null
-                            }
-                        )
+                        Box(modifier = contentModifier) {
+                            DashboardContent(
+                                navController = navController,
+                                viewModel = viewModel,
+                                authViewModel = authViewModel,
+                                stats = stats,
+                                currentPeriod = currentPeriod,
+                                currentCategory = currentCategory,
+                                currentUser = currentUser,
+                                personalizedTips = personalizedTips,
+                                isTipsLoading = isTipsLoading,
+                                onTipsClick = {
+                                    showSplitView = true
+                                    selectedArticle = null
+                                }
+                            )
+                        }
                     }
                 }
 
@@ -197,14 +245,19 @@ fun DashboardScreen(
                     visible = showSplitView,
                     enter = slideInHorizontally { it } + fadeIn(),
                     exit = slideOutHorizontally { it } + fadeOut(),
-                    modifier = Modifier.width(420.dp).fillMaxHeight() // Full Height
+                    modifier = Modifier
+                        .width(420.dp)
+                        .fillMaxHeight() // Full Height
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(vertical = dimens.screenPadding)
                             .padding(end = dimens.screenPadding)
-                            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(24.dp))
+                            .background(
+                                MaterialTheme.colorScheme.background,
+                                RoundedCornerShape(24.dp)
+                            )
                     ) {
                         if (selectedArticle == null) {
                             TabletTipsListPanel(
@@ -222,25 +275,32 @@ fun DashboardScreen(
                 }
             }
         } else {
-            // --- HP LAYOUT ---
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 20.dp)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                DashboardContent(
-                    navController = navController,
-                    viewModel = viewModel,
-                    authViewModel = authViewModel,
-                    stats = stats,
-                    currentPeriod = currentPeriod,
-                    currentCategory = currentCategory,
-                    currentUser = currentUser,
-                    personalizedTips = personalizedTips,
-                    isTipsLoading = isTipsLoading,
-                    onTipsClick = { navController.navigate(AppRoutes.TIPS_LIST) }
-                )
+            // --- HP LAYOUT (SCROLLABLE DENGAN SCAFFOLD) ---
+            Scaffold(
+                topBar = dashboardTopBar,
+                containerColor = Color.Transparent,
+                modifier = Modifier.fillMaxSize()
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues) // Penting: Menggeser konten ke bawah TopBar
+                        .padding(bottom = 20.dp)
+                        .verticalScroll(rememberScrollState())
+                ) {
+                    DashboardContent(
+                        navController = navController,
+                        viewModel = viewModel,
+                        authViewModel = authViewModel,
+                        stats = stats,
+                        currentPeriod = currentPeriod,
+                        currentCategory = currentCategory,
+                        currentUser = currentUser,
+                        personalizedTips = personalizedTips,
+                        isTipsLoading = isTipsLoading,
+                        onTipsClick = { navController.navigate(AppRoutes.TIPS_LIST) }
+                    )
+                }
             }
         }
     }
@@ -260,23 +320,24 @@ fun DashboardContent(
     onTipsClick: () -> Unit
 ) {
     val dimens = LocalAppDimens.current
-    val username = currentUser?.username ?: "Guest"
     val dailyGoal = currentUser?.dailyStepsGoal ?: 5000
-    val profilePath = currentUser?.profilePicturePath
 
-    // PERBAIKAN: Menambahkan extra padding horizontal (+5.dp) sesuai request
+    // Padding horizontal (tapi tanpa topBar padding logic di sini karena sudah di handle Scaffold)
     val horizontalPadding = dimens.screenPadding + 5.dp
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .padding(start = horizontalPadding, end = horizontalPadding, top = dimens.screenPadding, bottom = dimens.screenPadding)
+            .padding(
+                start = horizontalPadding,
+                end = horizontalPadding,
+                top = dimens.screenPadding,
+                bottom = dimens.screenPadding
+            )
     ) {
-        if (!dimens.isTablet) Spacer(modifier = Modifier.height(40.dp))
-
-        HeaderProfileSection(name = username, profilePath = profilePath)
-        Spacer(modifier = Modifier.height(dimens.paddingSmall))
+        // 💡 PERUBAHAN: HeaderProfileSection dihapus dari sini karena sudah pindah ke TopBar Scaffold
+        // 💡 PERUBAHAN: Spacer 40.dp dihapus karena Scaffold menangani status bar
 
         val currentSteps = (stats.totalDistance * 1300).toInt()
         DailyGoalCard(
@@ -290,7 +351,9 @@ fun DashboardContent(
 
         if (dimens.isTablet) {
             Row(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.fillMaxHeight().weight(1f)) {
+                Column(modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)) {
                     PeriodSelector(
                         selectedPeriod = currentPeriod,
                         onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) }
@@ -305,7 +368,9 @@ fun DashboardContent(
                     )
                 }
                 Spacer(modifier = Modifier.width(dimens.paddingMedium))
-                Column(modifier = Modifier.fillMaxHeight().weight(1f)) {
+                Column(modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)) {
                     CategoryFilterSelector(
                         selectedFilter = currentCategory,
                         onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) }
@@ -352,7 +417,7 @@ fun DashboardContent(
 }
 
 // =========================================================================
-// TABLET SIDE PANELS (MENGGUNAKAN UI DARI OnlineTipsScreen.kt)
+// TABLET SIDE PANELS
 // =========================================================================
 
 // UI List untuk Panel Tablet
@@ -596,7 +661,8 @@ fun HeaderProfileSection(name: String, profilePath: String?) {
             .fillMaxWidth()
             .padding(bottom = dimens.paddingMedium)
             .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Start
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)

@@ -145,15 +145,15 @@ fun EditProfileScreen(
                         modifier = Modifier.size(20.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
                     )
+
+                    Text(
+                        text = "Edit Profile",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4A6741)
+                    )
                 }
             }
-
-            Text(
-                text = "Edit Profile",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF4A6741)
-            )
 
             Spacer(modifier = Modifier.height(24.dp))
 

@@ -54,7 +54,9 @@ data class AppDimens(
 
     // Spacing
     val paddingSmall: Dp,
-    val paddingMedium: Dp
+    val paddingMedium: Dp,
+    val topPaddingScaffold: Dp,
+    val startScaffoldPadding: Dp
 )
 
 // Ukuran untuk HP (Compact - Portrait)
@@ -75,7 +77,9 @@ val CompactDimens = AppDimens(
     iconSizeMedium = 40.dp,
 
     paddingSmall = 8.dp,
-    paddingMedium = 16.dp
+    paddingMedium = 16.dp,
+    topPaddingScaffold = 60.dp,
+    startScaffoldPadding = 0.dp
 )
 
 // Ukuran untuk Tablet (Expanded - Landscape)
@@ -96,7 +100,10 @@ val TabletDimens = AppDimens(
     iconSizeMedium = 56.dp,
 
     paddingSmall = 12.dp,
-    paddingMedium = 24.dp
+    paddingMedium = 24.dp,
+    topPaddingScaffold = 60.dp,
+    startScaffoldPadding = 250.dp
+
 )
 
 // CompositionLocal agar bisa diakses di mana saja

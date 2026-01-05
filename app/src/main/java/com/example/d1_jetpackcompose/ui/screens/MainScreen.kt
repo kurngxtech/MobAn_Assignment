@@ -149,7 +149,7 @@ fun MainScreen() {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = if (showBottomBar) 110.dp else 0.dp)
+                        .padding(bottom = if (showBottomBar) 90.dp else 0.dp)
                 ) {
                     AppNavHost(
                         navController = navController,
