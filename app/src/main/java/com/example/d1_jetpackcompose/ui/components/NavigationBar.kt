@@ -102,6 +102,82 @@ fun BubbleNavigationBar(
     }
 }
 
+// ==========================================
+// 💡 NEW COMPONENT: TABLET FLOATING RAIL
+// ==========================================
+@Composable
+fun FloatingNavigationRail(
+    navController: NavController,
+    modifier: Modifier = Modifier
+) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // Container "Mengambang" di sisi kiri
+    Box(
+        modifier = modifier
+            .padding(start = 24.dp) // Jarak dari kiri layar
+            .width(80.dp)           // Lebar rail yang compact
+            .wrapContentHeight(),   // Tinggi menyesuaikan konten (3 item)
+        contentAlignment = Alignment.Center
+    ) {
+        Card(
+            shape = RoundedCornerShape(50.dp), // Bentuk Kapsul Vertikal
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 15.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight() // Penting agar tidak full screen
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(vertical = 30.dp, horizontal = 8.dp), // Padding dalam kapsul
+                verticalArrangement = Arrangement.spacedBy(30.dp), // Jarak antar item vertikal
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // ITEM: HOME
+                NavbarItem(
+                    iconRes = R.drawable.home_icon,
+                    label = "Home",
+                    isActive = currentRoute == AppRoutes.DASHBOARD
+                ) {
+                    navController.navigate(AppRoutes.DASHBOARD) {
+                        popUpTo(AppRoutes.DASHBOARD) { inclusive = false; saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+
+                // ITEM: ACTIVITY
+                NavbarItem(
+                    iconRes = R.drawable.activity_log_logo,
+                    label = "Activity",
+                    isActive = currentRoute == AppRoutes.ACTIVITY
+                ) {
+                    navController.navigate(AppRoutes.ACTIVITY) {
+                        popUpTo(AppRoutes.DASHBOARD) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+
+                // ITEM: PROFILE
+                NavbarItem(
+                    iconRes = R.drawable.profile_logo,
+                    label = "Profile",
+                    isActive = currentRoute == AppRoutes.PROFILE
+                ) {
+                    navController.navigate(AppRoutes.PROFILE) {
+                        popUpTo(AppRoutes.DASHBOARD) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun NavbarItem(
     iconRes: Int,

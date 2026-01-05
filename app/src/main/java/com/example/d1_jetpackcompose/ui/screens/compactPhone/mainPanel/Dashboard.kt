@@ -104,7 +104,6 @@ import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.TimePeriod
 import com.example.d1_jetpackcompose.ui.viewModel.TipsViewModel
 
-// --- COLORS & EXTENSIONS ---
 private val HistoryCardGray = Color(0xFFE8E8E8)
 
 fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
@@ -115,7 +114,6 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
     )
 }
 
-// Shadow untuk Card Dashboard
 fun Modifier.customDropShadow(
     color: Color = Color.Black.copy(alpha = 0.2f),
     borderRadius: Dp = 24.dp,
@@ -127,21 +125,11 @@ fun Modifier.customDropShadow(
         val frameworkPaint = paint.asFrameworkPaint()
         frameworkPaint.color = android.graphics.Color.TRANSPARENT
         frameworkPaint.style = android.graphics.Paint.Style.FILL
-        frameworkPaint.setShadowLayer(
-            blurRadius.toPx(),
-            0f,
-            offsetY.toPx(),
-            color.toArgb()
-        )
+        frameworkPaint.setShadowLayer(blurRadius.toPx(), 0f, offsetY.toPx(), color.toArgb())
         val outline = RoundedCornerShape(borderRadius).createOutline(size, layoutDirection, this)
         canvas.drawOutline(outline = outline, paint = paint)
     }
 }
-
-
-// =========================================================================
-// MAIN SCREEN CONTROLLER (Responsive Logic)
-// =========================================================================
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
@@ -151,11 +139,9 @@ fun DashboardScreen(
     authViewModel: AuthViewModel,
     tipViewModel: TipsViewModel
 ) {
-    // 1. Ambil Dimensi dari Theme (Otomatis HP/Tablet)
     val dimens = LocalAppDimens.current
     val isTablet = dimens.isTablet
 
-    // 2. State untuk Data
     LaunchedEffect(Unit) { tipViewModel.fetchTips() }
     val stats by viewModel.dashboardStats.collectAsState()
     val currentPeriod by viewModel.selectedPeriod.collectAsState()
@@ -165,36 +151,26 @@ fun DashboardScreen(
     val isTipsLoading by tipViewModel.isLoading.collectAsState()
     val pageScrollStateDashboard = rememberScrollState()
 
-
-    // 3. State untuk Tablet Split View
     var showSplitView by remember { mutableStateOf(false) }
-    // State untuk Panel Kanan (List atau Detail Artikel)
     var selectedArticle by remember { mutableStateOf<HealthTip?>(null) }
 
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         if (isTablet) {
-            // --- TABLET LAYOUT (SPLIT VIEW) ---
+            // --- TABLET LAYOUT ---
             Row(modifier = Modifier.fillMaxSize()) {
-
-                // PANEL KIRI (DASHBOARD UTAMA)
+                // PANEL KIRI
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .verticalScroll(pageScrollStateDashboard) // SCROLL GLOBAL AKTIF DI SINI
+                        .verticalScroll(pageScrollStateDashboard),
+                    contentAlignment = Alignment.TopCenter // Default TopCenter untuk scroll
                 ) {
                     val contentModifier = if (showSplitView) {
-                        Modifier
-                            .fillMaxSize()
-                            .padding(end = dimens.paddingMedium) // Jarak sedikit ke panel kanan
+                        Modifier.fillMaxSize().padding(end = dimens.paddingMedium)
                     } else {
-                        Modifier
-                            .fillMaxWidth(dimens.contentMaxWidthPercent) // 60%
-                            .align(Alignment.Center)
+                        // PERBAIKAN: Gunakan Center Alignment tegas
+                        Modifier.fillMaxWidth(dimens.contentMaxWidthPercent).align(Alignment.Center)
                     }
 
                     Box(modifier = contentModifier) {
@@ -208,43 +184,35 @@ fun DashboardScreen(
                             currentUser = currentUser,
                             personalizedTips = personalizedTips,
                             isTipsLoading = isTipsLoading,
-                            // Callback Navigasi Tablet: Buka Panel Kanan
                             onTipsClick = {
-                                showSplitView = true // Pastikan panel terbuka
-                                selectedArticle = null // Reset ke list rekomendasi
+                                showSplitView = true
+                                selectedArticle = null
                             }
                         )
                     }
                 }
 
-                // PANEL KANAN (SLIDING EXPLORATION PANEL)
+                // PANEL KANAN
                 AnimatedVisibility(
                     visible = showSplitView,
                     enter = slideInHorizontally { it } + fadeIn(),
                     exit = slideOutHorizontally { it } + fadeOut(),
-                    modifier = Modifier
-                        .width(420.dp) // Lebar Panel Kanan
-                        .fillMaxHeight()
+                    modifier = Modifier.width(420.dp).fillMaxHeight() // Full Height
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(vertical = dimens.screenPadding)
                             .padding(end = dimens.screenPadding)
-                            .background(
-                                MaterialTheme.colorScheme.background,
-                                RoundedCornerShape(24.dp)
-                            ) // Background panel
+                            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(24.dp))
                     ) {
                         if (selectedArticle == null) {
-                            // Tampilkan UI List (Mirip OnlineTipsListScreen)
                             TabletTipsListPanel(
                                 tips = personalizedTips,
                                 onClose = { showSplitView = false },
                                 onArticleClick = { tip -> selectedArticle = tip }
                             )
                         } else {
-                            // Tampilkan UI Detail (Mirip TipDetailScreen)
                             TabletTipDetailPanel(
                                 tip = selectedArticle!!,
                                 onBack = { selectedArticle = null }
@@ -254,12 +222,12 @@ fun DashboardScreen(
                 }
             }
         } else {
-            // --- HP LAYOUT (STANDARD) ---
+            // --- HP LAYOUT ---
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = 20.dp)
-                    .verticalScroll(rememberScrollState()) // Aktifkan scroll di sini
+                    .verticalScroll(rememberScrollState())
             ) {
                 DashboardContent(
                     navController = navController,
@@ -271,19 +239,12 @@ fun DashboardScreen(
                     currentUser = currentUser,
                     personalizedTips = personalizedTips,
                     isTipsLoading = isTipsLoading,
-                    // Callback Navigasi HP: Pindah Halaman ke OnlineTipsListScreen
-                    onTipsClick = {
-                        navController.navigate(AppRoutes.TIPS_LIST)
-                    }
+                    onTipsClick = { navController.navigate(AppRoutes.TIPS_LIST) }
                 )
             }
         }
     }
 }
-
-// =========================================================================
-// REUSABLE DASHBOARD CONTENT (Untuk HP & Tablet)
-// =========================================================================
 
 @Composable
 fun DashboardContent(
@@ -298,25 +259,25 @@ fun DashboardContent(
     isTipsLoading: Boolean,
     onTipsClick: () -> Unit
 ) {
-    val dimens = LocalAppDimens.current // Akses ukuran dinamis
+    val dimens = LocalAppDimens.current
     val username = currentUser?.username ?: "Guest"
     val dailyGoal = currentUser?.dailyStepsGoal ?: 5000
     val profilePath = currentUser?.profilePicturePath
+
+    // PERBAIKAN: Menambahkan extra padding horizontal (+5.dp) sesuai request
+    val horizontalPadding = dimens.screenPadding + 5.dp
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .padding(dimens.screenPadding) // Padding layar responsif
+            .padding(start = horizontalPadding, end = horizontalPadding, top = dimens.screenPadding, bottom = dimens.screenPadding)
     ) {
-        // Spacer Atas (Hanya di HP agar tidak tertutup Status Bar/Notch)
         if (!dimens.isTablet) Spacer(modifier = Modifier.height(40.dp))
 
-        // HEADER
         HeaderProfileSection(name = username, profilePath = profilePath)
         Spacer(modifier = Modifier.height(dimens.paddingSmall))
 
-        // DAILY GOAL CARD
         val currentSteps = (stats.totalDistance * 1300).toInt()
         DailyGoalCard(
             cardColor = MaterialTheme.colorScheme.onBackground,
@@ -329,20 +290,12 @@ fun DashboardContent(
 
         if (dimens.isTablet) {
             Row(modifier = Modifier.fillMaxWidth()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                ) {
-                    // PERIOD SELECTOR
+                Column(modifier = Modifier.fillMaxHeight().weight(1f)) {
                     PeriodSelector(
                         selectedPeriod = currentPeriod,
                         onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) }
                     )
-
                     Spacer(modifier = Modifier.height(dimens.paddingSmall))
-
-                    // SUMMARY GRID
                     DailySummaryGrid(
                         cardColor = MaterialTheme.colorScheme.onBackground,
                         distance = String.format("%.1f km", stats.totalDistance),
@@ -351,42 +304,24 @@ fun DashboardContent(
                         burned = "${stats.totalCaloriesBurned} kcal"
                     )
                 }
-
                 Spacer(modifier = Modifier.width(dimens.paddingMedium))
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(1f)
-                ) {
-                    // CATEGORY FILTER
+                Column(modifier = Modifier.fillMaxHeight().weight(1f)) {
                     CategoryFilterSelector(
                         selectedFilter = currentCategory,
                         onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) }
                     )
-
                     Spacer(modifier = Modifier.height(dimens.paddingSmall))
-
-                    // HISTORY SECTION
                     HistorySection(
                         navController = navController,
                         recentActivities = stats.recentActivities,
                         cardColor = MaterialTheme.colorScheme.onBackground
                     )
                 }
-
             }
         } else {
             Column(modifier = Modifier.fillMaxWidth()) {
-                // PERIOD SELECTOR
-                PeriodSelector(
-                    selectedPeriod = currentPeriod,
-                    onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) }
-                )
-
+                PeriodSelector(selectedPeriod = currentPeriod, onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) })
                 Spacer(modifier = Modifier.height(dimens.paddingSmall))
-
-                // SUMMARY GRID
                 DailySummaryGrid(
                     cardColor = MaterialTheme.colorScheme.onBackground,
                     distance = String.format("%.1f km", stats.totalDistance),
@@ -394,17 +329,9 @@ fun DashboardContent(
                     time = "${stats.totalDuration} min",
                     burned = "${stats.totalCaloriesBurned} kcal"
                 )
-
                 Spacer(modifier = Modifier.height(dimens.paddingMedium))
-
-                CategoryFilterSelector(
-                    selectedFilter = currentCategory,
-                    onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) }
-                )
-
+                CategoryFilterSelector(selectedFilter = currentCategory, onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) })
                 Spacer(modifier = Modifier.height(dimens.paddingSmall))
-
-                // HISTORY SECTION
                 HistorySection(
                     navController = navController,
                     recentActivities = stats.recentActivities,
@@ -414,7 +341,6 @@ fun DashboardContent(
         }
 
         Spacer(modifier = Modifier.height(dimens.paddingMedium))
-        // ONLINE TIPS CARD (Trigger Split View di Tablet / Navigasi di HP)
         OnlineTipsCard(
             underlineColor = MaterialTheme.colorScheme.primary,
             cardColor = MaterialTheme.colorScheme.onBackground,

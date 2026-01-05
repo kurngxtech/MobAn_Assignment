@@ -76,10 +76,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// --- THEME SETUP ---
 private val HistoryCardGray = Color(0xFFE8E8E8)
 
-// Extension No Ripple
 private fun Modifier.noRippleClickableActivity(onClick: () -> Unit): Modifier = composed {
     this.clickable(
         interactionSource = remember { MutableInteractionSource() },
@@ -88,7 +86,6 @@ private fun Modifier.noRippleClickableActivity(onClick: () -> Unit): Modifier = 
     )
 }
 
-// --- MODIFIER CUSTOM SHADOW ---
 fun Modifier.customDropShadowActivity(
     color: Color = Color.Black.copy(alpha = 0.2f),
     borderRadius: Dp = 24.dp,
@@ -100,42 +97,26 @@ fun Modifier.customDropShadowActivity(
         val frameworkPaint = paint.asFrameworkPaint()
         frameworkPaint.color = android.graphics.Color.TRANSPARENT
         frameworkPaint.style = android.graphics.Paint.Style.FILL
-        frameworkPaint.setShadowLayer(
-            blurRadius.toPx(),
-            0f,
-            offsetY.toPx(),
-            color.toArgb()
-        )
+        frameworkPaint.setShadowLayer(blurRadius.toPx(), 0f, offsetY.toPx(), color.toArgb())
         val outline = RoundedCornerShape(borderRadius).createOutline(size, layoutDirection, this)
         canvas.drawOutline(outline = outline, paint = paint)
     }
 }
 
-// Enum untuk Status Panel Tablet
 enum class ActivityPanelState { NONE, ADD_EXERCISE, ADD_FOOD, DETAIL }
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
-fun ActivityLogScreen(
-    navController: NavController,
-    viewModel: SharedViewModel
-) {
-    // 1. Deteksi Device
+fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) {
     val dimens = LocalAppDimens.current
     val isTablet = dimens.isTablet
 
-    // 2. State untuk Tablet Logic
     var panelState by remember { mutableStateOf(ActivityPanelState.NONE) }
     var selectedActivityId by remember { mutableStateOf<Int?>(null) }
     val showSplitView = panelState != ActivityPanelState.NONE
-
-    // State Scroll Global untuk masing-masing layout
     val pageScrollState = rememberScrollState()
-
-    // 3. INTERNAL NAVIGATION CONTROLLER (Untuk Panel Kanan)
     val sideNavController = rememberNavController()
 
-    // Logika Sinkronisasi State -> Navigasi
     LaunchedEffect(panelState) {
         if (panelState != ActivityPanelState.NONE) {
             val route = when (panelState) {
@@ -144,54 +125,32 @@ fun ActivityLogScreen(
                 ActivityPanelState.DETAIL -> "detail_log"
                 else -> null
             }
-            if (route != null) {
-                sideNavController.navigate(route) {
-                    popUpTo("blank") { inclusive = false }
-                    launchSingleTop = true
-                }
-            }
+            if (route != null) sideNavController.navigate(route) { popUpTo("blank") { inclusive = false }; launchSingleTop = true }
         }
     }
 
-    // Logika Mendeteksi "Back" (Dari Form -> Blank) -> Tutup Panel
     DisposableEffect(sideNavController) {
         val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
-            if (destination.route == "blank") {
-                panelState = ActivityPanelState.NONE
-            }
+            if (destination.route == "blank") panelState = ActivityPanelState.NONE
         }
         sideNavController.addOnDestinationChangedListener(listener)
         onDispose { sideNavController.removeOnDestinationChangedListener(listener) }
     }
 
-
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         if (isTablet) {
-            // ==========================================
-            // TABLET LAYOUT (SPLIT VIEW)
-            // ==========================================
             Row(modifier = Modifier.fillMaxSize()) {
-
-                // --- PANEL KIRI (LIST ACTIVITY) ---
-                // 💡 TASK: Vertical Scroll ditaruh di sini agar seluruh area kiri bisa di-scroll
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .verticalScroll(pageScrollState) // SCROLL GLOBAL AKTIF DI SINI
+                        .verticalScroll(pageScrollState)
                 ) {
                     val contentModifier = if (showSplitView) {
-                        Modifier
-                            .fillMaxSize()
-                            .padding(end = dimens.paddingMedium) // Beri jarak dengan panel kanan
+                        Modifier.fillMaxSize().padding(end = dimens.paddingMedium)
                     } else {
-                        Modifier
-                            .fillMaxWidth(dimens.contentMaxWidthPercent) // 60% Width
-                            .align(Alignment.Center)
+                        // PERBAIKAN: Center Alignment
+                        Modifier.fillMaxWidth(dimens.contentMaxWidthPercent).align(Alignment.Center)
                     }
 
                     Box(modifier = contentModifier) {
@@ -200,23 +159,17 @@ fun ActivityLogScreen(
                             navController = navController,
                             onAddExercise = { panelState = ActivityPanelState.ADD_EXERCISE },
                             onAddFood = { panelState = ActivityPanelState.ADD_FOOD },
-                            onDetailClick = { id ->
-                                selectedActivityId = id
-                                panelState = ActivityPanelState.DETAIL
-                            },
+                            onDetailClick = { id -> selectedActivityId = id; panelState = ActivityPanelState.DETAIL },
                             isTablet = true
                         )
                     }
                 }
 
-                // --- PANEL KANAN (SLIDING FORM/DETAIL) ---
                 AnimatedVisibility(
                     visible = showSplitView,
                     enter = slideInHorizontally { it } + fadeIn(),
                     exit = slideOutHorizontally { it } + fadeOut(),
-                    modifier = Modifier
-                        .width(450.dp)
-                        .fillMaxHeight()
+                    modifier = Modifier.width(450.dp).fillMaxHeight() // PERBAIKAN: Fill Max Height
                 ) {
                     Box(
                         modifier = Modifier
@@ -228,41 +181,19 @@ fun ActivityLogScreen(
                     ) {
                         NavHost(navController = sideNavController, startDestination = "blank") {
                             composable("blank") { Box(modifier = Modifier.fillMaxSize()) }
-                            composable("add_exercise") {
-                                AddExerciseScreen(
-                                    navController = sideNavController,
-                                    viewModel = viewModel
-                                )
-                            }
-                            composable("add_food") {
-                                AddFoodScreen(
-                                    navController = sideNavController,
-                                    viewModel = viewModel
-                                )
-                            }
-                            composable("detail_log") {
-                                if (selectedActivityId != null) {
-                                    DetailLogScreen(
-                                        navController = sideNavController,
-                                        activityId = selectedActivityId!!,
-                                        viewModel = viewModel
-                                    )
-                                }
-                            }
+                            composable("add_exercise") { AddExerciseScreen(navController = sideNavController, viewModel = viewModel) }
+                            composable("add_food") { AddFoodScreen(navController = sideNavController, viewModel = viewModel) }
+                            composable("detail_log") { if (selectedActivityId != null) DetailLogScreen(navController = sideNavController, activityId = selectedActivityId!!, viewModel = viewModel) }
                         }
                     }
                 }
             }
         } else {
-            // ==========================================
-            // MOBILE LAYOUT (STANDARD)
-            // ==========================================
-            // 💡 TASK: Vertical Scroll ditaruh di container utama
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(bottom = 20.dp)
-                    .verticalScroll(pageScrollState) // SCROLL GLOBAL AKTIF DI SINI
+                    .verticalScroll(pageScrollState)
             ) {
                 ActivityLogContent(
                     viewModel = viewModel,
@@ -277,9 +208,6 @@ fun ActivityLogScreen(
     }
 }
 
-// =========================================================================
-// REUSABLE CONTENT
-// =========================================================================
 @Composable
 fun ActivityLogContent(
     viewModel: SharedViewModel,
@@ -293,20 +221,19 @@ fun ActivityLogContent(
     val currentPeriod by viewModel.selectedPeriod.collectAsState()
     val dimens = LocalAppDimens.current
 
-    // 💡 TASK: Column ini tidak lagi memiliki .verticalScroll(), hanya layouting
+    // PERBAIKAN: Menambahkan horizontal padding + 5.dp
+    val paddingHorizontal = if (isTablet) dimens.screenPadding + 5.dp else 20.dp
+    val paddingVertical = if (isTablet) dimens.screenPadding else 0.dp
+
     Column(
         modifier = Modifier
-            .fillMaxWidth() // Gunakan fillMaxWidth agar aman di dalam scrollable parent
-            .padding(if (isTablet) dimens.screenPadding else 20.dp),
+            .fillMaxWidth()
+            .padding(start = paddingHorizontal, end = paddingHorizontal, top = paddingVertical, bottom = paddingVertical),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (!isTablet) Spacer(modifier = Modifier.height(60.dp))
 
-        // --- HEADER ---
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "Your Activities",
                 style = MaterialTheme.typography.headlineLarge,
@@ -325,40 +252,14 @@ fun ActivityLogContent(
 
         Spacer(modifier = Modifier.size(24.dp))
 
-        // --- TOP CARDS ---
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            val cardModifier = if (isTablet) {
-                Modifier
-                    .weight(1f)
-                    .height(170.dp) // Fixed Height Tablet
-            } else {
-                Modifier
-                    .weight(1f)
-                    .aspectRatio(1f) // Square Mobile
-            }
-
-            TopActionCard(
-                title = "Add Exercise",
-                subtitle = "Running or Walking",
-                modifier = cardModifier,
-                iconRes = R.drawable.walk_icon,
-                onClick = onAddExercise
-            )
-            TopActionCard(
-                title = "Add Food",
-                subtitle = "Input meals and calories",
-                modifier = cardModifier,
-                iconRes = R.drawable.add_food_icon,
-                onClick = onAddFood
-            )
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            val cardModifier = if (isTablet) Modifier.weight(1f).height(170.dp) else Modifier.weight(1f).aspectRatio(1f)
+            TopActionCard(title = "Add Exercise", subtitle = "Running or Walking", modifier = cardModifier, iconRes = R.drawable.walk_icon, onClick = onAddExercise)
+            TopActionCard(title = "Add Food", subtitle = "Input meals and calories", modifier = cardModifier, iconRes = R.drawable.add_food_icon, onClick = onAddFood)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SECTION TITLE ---
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = "History Activities",
@@ -368,87 +269,44 @@ fun ActivityLogContent(
                 fontSize = if (isTablet) dimens.textSizeTitle else 20.sp,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
-            PeriodSelector(
-                selectedPeriod = currentPeriod,
-                onSelect = { viewModel.setTimePeriod(it) }
-            )
+            PeriodSelector(selectedPeriod = currentPeriod, onSelect = { viewModel.setTimePeriod(it) })
         }
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // --- HISTORY LIST CARD ---
         Card(
             shape = RoundedCornerShape(32.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier
-                .fillMaxWidth()
-                // Logika Tinggi (Tablet vs HP)
-                .then(
-                    if (isTablet) {
-                        Modifier.wrapContentHeight()
-                    } else {
-                        Modifier.height(450.dp) // Sedikit dipertinggi agar lebih lega
-                    }
-                )
+            modifier = Modifier.fillMaxWidth().then(if (isTablet) Modifier.wrapContentHeight() else Modifier.height(450.dp))
         ) {
-            // Container Utama di dalam Card Putih
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    // PERBAIKAN: Berikan padding rata di semua sisi (atas, bawah, kiri, kanan)
-                    // Ini memberikan "margin" agar shadow item tidak terpotong sisi card putih
-                    .padding(24.dp)
-            ) {
-                // Logika Scroll Internal (Hanya HP)
+            Column(modifier = Modifier.fillMaxWidth().padding(24.dp)) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .animateContentSize()
-                        .then(
-                            if (!isTablet) {
-                                Modifier.verticalScroll(rememberScrollState())
-                            } else {
-                                Modifier
-                            }
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(16.dp) // Jarak antar item lebih renggang
+                        .then(if (!isTablet) Modifier.verticalScroll(rememberScrollState()) else Modifier),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     if (activityList.isEmpty()) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
+                            modifier = Modifier.fillMaxWidth().height(200.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text(
-                                "No activities found\n Add any activities you want.",
-                                color = Color.Gray,
-                                textAlign = TextAlign.Center
-                            )
+                            Text("No activities found\n Add any activities you want.", color = Color.Gray, textAlign = TextAlign.Center)
                         }
                     } else {
                         activityList.forEach { activity ->
                             val dateString = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault()).format(Date(activity.timestamp))
                             val typeLabel = if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
                             val icon = if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
-
-                            // Item History
                             HistoryItem(
                                 title = activity.title,
                                 subtitle = "$dateString | ${activity.calories} cal $typeLabel",
                                 iconRes = icon,
-                                modifier = Modifier
-                                    // Pastikan modifier item mengisi ruang yang disediakan padding
-                                    .fillMaxWidth()
-                                    .noRippleClickableActivity {
-                                        onDetailClick(activity.id)
-                                    }
+                                modifier = Modifier.fillMaxWidth().noRippleClickableActivity { onDetailClick(activity.id) }
                             )
                         }
-
-                        // Tambahan Spacer di paling bawah list agar item terakhir shadow-nya tidak kepotong bawah
                         Spacer(modifier = Modifier.height(10.dp))
                     }
                 }

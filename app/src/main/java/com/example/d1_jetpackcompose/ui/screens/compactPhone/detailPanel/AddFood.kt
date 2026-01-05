@@ -174,7 +174,7 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
             }
         }
 
-        Spacer(modifier = Modifier.height(if (isTablet) 12.dp else 20.dp))
+        Spacer(modifier = Modifier.height(if (isTablet) 20.dp else 20.dp))
 
         // --- BOTTOM BUTTON ---
         Button(
