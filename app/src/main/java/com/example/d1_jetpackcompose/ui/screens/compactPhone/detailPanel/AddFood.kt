@@ -65,7 +65,8 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
                     Text(
                         "Add Food",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -93,7 +94,7 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
                     }
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp)
-                    .padding(top = topPadding),
+                    .padding(paddingValues),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
@@ -103,7 +104,7 @@ fun AddFoodScreen(navController: NavController, viewModel: SharedViewModel) {
                 // --- MAIN FORM CARD ---
                 Card(
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(

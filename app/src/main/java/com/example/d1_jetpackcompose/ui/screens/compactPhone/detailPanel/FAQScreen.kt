@@ -146,7 +146,7 @@ fun FaqItemCard(item: FaqItemData) {
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             // Sesuai request: Warna Abu-abu = onSurfaceVariant
-            containerColor = MaterialTheme.colorScheme.onSurfaceVariant
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         modifier = Modifier
             .fillMaxWidth()

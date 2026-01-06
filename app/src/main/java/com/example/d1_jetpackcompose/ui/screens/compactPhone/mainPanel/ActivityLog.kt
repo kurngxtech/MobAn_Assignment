@@ -1,6 +1,5 @@
 package com.example.d1_jetpackcompose.ui.screens.compactPhone.mainPanel
 
-import android.R.attr.bottom
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
@@ -77,7 +76,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private val HistoryCardGray = Color(0xFFE8E8E8)
+private val HistoryCardGray = Color(0xFFECECEC)
 
 private fun Modifier.noRippleClickableActivity(onClick: () -> Unit): Modifier = composed {
     this.clickable(
@@ -143,31 +142,66 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
         onDispose { sideNavController.removeOnDestinationChangedListener(listener) }
     }
 
+    // --- TOP BAR COMPOSABLE ---
     val activityLogTopBar: @Composable () -> Unit = {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = dimens.topPaddingScaffold) // Padding atas agar tidak terlalu mepet status bar (atau inset)
-                .padding(horizontal = horizontalPadding) // Padding horizontal agar sejajar dengan konten bawah
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+        // Container Top Bar dengan Padding yang konsisten
+        if (isTablet) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = dimens.topPaddingScaffold) // Jarak dari atas layar
+                    .padding(horizontal = horizontalPadding - 20.dp) // Sejajar dengan konten (+5dp logic)
             ) {
-                Text(
-                    text = "Your Activities",
-                    style = MaterialTheme.typography.headlineLarge,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = if (isTablet) dimens.textSizeHeadline else 32.sp,
-                )
-                Text(
-                    text = "You can choose either edit or add new activity",
-                    color = Color.Gray,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = if (isTablet) dimens.textSizeBody else 15.sp,
-                    textAlign = TextAlign.Center,
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = dimens.paddingMedium),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Your Activities",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (isTablet) dimens.textSizeHeadline else 32.sp,
+                    )
+                    Text(
+                        text = "You can choose either edit or add new activity",
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = if (isTablet) dimens.textSizeBody else 15.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = dimens.topPaddingScaffold) // Jarak dari atas layar
+                    .padding(horizontal = horizontalPadding) // Sejajar dengan konten (+5dp logic)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = dimens.paddingMedium),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Your Activities",
+                        style = MaterialTheme.typography.headlineLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (isTablet) dimens.textSizeHeadline else 32.sp,
+                    )
+                    Text(
+                        text = "You can choose either edit or add new activity",
+                        color = Color.Gray,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = if (isTablet) dimens.textSizeBody else 15.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                }
             }
         }
     }
@@ -178,54 +212,56 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
             .background(MaterialTheme.colorScheme.background)
     ) {
         if (isTablet) {
+            // --- TABLET LAYOUT (SPLIT VIEW) ---
             Row(modifier = Modifier.fillMaxSize()) {
+                // PANEL KIRI (Main Content dengan Scaffold)
                 Scaffold(
                     topBar = activityLogTopBar,
                     containerColor = Color.Transparent,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                ) {  paddingValues ->
-
-                }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .verticalScroll(pageScrollState)
-                ) {
-                    val contentModifier = if (showSplitView) {
-                        Modifier
+                ) { paddingValues ->
+                    Box(
+                        modifier = Modifier
                             .fillMaxSize()
-                            .padding(end = dimens.paddingMedium)
-                    } else {
-                        // PERBAIKAN: Center Alignment
-                        Modifier
-                            .fillMaxWidth(dimens.contentMaxWidthPercent)
-                            .align(Alignment.Center)
-                    }
+                            .padding(paddingValues) // Konten mulai setelah TopBar
+                            .verticalScroll(pageScrollState),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        val contentModifier = if (showSplitView) {
+                            Modifier
+                                .fillMaxSize()
+                                .padding(end = dimens.paddingMedium)
+                        } else {
+                            Modifier
+                                .fillMaxWidth(dimens.contentMaxWidthPercent)
+                                .align(Alignment.Center)
+                        }
 
-                    Box(modifier = contentModifier) {
-                        ActivityLogContent(
-                            viewModel = viewModel,
-                            navController = navController,
-                            onAddExercise = { panelState = ActivityPanelState.ADD_EXERCISE },
-                            onAddFood = { panelState = ActivityPanelState.ADD_FOOD },
-                            onDetailClick = { id ->
-                                selectedActivityId = id; panelState = ActivityPanelState.DETAIL
-                            },
-                            isTablet = true
-                        )
+                        Box(modifier = contentModifier) {
+                            ActivityLogContent(
+                                viewModel = viewModel,
+                                navController = navController,
+                                onAddExercise = { panelState = ActivityPanelState.ADD_EXERCISE },
+                                onAddFood = { panelState = ActivityPanelState.ADD_FOOD },
+                                onDetailClick = { id ->
+                                    selectedActivityId = id; panelState = ActivityPanelState.DETAIL
+                                },
+                                isTablet = true
+                            )
+                        }
                     }
                 }
 
+                // PANEL KANAN (Side Panel)
                 AnimatedVisibility(
                     visible = showSplitView,
                     enter = slideInHorizontally { it } + fadeIn(),
                     exit = slideOutHorizontally { it } + fadeOut(),
                     modifier = Modifier
                         .width(450.dp)
-                        .fillMaxHeight() // PERBAIKAN: Fill Max Height
+                        .fillMaxHeight()
                 ) {
                     Box(
                         modifier = Modifier
@@ -261,20 +297,28 @@ fun ActivityLogScreen(navController: NavController, viewModel: SharedViewModel) 
                 }
             }
         } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(bottom = 20.dp)
-                    .verticalScroll(pageScrollState)
-            ) {
-                ActivityLogContent(
-                    viewModel = viewModel,
-                    navController = navController,
-                    onAddExercise = { navController.navigate(AppRoutes.EXERCISE) },
-                    onAddFood = { navController.navigate(AppRoutes.FOOD) },
-                    onDetailClick = { id -> navController.navigate("detail_log/$id") },
-                    isTablet = false
-                )
+            // --- MOBILE LAYOUT (FULL SCREEN SCAFFOLD) ---
+            Scaffold(
+                topBar = activityLogTopBar,
+                containerColor = Color.Transparent,
+                modifier = Modifier.fillMaxSize()
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues) // Geser konten ke bawah TopBar
+                        .padding(bottom = 20.dp)
+                        .verticalScroll(pageScrollState)
+                ) {
+                    ActivityLogContent(
+                        viewModel = viewModel,
+                        navController = navController,
+                        onAddExercise = { navController.navigate(AppRoutes.EXERCISE) },
+                        onAddFood = { navController.navigate(AppRoutes.FOOD) },
+                        onDetailClick = { id -> navController.navigate("detail_log/$id") },
+                        isTablet = false
+                    )
+                }
             }
         }
     }
@@ -293,9 +337,9 @@ fun ActivityLogContent(
     val currentPeriod by viewModel.selectedPeriod.collectAsState()
     val dimens = LocalAppDimens.current
 
-    // PERBAIKAN: Menambahkan horizontal padding + 5.dp
     val paddingHorizontal = if (isTablet) dimens.screenPadding + 5.dp else 20.dp
-    val paddingVertical = if (isTablet) dimens.screenPadding else 0.dp
+    // Padding vertical dikurangi sedikit karena sudah ada padding dari TopBar Scaffold
+    val paddingVertical = if (isTablet) dimens.screenPadding else 24.dp
 
     Column(
         modifier = Modifier
@@ -308,7 +352,7 @@ fun ActivityLogContent(
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (!isTablet) Spacer(modifier = Modifier.height(60.dp))
+        // 💡 HAPUS Spacer manual & Teks Header karena sudah dipindah ke TopBar Scaffold
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -317,9 +361,9 @@ fun ActivityLogContent(
             val cardModifier =
                 if (isTablet) Modifier
                     .weight(1f)
-                    .height(170.dp) else Modifier
+                    .height(200.dp) else Modifier
                     .weight(1f)
-                    .aspectRatio(1f)
+                    .aspectRatio(1f) // Mobile tetap aspect ratio 1:1
             TopActionCard(
                 title = "Add Exercise",
                 subtitle = "Running or Walking",
@@ -356,14 +400,16 @@ fun ActivityLogContent(
 
         Card(
             shape = RoundedCornerShape(32.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier
                 .fillMaxWidth()
-                .then(if (isTablet) Modifier.wrapContentHeight() else Modifier.height(450.dp))
+                .then(if (isTablet) Modifier.height(450.dp) else Modifier.height(450.dp))
         ) {
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp)
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -429,7 +475,7 @@ fun TopActionCard(
                 blurRadius = 5.dp,
                 offsetY = 6.dp
             )
-            .background(Color.White, RoundedCornerShape(32.dp))
+            .background(MaterialTheme.colorScheme.onBackground, RoundedCornerShape(32.dp))
     ) {
         Column(
             modifier = Modifier
@@ -489,7 +535,7 @@ fun HistoryItem(
                 blurRadius = 5.dp,
                 offsetY = 6.dp
             )
-            .background(HistoryCardGray, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
     ) {
         Row(
             modifier = Modifier

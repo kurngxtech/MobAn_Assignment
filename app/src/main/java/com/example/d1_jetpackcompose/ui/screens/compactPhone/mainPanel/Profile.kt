@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -46,6 +47,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -90,6 +92,7 @@ import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.ThemeViewModel
 
 // ... (Enum & Helper Extensions sama) ...
 enum class AppThemeMode { LIGHT, DARK, SYSTEM }
@@ -103,12 +106,17 @@ private fun Modifier.noRippleClickableProfile(onClick: () -> Unit): Modifier = c
     )
 }
 
-@SuppressLint("DefaultLocale", "UnusedBoxWithConstraintsScope")
+@SuppressLint(
+    "DefaultLocale",
+    "UnusedBoxWithConstraintsScope",
+    "UnusedMaterial3ScaffoldPaddingParameter"
+)
 @Composable
 fun ProfileScreen(
     navController: NavController,
     viewModel: SharedViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    themeViewModel: ThemeViewModel
 ) {
     val dimens = LocalAppDimens.current
     val isTablet = dimens.isTablet
@@ -117,6 +125,7 @@ fun ProfileScreen(
     val showSplitView = panelState != ProfilePanelState.NONE
     val pageScrollState = rememberScrollState()
     val sideNavController = rememberNavController()
+    val horizontalPadding = dimens.screenPadding + 5.dp
 
     LaunchedEffect(panelState) {
         if (panelState != ProfilePanelState.NONE) {
@@ -127,7 +136,11 @@ fun ProfileScreen(
                 ProfilePanelState.FAQ -> AppRoutes.FAQ
                 else -> null
             }
-            if (route != null) sideNavController.navigate(route) { popUpTo("blank") { inclusive = false }; launchSingleTop = true }
+            if (route != null) sideNavController.navigate(route) {
+                popUpTo("blank") {
+                    inclusive = false
+                }; launchSingleTop = true
+            }
         }
     }
 
@@ -139,37 +152,85 @@ fun ProfileScreen(
         onDispose { sideNavController.removeOnDestinationChangedListener(listener) }
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    val profileTopBar: @Composable () -> Unit = {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = dimens.topPaddingScaffold) // Jarak dari atas layar
+                .padding(horizontal = horizontalPadding) // Sejajar dengan konten (+5dp logic)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = dimens.paddingMedium),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "My Profile",
+                    fontSize = if (isTablet) dimens.textSizeHeadline else 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         if (isTablet) {
             Row(modifier = Modifier.fillMaxSize()) {
-                Box(
+                Scaffold(
+                    topBar = profileTopBar,
+                    containerColor = Color.Transparent,
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .verticalScroll(pageScrollState)
-                ) {
-                    val contentModifier = if (showSplitView) {
-                        Modifier.fillMaxSize().padding(end = dimens.paddingMedium)
-                    } else {
-                        // PERBAIKAN: Center Alignment
-                        Modifier.fillMaxWidth(dimens.contentMaxWidthPercent).align(Alignment.Center)
-                    }
+                ) { paddingValues ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues) // Konten mulai setelah TopBar
+                            .verticalScroll(pageScrollState),
+                        contentAlignment = Alignment.TopCenter
+                    ) {
+                        val contentModifier = if (showSplitView) {
+                            Modifier
+                                .fillMaxSize()
+                                .padding(end = dimens.paddingMedium)
+                        } else {
+                            // PERBAIKAN: Center Alignment
+                            Modifier
+                                .fillMaxWidth(dimens.contentMaxWidthPercent)
+                                .align(Alignment.Center)
+                        }
 
-                    Box(modifier = contentModifier) {
-                        ProfilePageContent(
-                            navController = navController,
-                            viewModel = viewModel,
-                            authViewModel = authViewModel,
-                            isTablet = true,
-                            onNavigateRequest = { route ->
-                                when (route) {
-                                    AppRoutes.EDIT_PROFILE -> panelState = ProfilePanelState.EDIT_PROFILE
-                                    AppRoutes.PERSONAL_INFO -> panelState = ProfilePanelState.PERSONAL_INFO
-                                    AppRoutes.CHANGE_PASSWORD -> panelState = ProfilePanelState.CHANGE_PASSWORD
-                                    AppRoutes.FAQ -> panelState = ProfilePanelState.FAQ
+                        Box(modifier = contentModifier) {
+                            ProfilePageContent(
+                                navController = navController,
+                                themeViewModel = themeViewModel,
+                                viewModel = viewModel,
+                                authViewModel = authViewModel,
+                                isTablet = true,
+                                onNavigateRequest = { route ->
+                                    when (route) {
+                                        AppRoutes.EDIT_PROFILE -> panelState =
+                                            ProfilePanelState.EDIT_PROFILE
+
+                                        AppRoutes.PERSONAL_INFO -> panelState =
+                                            ProfilePanelState.PERSONAL_INFO
+
+                                        AppRoutes.CHANGE_PASSWORD -> panelState =
+                                            ProfilePanelState.CHANGE_PASSWORD
+
+                                        AppRoutes.FAQ -> panelState = ProfilePanelState.FAQ
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
 
@@ -177,7 +238,9 @@ fun ProfileScreen(
                     visible = showSplitView,
                     enter = slideInHorizontally { it } + fadeIn(),
                     exit = slideOutHorizontally { it } + fadeOut(),
-                    modifier = Modifier.width(450.dp).fillMaxHeight() // PERBAIKAN: Fill Max Height
+                    modifier = Modifier
+                        .width(450.dp)
+                        .fillMaxHeight() // PERBAIKAN: Fill Max Height
                 ) {
                     Box(
                         modifier = Modifier
@@ -189,9 +252,24 @@ fun ProfileScreen(
                     ) {
                         NavHost(navController = sideNavController, startDestination = "blank") {
                             composable("blank") { Box(modifier = Modifier.fillMaxSize()) }
-                            composable(AppRoutes.EDIT_PROFILE) { EditProfileScreen(navController = sideNavController, authViewModel = authViewModel) }
-                            composable(AppRoutes.PERSONAL_INFO) { PersonalInfoScreen(navController = sideNavController, authViewModel = authViewModel) }
-                            composable(AppRoutes.CHANGE_PASSWORD) { ChangePasswordScreen(navController = sideNavController, authViewModel = authViewModel) }
+                            composable(AppRoutes.EDIT_PROFILE) {
+                                EditProfileScreen(
+                                    navController = sideNavController,
+                                    authViewModel = authViewModel
+                                )
+                            }
+                            composable(AppRoutes.PERSONAL_INFO) {
+                                PersonalInfoScreen(
+                                    navController = sideNavController,
+                                    authViewModel = authViewModel
+                                )
+                            }
+                            composable(AppRoutes.CHANGE_PASSWORD) {
+                                ChangePasswordScreen(
+                                    navController = sideNavController,
+                                    authViewModel = authViewModel
+                                )
+                            }
                             composable(AppRoutes.FAQ) { FAQScreen(navController = sideNavController) }
                         }
                     }
@@ -199,18 +277,27 @@ fun ProfileScreen(
             }
         } else {
             // HP Layout: Remove padding 20.dp here because it's now inside ProfilePageContent
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .verticalScroll(pageScrollState)
-            ) {
-                ProfilePageContent(
-                    navController = navController,
-                    viewModel = viewModel,
-                    authViewModel = authViewModel,
-                    isTablet = false,
-                    onNavigateRequest = { route -> navController.navigate(route) }
-                )
+            Scaffold(
+                topBar = profileTopBar,
+                containerColor = Color.Transparent,
+                modifier = Modifier.fillMaxSize()
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(bottom = 20.dp)
+                        .verticalScroll(pageScrollState)
+                ) {
+                    ProfilePageContent(
+                        navController = navController,
+                        viewModel = viewModel,
+                        authViewModel = authViewModel,
+                        themeViewModel = themeViewModel,
+                        isTablet = false,
+                        onNavigateRequest = { route -> navController.navigate(route) }
+                    )
+                }
             }
         }
     }
@@ -222,40 +309,41 @@ private fun ProfilePageContent(
     navController: NavController,
     viewModel: SharedViewModel,
     authViewModel: AuthViewModel,
+    themeViewModel: ThemeViewModel,
     isTablet: Boolean,
     onNavigateRequest: (String) -> Unit
 ) {
     val user by authViewModel.currentUser.collectAsState()
     val dimens = LocalAppDimens.current
+    val selectedTheme by themeViewModel.themeMode.collectAsState()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
-    var selectedTheme by remember { mutableStateOf(AppThemeMode.LIGHT) }
 
     // PERBAIKAN: Menambahkan Konsistensi Padding
-    val padding = if (isTablet) dimens.screenPadding else 20.dp
+    val horizontalPadding = dimens.screenPadding + 5.dp
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(padding), // Apply Padding here
+            .wrapContentHeight()
+            .padding(
+                start = horizontalPadding,
+                end = horizontalPadding,
+                top = dimens.screenPadding,
+                bottom = dimens.screenPadding
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (!isTablet) Spacer(modifier = Modifier.height(40.dp))
-
-        Text(
-            text = "My Profile",
-            fontSize = if (isTablet) dimens.textSizeHeadline else 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Box(modifier = Modifier.size(if (isTablet) 140.dp else 120.dp).clip(CircleShape)) {
+        Box(
+            modifier = Modifier
+                .size(if (isTablet) 140.dp else 120.dp)
+                .clip(CircleShape)
+        ) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(user?.profilePicturePath ?: R.drawable.profile_picture).crossfade(true).build(),
+                    .data(user?.profilePicturePath ?: R.drawable.profile_picture).crossfade(true)
+                    .build(),
                 placeholder = painterResource(id = R.drawable.profile_picture),
                 error = painterResource(id = R.drawable.profile_picture),
                 contentDescription = "Profile Picture",
@@ -283,31 +371,88 @@ private fun ProfilePageContent(
         }
         Spacer(modifier = Modifier.height(25.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProfileStatCard(label = "Height", value = "${user?.height?.toInt() ?: 0} cm", modifier = Modifier.weight(1f))
-            ProfileStatCard(label = "Weight", value = "${user?.weight?.toInt() ?: 0} kg", modifier = Modifier.weight(1f))
-            ProfileStatCard(label = "Age", value = "${user?.age ?: 0} y", modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ProfileStatCard(
+                label = "Height",
+                value = "${user?.height?.toInt() ?: 0} cm",
+                modifier = Modifier.weight(1f)
+            )
+            ProfileStatCard(
+                label = "Weight",
+                value = "${user?.weight?.toInt() ?: 0} kg",
+                modifier = Modifier.weight(1f)
+            )
+            ProfileStatCard(
+                label = "Age",
+                value = "${user?.age ?: 0} y",
+                modifier = Modifier.weight(1f)
+            )
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            ProfileStatCard(label = "Gender", value = user?.gender ?: "-", modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ProfileStatCard(
+                label = "Gender",
+                value = user?.gender ?: "-",
+                modifier = Modifier.weight(1f)
+            )
             Card(
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
                 elevation = CardDefaults.cardElevation(defaultElevation = 5.dp),
-                modifier = Modifier.weight(1f).height(110.dp)
+                modifier = Modifier
+                    .weight(1f)
+                    .height(110.dp)
             ) {
-                Column(modifier = Modifier.fillMaxSize().padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     val bmi = user?.bmi ?: 0f
-                    val bmiLabel = when { bmi < 18.5 -> "Underweight"; bmi < 25.0 -> "Normal"; bmi < 30.0 -> "Overweight"; else -> "Obese" }
-                    val bmiColor = when { bmi < 18.5 -> Color(0xFF1A237E); bmi < 25.0 -> MaterialTheme.colorScheme.primary; else -> Color(0xFFE53935) }
-                    Text(text = "BMI $bmiLabel", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    val bmiLabel = when {
+                        bmi < 18.5 -> "Underweight"; bmi < 25.0 -> "Normal"; bmi < 30.0 -> "Overweight"; else -> "Obese"
+                    }
+                    val bmiColor = when {
+                        bmi < 18.5 -> Color(0xFF1A237E); bmi < 25.0 -> MaterialTheme.colorScheme.primary; else -> Color(
+                            0xFFE53935
+                        )
+                    }
+                    Text(
+                        text = "BMI $bmiLabel",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Box(contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(progress = { (bmi / 40f).coerceIn(0f, 1f) }, modifier = Modifier.size(60.dp), color = bmiColor, strokeWidth = 6.dp, trackColor = Color(0xFFE0E0E0), strokeCap = StrokeCap.Round)
+                        CircularProgressIndicator(
+                            progress = { (bmi / 40f).coerceIn(0f, 1f) },
+                            modifier = Modifier.size(60.dp),
+                            color = bmiColor,
+                            strokeWidth = 6.dp,
+                            trackColor = MaterialTheme.colorScheme.background,
+                            strokeCap = StrokeCap.Round
+                        )
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("18,5 - 24,9", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurface)
-                            Text(text = String.format("%.1f", bmi), fontSize = 8.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                            Text(
+                                "18,5 - 24,9",
+                                fontSize = 8.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = String.format("%.1f", bmi),
+                                fontSize = 8.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
                         }
                     }
                 }
@@ -318,15 +463,26 @@ private fun ProfilePageContent(
         Text("Account", Modifier.fillMaxWidth(), color = Color.Gray, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(8.dp))
         MenuContainer {
-            MenuItem(R.drawable.user_logo, "Personal Info") { onNavigateRequest(AppRoutes.PERSONAL_INFO) }
+            MenuItem(
+                R.drawable.user_logo,
+                "Personal Info"
+            ) { onNavigateRequest(AppRoutes.PERSONAL_INFO) }
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.1f), thickness = 1.dp)
-            MenuItem(R.drawable.password_logo, "Change Password") { onNavigateRequest(AppRoutes.CHANGE_PASSWORD) }
+            MenuItem(
+                R.drawable.password_logo,
+                "Change Password"
+            ) { onNavigateRequest(AppRoutes.CHANGE_PASSWORD) }
         }
         Spacer(modifier = Modifier.height(24.dp))
 
         Text("Theme", Modifier.fillMaxWidth(), color = Color.Gray, fontSize = 14.sp)
         Spacer(modifier = Modifier.height(8.dp))
-        SlidingThemeSelector(selectedTheme = selectedTheme, onThemeSelected = { selectedTheme = it })
+        SlidingThemeSelector(
+            selectedTheme = selectedTheme, // 💡 Use observed state
+            onThemeSelected = { newMode ->
+                themeViewModel.setThemeMode(newMode) // 💡 Trigger change
+            },
+        )
         Spacer(modifier = Modifier.height(24.dp))
 
         Text("Help", Modifier.fillMaxWidth(), color = Color.Gray, fontSize = 14.sp)
@@ -334,9 +490,18 @@ private fun ProfilePageContent(
         MenuContainer {
             MenuItem(R.drawable.faq_logo, "FAQ") { onNavigateRequest(AppRoutes.FAQ) }
             HorizontalDivider(color = Color.Gray.copy(alpha = 0.1f), thickness = 1.dp)
-            MenuItem(iconId = 0, text = "Delete Account", isDestructive = true, useCustomImage = true, onClick = { showDeleteDialog = true })
+            MenuItem(
+                iconId = 0,
+                text = "Delete Account",
+                isDestructive = true,
+                useCustomImage = true,
+                onClick = { showDeleteDialog = true })
             HorizontalDivider(thickness = 1.dp, color = Color.Gray.copy(alpha = 0.1f))
-            MenuItem(iconId = R.drawable.logout_logo, text = "Sign Out", isDestructive = true, onClick = { showLogoutDialog = true })
+            MenuItem(
+                iconId = R.drawable.logout_logo,
+                text = "Sign Out",
+                isDestructive = true,
+                onClick = { showLogoutDialog = true })
         }
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -344,9 +509,26 @@ private fun ProfilePageContent(
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
                 title = { Text("Delete Account?") },
-                text = { Text("This action is permanent. All your data will be lost.", color = Color.Black) },
-                confirmButton = { TextButton(onClick = { authViewModel.deleteAccount { navController.navigate(AppRoutes.WELCOME) { popUpTo(0) { inclusive = true } } }; showDeleteDialog = false }) { Text("Delete", color = Color.Red, fontWeight = FontWeight.Bold) } },
-                dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel", color = Color.Gray) } }
+                text = {
+                    Text(
+                        "This action is permanent. All your data will be lost.",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        authViewModel.deleteAccount {
+                            navController.navigate(
+                                AppRoutes.WELCOME
+                            ) { popUpTo(0) { inclusive = true } }
+                        }; showDeleteDialog = false
+                    }) { Text("Delete", color = Color.Red, fontWeight = FontWeight.Bold) }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showDeleteDialog = false
+                    }) { Text("Cancel", color = Color.Gray) }
+                }
             )
         }
 
@@ -354,9 +536,24 @@ private fun ProfilePageContent(
             AlertDialog(
                 onDismissRequest = { showLogoutDialog = false },
                 title = { Text("Sign Out?") },
-                text = { Text("Are you sure you want to sign out?", color = Color.Black) },
-                confirmButton = { TextButton(onClick = { viewModel.logout(); authViewModel.logout(); navController.navigate(AppRoutes.LOGIN) { popUpTo(0) { inclusive = true } }; showLogoutDialog = false }) { Text("Sign Out", color = Color.Red, fontWeight = FontWeight.Bold) } },
-                dismissButton = { TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel", color = Color.Gray) } }
+                text = {
+                    Text(
+                        "Are you sure you want to sign out?",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        viewModel.logout(); authViewModel.logout(); navController.navigate(
+                        AppRoutes.LOGIN
+                    ) { popUpTo(0) { inclusive = true } }; showLogoutDialog = false
+                    }) { Text("Sign Out", color = Color.Red, fontWeight = FontWeight.Bold) }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showLogoutDialog = false
+                    }) { Text("Cancel", color = Color.Gray) }
+                }
             )
         }
     }
@@ -391,7 +588,7 @@ fun SlidingThemeSelector(
                     .fillMaxWidth()
                     .height(50.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.tertiary)
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(4.dp)
             ) {
                 // Konfigurasi Item (Text & Icon Placeholder)
@@ -516,10 +713,11 @@ fun MenuItem(
     useCustomImage: Boolean = false,
     onClick: () -> Unit
 ) {
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .noRippleClickableProfile { onClick() }
-        .padding(16.dp),
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .noRippleClickableProfile { onClick() }
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically) {
         if (useCustomImage) {
             Image(
@@ -549,31 +747,6 @@ fun MenuItem(
             "Go",
             tint = Color.Gray,
             modifier = Modifier.size(24.dp)
-        )
-    }
-}
-
-@Preview(showBackground = true, heightDp = 2000)
-@Composable
-fun ProfileScreenPreview() {
-    val context = LocalContext.current
-    val authViewModel = remember {
-        val database = AppDatabase.getDatabase(context)
-        val authRepo = AuthRepository(database.userDao())
-        val activityRepo = ActivityRepository(database.activityDao()) // Mock
-        val sharedPrefs = context.getSharedPreferences("preview_prefs", Context.MODE_PRIVATE)
-        AuthViewModel(authRepo, activityRepo, sharedPrefs)
-    }
-    val sharedViewModel = remember {
-        val database = AppDatabase.getDatabase(context)
-        val activityRepo = ActivityRepository(database.activityDao())
-        SharedViewModel(activityRepo)
-    }
-    SmartFitTheme {
-        ProfileScreen(
-            navController = rememberNavController(),
-            viewModel = sharedViewModel,
-            authViewModel = authViewModel
         )
     }
 }

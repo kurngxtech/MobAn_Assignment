@@ -1,6 +1,7 @@
 package com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,6 +23,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -54,7 +57,9 @@ private fun Modifier.noRippleClickableEditProfile(onClick: () -> Unit): Modifier
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun EditProfileScreen(
     navController: NavController,
     authViewModel: AuthViewModel
@@ -103,174 +108,205 @@ fun EditProfileScreen(
             if (isGranted) {
                 photoPickerLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
             } else {
-                Toast.makeText(context, "Permission Denied. Cannot change photo.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "Permission Denied. Cannot change photo.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     )
 
-    // 💡 MODIFIED: Root Box dengan pointerInput
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .pointerInput(Unit) {
-                detectTapGestures(onTap = {
-                    focusManager.clearFocus()
-                })
-            }
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp)
-                .padding(top = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Start
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .noRippleClickableEditProfile { navController.popBackStack() }
-                        .padding(vertical = 8.dp),
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.back_arrow),
-                        contentDescription = "Back",
-                        modifier = Modifier.size(20.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface),
-                    )
-
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
                     Text(
-                        text = "Edit Profile",
-                        fontSize = 24.sp,
+                        "Edit Profile",
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4A6741)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // --- PROFILE PICTURE SECTION ---
-            Box(contentAlignment = Alignment.BottomEnd) {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(CircleShape)
-                        .background(Color.Gray)
-                ) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(currentPhotoPath ?: R.drawable.profile_picture)
-                            .crossfade(true)
-                            .build(),
-                        placeholder = painterResource(R.drawable.profile_picture),
-                        error = painterResource(R.drawable.profile_picture),
-                        contentDescription = "Profile Pic",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-
-                Box(
-                    modifier = Modifier
-                        .offset(x = 2.dp, y = 2.dp)
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .noRippleClickableEditProfile {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
-                            } else {
-                                permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                            }
-                        }
-                        .padding(6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.edit_profile2),
-                        contentDescription = "Edit Icon",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // --- FORM CARD ---
-            Card(
-                shape = RoundedCornerShape(24.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(24.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    EditProfileInput(label = "Username", value = username, onValueChange = { username = it })
-                    EditProfileInput(label = "Age", value = age, onValueChange = { age = it }, isNumber = true)
-
-                    Column {
-                        Text(text = "Gender", fontSize = 12.sp, color = Color.Gray)
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        SlidingGenderSelector(
-                            selectedGender = gender,
-                            onGenderSelected = { gender = it }
-                        )
-                    }
-
-                    EditProfileInput(label = "Height", value = height, onValueChange = { height = it }, isNumber = true, suffix = "cm")
-                    EditProfileInput(label = "Weight", value = weight, onValueChange = { weight = it }, isNumber = true, suffix = "kg")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Button(
-                onClick = {
-                    focusManager.clearFocus() // Tutup keyboard saat simpan
-                    authViewModel.updateUserAccount(
-                        newUsername = username,
-                        newAge = age,
-                        newGender = gender,
-                        newHeight = height,
-                        newWeight = weight,
-                        onSuccess = { navController.popBackStack() }
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(25.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Text(text = "Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            }
-            Spacer(modifier = Modifier.height(20.dp))
-        }
-
-        // --- LOADING SCREEN ---
-        if (isLoading) {
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            // 💡 MODIFIED: Root Box dengan pointerInput
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.Center
+                    .padding(paddingValues)
+                    .pointerInput(Unit) {
+                        detectTapGestures(onTap = {
+                            focusManager.clearFocus()
+                        })
+                    }
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("Processing...", color = Color.White, fontWeight = FontWeight.Bold)
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .padding(horizontal = 24.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // --- PROFILE PICTURE SECTION ---
+                    Box(contentAlignment = Alignment.BottomEnd) {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .background(Color.Gray)
+                        ) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(context)
+                                    .data(currentPhotoPath ?: R.drawable.profile_picture)
+                                    .crossfade(true)
+                                    .build(),
+                                placeholder = painterResource(R.drawable.profile_picture),
+                                error = painterResource(R.drawable.profile_picture),
+                                contentDescription = "Profile Pic",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .offset(x = 2.dp, y = 2.dp)
+                                .size(32.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                                .noRippleClickableEditProfile {
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                                    } else {
+                                        permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                    }
+                                }
+                                .padding(6.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.edit_profile2),
+                                contentDescription = "Edit Icon",
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    // --- FORM CARD ---
+                    Card(
+                        shape = RoundedCornerShape(24.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(24.dp),
+                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        ) {
+                            EditProfileInput(
+                                label = "Username",
+                                value = username,
+                                onValueChange = { username = it })
+                            EditProfileInput(
+                                label = "Age",
+                                value = age,
+                                onValueChange = { age = it },
+                                isNumber = true
+                            )
+
+                            Column {
+                                Text(text = "Gender", fontSize = 12.sp, color = Color.Gray)
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                SlidingGenderSelector(
+                                    selectedGender = gender,
+                                    onGenderSelected = { gender = it }
+                                )
+                            }
+
+                            EditProfileInput(
+                                label = "Height",
+                                value = height,
+                                onValueChange = { height = it },
+                                isNumber = true,
+                                suffix = "cm"
+                            )
+                            EditProfileInput(
+                                label = "Weight",
+                                value = weight,
+                                onValueChange = { weight = it },
+                                isNumber = true,
+                                suffix = "kg"
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Button(
+                        onClick = {
+                            focusManager.clearFocus() // Tutup keyboard saat simpan
+                            authViewModel.updateUserAccount(
+                                newUsername = username,
+                                newAge = age,
+                                newGender = gender,
+                                newHeight = height,
+                                newWeight = weight,
+                                onSuccess = { navController.popBackStack() }
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(25.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text(
+                            text = "Save Changes",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
+                // --- LOADING SCREEN ---
+                if (isLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.5f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Processing...", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             }
         }
+
     }
 }
 
@@ -287,7 +323,7 @@ fun SlidingGenderSelector(
             .fillMaxWidth()
             .height(48.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFF5F5F5))
+            .background(MaterialTheme.colorScheme.surface)
             .padding(4.dp)
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {

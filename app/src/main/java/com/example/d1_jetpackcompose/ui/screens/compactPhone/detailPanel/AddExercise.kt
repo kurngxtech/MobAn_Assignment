@@ -96,7 +96,8 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                     Text(
                         "Add Exercise",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -132,7 +133,7 @@ fun AddExerciseScreen(navController: NavController, viewModel: SharedViewModel) 
                 // 2. Main Form Card
                 Card(
                     shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(

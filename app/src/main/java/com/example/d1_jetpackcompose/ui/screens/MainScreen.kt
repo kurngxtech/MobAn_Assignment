@@ -36,11 +36,14 @@ import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModelFactory
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModelFactory
+import com.example.d1_jetpackcompose.ui.viewModel.ThemeViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.TipViewModelFactory
 import com.example.d1_jetpackcompose.ui.viewModel.TipsViewModel
 
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    themeViewModel: ThemeViewModel
+) {
     val navController = rememberNavController()
     val context = LocalContext.current
 
@@ -140,7 +143,8 @@ fun MainScreen() {
                             viewModel = sharedViewModel,
                             authViewModel = authViewModel,
                             tipViewModel = tipViewModel,
-                            startDestination = startDestination
+                            startDestination = startDestination,
+                            themeViewModel = themeViewModel
                         )
                     }
                 }
@@ -157,7 +161,8 @@ fun MainScreen() {
                         viewModel = sharedViewModel,
                         authViewModel = authViewModel,
                         tipViewModel = tipViewModel,
-                        startDestination = startDestination
+                        startDestination = startDestination,
+                        themeViewModel = themeViewModel
                     )
                 }
 

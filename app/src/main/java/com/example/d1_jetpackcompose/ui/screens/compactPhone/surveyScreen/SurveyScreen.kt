@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,20 +20,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
+import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.ui.composed
-import androidx.compose.ui.text.TextStyle
 
 // --- DATA MODELS ---
 data class UserSurveyData(
@@ -68,7 +69,7 @@ fun SurveyScreen(
     var currentStep by remember { mutableStateOf(SurveyStep.GENDER) }
     val surveyData = remember { mutableStateOf(UserSurveyData()) }
 
-    // 💡 ADDED: Focus Manager
+    val isTablet = LocalAppDimens.current.isTablet
     val focusManager = LocalFocusManager.current
 
     val totalSteps = SurveyStep.values().size
@@ -84,8 +85,17 @@ fun SurveyScreen(
                 slideOutOfContainer(direction, animationSpec = tween(500))
     }
 
-    // 💡 MODIFIED: Root Column dengan pointerInput
-    Column(
+    // 💡 LOGIKA VALIDASI: Tombol hanya aktif jika data terisi
+    val isNextEnabled = when (currentStep) {
+        SurveyStep.GENDER -> surveyData.value.gender.isNotEmpty()
+        SurveyStep.BODY_STATS -> surveyData.value.age.isNotEmpty() && surveyData.value.height.isNotEmpty() && surveyData.value.weight.isNotEmpty() && surveyData.value.targetWeight.isNotEmpty()
+        SurveyStep.GOAL -> surveyData.value.goal.isNotEmpty()
+        SurveyStep.ACTIVITY -> surveyData.value.activityLevel.isNotEmpty()
+        SurveyStep.WORKOUT_PREF -> surveyData.value.workoutPreference.isNotEmpty()
+        SurveyStep.STEP_GOAL -> surveyData.value.dailySteps.isNotEmpty()
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -93,105 +103,110 @@ fun SurveyScreen(
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
                 })
-            }
-            .padding(24.dp)
-            .padding(top = 40.dp)
+            },
+        contentAlignment = Alignment.Center
     ) {
-        // TOP BAR
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fillMaxWidth(if (isTablet) 0.6f else 1f)
+                .padding(24.dp)
+                .padding(top = 40.dp)
         ) {
-            if (currentStep.ordinal > 0) {
-                IconButton(onClick = {
-                    val prevOrdinal = currentStep.ordinal - 1
-                    currentStep = SurveyStep.values()[prevOrdinal]
-                }) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
+            // TOP BAR
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (currentStep.ordinal > 0) {
+                    IconButton(onClick = {
+                        val prevOrdinal = currentStep.ordinal - 1
+                        currentStep = SurveyStep.values()[prevOrdinal]
+                    }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                } else {
+                    Spacer(modifier = Modifier.size(48.dp))
                 }
-            } else {
+
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(8.dp)
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                )
                 Spacer(modifier = Modifier.size(48.dp))
             }
 
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .weight(1f)
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            )
-            Spacer(modifier = Modifier.size(48.dp))
-        }
+            Spacer(modifier = Modifier.height(24.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // CONTENT
-        Box(modifier = Modifier.weight(1f)) {
-            AnimatedContent(
-                targetState = currentStep,
-                transitionSpec = transitionSpec,
-                label = "SurveyAnimation"
-            ) { step ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    when (step) {
-                        SurveyStep.GENDER -> StepGender(surveyData)
-                        SurveyStep.BODY_STATS -> StepBodyStats(surveyData)
-                        SurveyStep.GOAL -> StepGoal(surveyData)
-                        SurveyStep.ACTIVITY -> StepActivity(surveyData)
-                        SurveyStep.WORKOUT_PREF -> StepWorkout(surveyData)
-                        SurveyStep.STEP_GOAL -> StepSteps(surveyData)
+            // CONTENT AREA
+            Box(modifier = Modifier.weight(1f)) {
+                AnimatedContent(
+                    targetState = currentStep,
+                    transitionSpec = transitionSpec,
+                    label = "SurveyAnimation"
+                ) { step ->
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        when (step) {
+                            SurveyStep.GENDER -> StepGender(surveyData)
+                            SurveyStep.BODY_STATS -> StepBodyStats(surveyData)
+                            SurveyStep.GOAL -> StepGoal(surveyData)
+                            SurveyStep.ACTIVITY -> StepActivity(surveyData)
+                            SurveyStep.WORKOUT_PREF -> StepWorkout(surveyData)
+                            SurveyStep.STEP_GOAL -> StepSteps(surveyData)
+                        }
                     }
                 }
             }
-        }
 
-        // BUTTON
-        Button(
-            onClick = {
-                // 💡 Tutup keyboard saat tombol diklik
-                focusManager.clearFocus()
-
-                if (currentStep == SurveyStep.STEP_GOAL) {
-                    // --- LOGIC FINISH ---
-                    calculateBMI(surveyData.value)
-
-                    // 1. Simpan ke Database
-                    authViewModel.saveUserProfile(surveyData.value)
-
-                    // 2. Pindah ke Dashboard
-                    navController.navigate(AppRoutes.DASHBOARD) {
-                        popUpTo(0) { inclusive = true }
+            // BUTTON (Dengan Validasi & Warna Abu-abu jika Disabled)
+            Button(
+                onClick = {
+                    focusManager.clearFocus()
+                    if (currentStep == SurveyStep.STEP_GOAL) {
+                        calculateBMI(surveyData.value)
+                        authViewModel.saveUserProfile(surveyData.value)
+                        navController.navigate(AppRoutes.DASHBOARD) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    } else {
+                        val nextOrdinal = currentStep.ordinal + 1
+                        currentStep = SurveyStep.values()[nextOrdinal]
                     }
-                } else {
-                    val nextOrdinal = currentStep.ordinal + 1
-                    currentStep = SurveyStep.values()[nextOrdinal]
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
-            shape = RoundedCornerShape(50),
-            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-        ) {
-            Text(
-                text = if (currentStep == SurveyStep.STEP_GOAL) "Finish" else "Continue",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
+                },
+                enabled = isNextEnabled, // 💡 Check Validasi
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(50),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    disabledContainerColor = SurveyInputGray, // 💡 Warna Abu-abu saat disabled
+                    disabledContentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = if (currentStep == SurveyStep.STEP_GOAL) "Finish" else "Continue",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+            Spacer(modifier = Modifier.height(40.dp))
         }
-        Spacer(modifier = Modifier.height(40.dp))
     }
 }
 
@@ -211,15 +226,23 @@ fun calculateBMI(data: UserSurveyData) {
 
 @Composable
 fun StepGender(data: MutableState<UserSurveyData>) {
+    val isTablet = LocalAppDimens.current.isTablet
     StepHeader(
         "What's your gender?",
         "This will help us tailor your workout to match your metabolic rate perfectly."
     )
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        GenderCard("Male", data.value.gender == "Male", Modifier.weight(1f)) {
+        // 💡 MODIFIER DINAMIS: Tablet pakai tinggi tetap, HP pakai ratio 0.7
+        val genderModifier = if (isTablet) {
+            Modifier.weight(1f).height(180.dp) // Lebih pendek di tablet
+        } else {
+            Modifier.weight(1f).aspectRatio(0.7f) // Standar HP
+        }
+
+        GenderCard("Male", data.value.gender == "Male", genderModifier) {
             data.value = data.value.copy(gender = "Male")
         }
-        GenderCard("Female", data.value.gender == "Female", Modifier.weight(1f)) {
+        GenderCard("Female", data.value.gender == "Female", genderModifier) {
             data.value = data.value.copy(gender = "Female")
         }
     }
@@ -229,24 +252,9 @@ fun StepGender(data: MutableState<UserSurveyData>) {
 fun StepBodyStats(data: MutableState<UserSurveyData>) {
     StepHeader("Body Matrix", "Help us calculate your BMI and daily needs.")
     SurveyInput("Age (years)", data.value.age, { data.value = data.value.copy(age = it) }, true)
-    SurveyInput(
-        "Height (cm)",
-        data.value.height,
-        { data.value = data.value.copy(height = it) },
-        true
-    )
-    SurveyInput(
-        "Current Weight (kg)",
-        data.value.weight,
-        { data.value = data.value.copy(weight = it) },
-        true
-    )
-    SurveyInput(
-        "Target Weight (kg)",
-        data.value.targetWeight,
-        { data.value = data.value.copy(targetWeight = it) },
-        true
-    )
+    SurveyInput("Height (cm)", data.value.height, { data.value = data.value.copy(height = it) }, true)
+    SurveyInput("Current Weight (kg)", data.value.weight, { data.value = data.value.copy(weight = it) }, true)
+    SurveyInput("Target Weight (kg)", data.value.targetWeight, { data.value = data.value.copy(targetWeight = it) }, true)
 }
 
 @Composable
@@ -312,9 +320,11 @@ fun StepSteps(data: MutableState<UserSurveyData>) {
 
 @Composable
 fun StepHeader(title: String, subtitle: String) {
-    Column(Modifier
-        .fillMaxWidth()
-        .padding(bottom = 32.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp)
+    ) {
         Text(
             title,
             fontSize = 28.sp,
@@ -333,9 +343,11 @@ fun SurveyInput(
     onValueChange: (String) -> Unit,
     isNumber: Boolean = false
 ) {
-    Column(Modifier
-        .fillMaxWidth()
-        .padding(bottom = 16.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(bottom = 16.dp)
+    ) {
         Text(
             label,
             fontSize = 14.sp,
@@ -366,9 +378,9 @@ fun GenderCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    // 💡 HAPUS .aspectRatio(0.7f) dari sini agar bisa dikontrol oleh parameter `modifier`
     Column(
         modifier
-            .aspectRatio(0.7f)
             .clip(RoundedCornerShape(24.dp))
             .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.White)
             .border(

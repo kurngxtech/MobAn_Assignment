@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
+import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
 import com.example.d1_jetpackcompose.ui.viewModel.*
 
 @Composable
@@ -30,13 +31,12 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
-    // 💡 ADDED: Focus Manager
+    val isTablet = LocalAppDimens.current.isTablet
     val focusManager = LocalFocusManager.current
 
     val isLoading by authViewModel.isLoading.collectAsState()
     val signUpResult by authViewModel.signUpState.collectAsState()
 
-    // --- POP UP LOGIC ---
     signUpResult?.let { result ->
         AlertDialog(
             onDismissRequest = { authViewModel.resetSignUpState() },
@@ -62,20 +62,21 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
         )
     }
 
-    // 💡 MODIFIED: Root box deteksi tap
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
                 })
-            }
+            },
+        contentAlignment = Alignment.Center // Center content di Tablet
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .fillMaxHeight()
+                .fillMaxWidth(if (isTablet) 0.6f else 1f) // Lebar 60% di Tablet
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
@@ -153,7 +154,6 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
             Spacer(modifier = Modifier.height(20.dp))
         }
 
-        // --- LOADING OVERLAY ---
         if (isLoading) {
             Box(
                 modifier = Modifier

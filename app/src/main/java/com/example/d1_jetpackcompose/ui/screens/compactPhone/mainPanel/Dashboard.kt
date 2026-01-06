@@ -105,8 +105,17 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.DetailLogScreen
 
 private val HistoryCardGray = Color(0xFFE8E8E8)
+
+// 💡 NEW ENUM: State untuk Panel Kanan Dashboard
+enum class DashboardPanelState {
+    NONE,
+    TIPS_LIST, // Menampilkan List Tips
+    TIP_DETAIL, // Menampilkan Detail Tips
+    ACTIVITY_DETAIL // Menampilkan Detail Log Activity
+}
 
 fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
     this.clickable(
@@ -153,24 +162,28 @@ fun DashboardScreen(
     val isTipsLoading by tipViewModel.isLoading.collectAsState()
     val pageScrollStateDashboard = rememberScrollState()
 
-    var showSplitView by remember { mutableStateOf(false) }
+    // 💡 STATE MANAJEMEN BARU UNTUK PANEL
+    var panelState by remember { mutableStateOf(DashboardPanelState.NONE) }
     var selectedArticle by remember { mutableStateOf<HealthTip?>(null) }
+    var selectedActivityId by remember { mutableStateOf<Int?>(null) } // Menyimpan ID activity yang diklik
+
+    // Helper: Logic Show Split View
+    val showSplitView = panelState != DashboardPanelState.NONE
 
     // Data User untuk TopBar
     val username = currentUser?.username ?: "Guest"
     val profilePath = currentUser?.profilePicturePath
 
-    // Padding Konsisten
     val startPadding = dimens.startScaffoldPadding
     val horizontalPadding = dimens.screenPadding + 5.dp
 
-    // Komponen TopBar (Reusable untuk HP & Tablet)
+    // Komponen TopBar
     val dashboardTopBar: @Composable () -> Unit = {
         if (isTablet) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = dimens.topPaddingScaffold) // Padding atas agar tidak terlalu mepet status bar (atau inset)
+                    .padding(top = dimens.topPaddingScaffold)
                     .padding(start = startPadding)
             ) {
                 HeaderProfileSection(name = username, profilePath = profilePath)
@@ -179,22 +192,23 @@ fun DashboardScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = dimens.screenPadding) // Padding atas agar tidak terlalu mepet status bar (atau inset)
-                    .padding(horizontal = horizontalPadding) // Padding horizontal agar sejajar dengan konten bawah
+                    .padding(top = dimens.topPaddingScaffold)
+                    .padding(horizontal = horizontalPadding - 10.dp)
             ) {
                 HeaderProfileSection(name = username, profilePath = profilePath)
             }
         }
     }
 
-    BoxWithConstraints(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
         if (isTablet) {
             // --- TABLET LAYOUT ---
             Row(modifier = Modifier.fillMaxSize()) {
-                // PANEL KIRI (SCROLLABLE DENGAN SCAFFOLD)
-                // Kita bungkus Panel Kiri dengan Scaffold agar TopBar menempel di panel ini
+                // PANEL KIRI
                 Scaffold(
                     topBar = dashboardTopBar,
                     containerColor = Color.Transparent,
@@ -205,7 +219,7 @@ fun DashboardScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(paddingValues) // Padding dari Scaffold (TopBar height)
+                            .padding(paddingValues)
                             .verticalScroll(pageScrollStateDashboard),
                         contentAlignment = Alignment.TopCenter
                     ) {
@@ -214,7 +228,6 @@ fun DashboardScreen(
                                 .fillMaxSize()
                                 .padding(end = dimens.paddingMedium)
                         } else {
-                            // PERBAIKAN: Gunakan Center Alignment tegas
                             Modifier
                                 .fillMaxWidth(dimens.contentMaxWidthPercent)
                                 .align(Alignment.Center)
@@ -232,8 +245,14 @@ fun DashboardScreen(
                                 personalizedTips = personalizedTips,
                                 isTipsLoading = isTipsLoading,
                                 onTipsClick = {
-                                    showSplitView = true
+                                    // Buka Panel Tips
+                                    panelState = DashboardPanelState.TIPS_LIST
                                     selectedArticle = null
+                                },
+                                onActivityClick = { id ->
+                                    // 💡 Buka Panel Activity Detail di Tablet
+                                    selectedActivityId = id
+                                    panelState = DashboardPanelState.ACTIVITY_DETAIL
                                 }
                             )
                         }
@@ -247,7 +266,7 @@ fun DashboardScreen(
                     exit = slideOutHorizontally { it } + fadeOut(),
                     modifier = Modifier
                         .width(420.dp)
-                        .fillMaxHeight() // Full Height
+                        .fillMaxHeight()
                 ) {
                     Box(
                         modifier = Modifier
@@ -259,23 +278,51 @@ fun DashboardScreen(
                                 RoundedCornerShape(24.dp)
                             )
                     ) {
-                        if (selectedArticle == null) {
-                            TabletTipsListPanel(
-                                tips = personalizedTips,
-                                onClose = { showSplitView = false },
-                                onArticleClick = { tip -> selectedArticle = tip }
-                            )
-                        } else {
-                            TabletTipDetailPanel(
-                                tip = selectedArticle!!,
-                                onBack = { selectedArticle = null }
-                            )
+                        // 💡 RENDER KONTEN BERDASARKAN STATE ENUM
+                        when (panelState) {
+                            DashboardPanelState.TIPS_LIST -> {
+                                TabletTipsListPanel(
+                                    tips = personalizedTips,
+                                    onClose = { panelState = DashboardPanelState.NONE },
+                                    onArticleClick = { tip ->
+                                        selectedArticle = tip
+                                        panelState = DashboardPanelState.TIP_DETAIL
+                                    }
+                                )
+                            }
+
+                            DashboardPanelState.TIP_DETAIL -> {
+                                if (selectedArticle != null) {
+                                    TabletTipDetailPanel(
+                                        tip = selectedArticle!!,
+                                        onBack = {
+                                            selectedArticle = null
+                                            panelState = DashboardPanelState.TIPS_LIST
+                                        }
+                                    )
+                                }
+                            }
+
+                            DashboardPanelState.ACTIVITY_DETAIL -> {
+                                if (selectedActivityId != null) {
+                                    DetailLogScreen(
+                                        navController = navController,
+                                        activityId = selectedActivityId!!,
+                                        viewModel = viewModel,
+                                        onBackCustom = {
+                                            panelState = DashboardPanelState.NONE
+                                        }
+                                    )
+                                }
+                            }
+
+                            else -> {}
                         }
                     }
                 }
             }
         } else {
-            // --- HP LAYOUT (SCROLLABLE DENGAN SCAFFOLD) ---
+            // --- HP LAYOUT ---
             Scaffold(
                 topBar = dashboardTopBar,
                 containerColor = Color.Transparent,
@@ -284,7 +331,7 @@ fun DashboardScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(paddingValues) // Penting: Menggeser konten ke bawah TopBar
+                        .padding(paddingValues)
                         .padding(bottom = 20.dp)
                         .verticalScroll(rememberScrollState())
                 ) {
@@ -298,7 +345,11 @@ fun DashboardScreen(
                         currentUser = currentUser,
                         personalizedTips = personalizedTips,
                         isTipsLoading = isTipsLoading,
-                        onTipsClick = { navController.navigate(AppRoutes.TIPS_LIST) }
+                        onTipsClick = { navController.navigate(AppRoutes.TIPS_LIST) },
+                        onActivityClick = { id ->
+                            // 💡 Navigasi standar di HP
+                            navController.navigate("detail_log/$id")
+                        }
                     )
                 }
             }
@@ -317,12 +368,12 @@ fun DashboardContent(
     currentUser: UserEntity?,
     personalizedTips: List<HealthTip>,
     isTipsLoading: Boolean,
-    onTipsClick: () -> Unit
+    onTipsClick: () -> Unit,
+    // 💡 NEW PARAM: Callback untuk klik activity
+    onActivityClick: (Int) -> Unit
 ) {
     val dimens = LocalAppDimens.current
     val dailyGoal = currentUser?.dailyStepsGoal ?: 5000
-
-    // Padding horizontal (tapi tanpa topBar padding logic di sini karena sudah di handle Scaffold)
     val horizontalPadding = dimens.screenPadding + 5.dp
 
     Column(
@@ -336,9 +387,6 @@ fun DashboardContent(
                 bottom = dimens.screenPadding
             )
     ) {
-        // 💡 PERUBAHAN: HeaderProfileSection dihapus dari sini karena sudah pindah ke TopBar Scaffold
-        // 💡 PERUBAHAN: Spacer 40.dp dihapus karena Scaffold menangani status bar
-
         val currentSteps = (stats.totalDistance * 1300).toInt()
         DailyGoalCard(
             cardColor = MaterialTheme.colorScheme.onBackground,
@@ -351,9 +399,11 @@ fun DashboardContent(
 
         if (dimens.isTablet) {
             Row(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                ) {
                     PeriodSelector(
                         selectedPeriod = currentPeriod,
                         onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) }
@@ -368,24 +418,36 @@ fun DashboardContent(
                     )
                 }
                 Spacer(modifier = Modifier.width(dimens.paddingMedium))
-                Column(modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                ) {
                     CategoryFilterSelector(
                         selectedFilter = currentCategory,
                         onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) }
                     )
                     Spacer(modifier = Modifier.height(dimens.paddingSmall))
                     HistorySection(
-                        navController = navController,
                         recentActivities = stats.recentActivities,
-                        cardColor = MaterialTheme.colorScheme.onBackground
+                        cardColor = MaterialTheme.colorScheme.onBackground,
+                        onActivityClick = onActivityClick, // 💡 Pass callback
+                        onViewDetailClick = {
+                            // Navigasi ke halaman Activity Log utama
+                            navController.navigate(AppRoutes.ACTIVITY) {
+                                popUpTo(AppRoutes.DASHBOARD) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
                     )
                 }
             }
         } else {
             Column(modifier = Modifier.fillMaxWidth()) {
-                PeriodSelector(selectedPeriod = currentPeriod, onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) })
+                PeriodSelector(
+                    selectedPeriod = currentPeriod,
+                    onSelect = { newPeriod -> viewModel.setTimePeriod(newPeriod) })
                 Spacer(modifier = Modifier.height(dimens.paddingSmall))
                 DailySummaryGrid(
                     cardColor = MaterialTheme.colorScheme.onBackground,
@@ -395,12 +457,21 @@ fun DashboardContent(
                     burned = "${stats.totalCaloriesBurned} kcal"
                 )
                 Spacer(modifier = Modifier.height(dimens.paddingMedium))
-                CategoryFilterSelector(selectedFilter = currentCategory, onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) })
+                CategoryFilterSelector(
+                    selectedFilter = currentCategory,
+                    onSelect = { newCategory -> viewModel.setCategoryFilter(newCategory) })
                 Spacer(modifier = Modifier.height(dimens.paddingSmall))
                 HistorySection(
-                    navController = navController,
                     recentActivities = stats.recentActivities,
-                    cardColor = MaterialTheme.colorScheme.onBackground
+                    cardColor = MaterialTheme.colorScheme.onBackground,
+                    onActivityClick = onActivityClick,
+                    onViewDetailClick = {
+                        navController.navigate(AppRoutes.ACTIVITY) {
+                            popUpTo(AppRoutes.DASHBOARD) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 )
             }
         }
@@ -695,9 +766,10 @@ fun HeaderProfileSection(name: String, profilePath: String?) {
 
 @Composable
 fun HistorySection(
-    navController: NavController,
     recentActivities: List<ActivityEntity>,
-    cardColor: Color
+    cardColor: Color,
+    onActivityClick: (Int) -> Unit,
+    onViewDetailClick: () -> Unit
 ) {
     val dimens = LocalAppDimens.current
     Card(
@@ -728,12 +800,8 @@ fun HistorySection(
                     "View Detail",
                     fontSize = dimens.textSizeSmall,
                     color = Color.Gray,
-                    modifier = Modifier.noRippleClickable {
-                        navController.navigate(AppRoutes.ACTIVITY) {
-                            popUpTo(AppRoutes.DASHBOARD) { saveState = true }; launchSingleTop =
-                            true; restoreState = true
-                        }
-                    })
+                    modifier = Modifier.noRippleClickable { onViewDetailClick() }
+                )
             }
             Spacer(modifier = Modifier.height(15.dp))
             if (recentActivities.isEmpty()) {
@@ -756,7 +824,8 @@ fun HistorySection(
                             if (activity.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
                         val typeLabel =
                             if (activity.type == ActivityType.FOOD) "Intake" else "Burned"
-                        Box(modifier = Modifier.noRippleClickable { navController.navigate("detail_log/${activity.id}") }) {
+                        // 💡 Gunakan onActivityClick
+                        Box(modifier = Modifier.noRippleClickable { onActivityClick(activity.id) }) {
                             HistoryItemDashboard(
                                 title = activity.title,
                                 subtitle = "${activity.calories} kcal | $typeLabel",
@@ -852,7 +921,8 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
                     Image(
                         painter = painterResource(id = R.drawable.daily_goal_icon),
                         contentDescription = null,
-                        modifier = Modifier.size(dimens.iconSizeSmall)
+                        modifier = Modifier.size(dimens.iconSizeSmall),
+                        colorFilter = ColorFilter.tint(color)
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                     Text(
@@ -884,7 +954,7 @@ fun DailyGoalCard(cardColor: Color, current: Int, total: Int, color: Color) {
                     modifier = Modifier.size(80.dp),
                     color = color,
                     strokeWidth = 8.dp,
-                    trackColor = Color(0xFFE0E0E0),
+                    trackColor = MaterialTheme.colorScheme.background,
                     strokeCap = StrokeCap.Round
                 )
                 Text(
@@ -1114,7 +1184,7 @@ fun HistoryItemDashboard(title: String, subtitle: String, iconRes: Int? = null) 
         modifier = Modifier
             .fillMaxWidth()
             .customDropShadow(borderRadius = 24.dp)
-            .background(HistoryCardGray, RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
     ) {
         Row(
             modifier = Modifier

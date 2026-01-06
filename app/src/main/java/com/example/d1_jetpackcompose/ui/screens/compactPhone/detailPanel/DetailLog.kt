@@ -1,5 +1,6 @@
 package com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,16 +22,24 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,11 +71,15 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 fun DetailLogScreen(
     navController: NavController,
     activityId: Int,
-    viewModel: SharedViewModel
+    viewModel: SharedViewModel,
+    // 💡 PARAMETER BARU: Callback untuk handle back di Tablet Panel
+    onBackCustom: (() -> Unit)? = null
 ) {
     // 1. Deteksi Tablet
     val isTablet = LocalAppDimens.current.isTablet
@@ -111,9 +124,9 @@ fun DetailLogScreen(
     if (showEditConfirmation) {
         AlertDialog(
             onDismissRequest = { showEditConfirmation = false },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.onBackground,
             title = { Text(text = "Edit Activity", fontWeight = FontWeight.Bold) },
-            text = { Text("Do you want to edit this activity log?", color = Color.Black) },
+            text = { Text("Do you want to edit this activity log?", color = MaterialTheme.colorScheme.onSurface) },
             confirmButton = {
                 TextButton(onClick = { showEditConfirmation = false; isEditMode = true }) {
                     Text(
@@ -137,13 +150,15 @@ fun DetailLogScreen(
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
-            containerColor = Color.White,
+            containerColor = MaterialTheme.colorScheme.onBackground,
             title = { Text(text = "Delete Activity", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete this activity?", color = Color.Black) },
+            text = { Text("Are you sure you want to delete this activity?", color = MaterialTheme.colorScheme.onSurface) },
             confirmButton = {
                 TextButton(onClick = {
-                    showDeleteConfirmation =
-                        false; activityData?.let { viewModel.deleteActivity(it) }; navController.popBackStack()
+                    showDeleteConfirmation = false
+                    activityData?.let { viewModel.deleteActivity(it) }
+                    // 💡 UPDATE: Gunakan onBackCustom jika ada, else popBackStack
+                    if (onBackCustom != null) onBackCustom() else navController.popBackStack()
                 }) {
                     Text("Delete", color = Color.Red, fontWeight = FontWeight.Bold)
                 }
@@ -159,222 +174,233 @@ fun DetailLogScreen(
         )
     }
 
-    // --- UI CONTENT ---
-    if (activityData == null) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-        }
-    } else {
-        val data = activityData!!
-        val dateString = SimpleDateFormat(
-            "EEEE dd MMMM yyyy HH:mm a",
-            Locale.getDefault()
-        ).format(Date(data.timestamp))
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 24.dp)
-                .padding(top = topPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Header Back Button
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { navController.popBackStack() }
-                        .padding(vertical = 8.dp),
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.back_arrow),
-                        contentDescription = "Back",
-                        modifier = Modifier.size(20.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
-                    )
-                }
-            }
-
-            Text(
-                text = "Detail Log",
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-                fontSize = titleSize
-            )
-            Spacer(modifier = Modifier.height(headerSpacer))
-
-            // Icon
-            Box(
-                modifier = Modifier
-                    .size(iconContainerSize)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.onSurface),
-                contentAlignment = Alignment.Center
-            ) {
-                val icon =
-                    if (data.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
-                Image(
-                    painter = painterResource(id = icon),
-                    contentDescription = "Activity Icon",
-                    modifier = Modifier.size(iconSize),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 16.dp))
-
-            // Title
-            if (isEditMode) {
-                BasicTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    textStyle = TextStyle(
-                        fontSize = editTitleSize,
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Detail Log",
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier.fillMaxWidth(),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                navigationIcon = {
+                    // 💡 UPDATE: Back Button Handler
+                    IconButton(onClick = {
+                        if (onBackCustom != null) onBackCustom() else navController.popBackStack()
+                    }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
                 )
-                HorizontalDivider(
-                    modifier = Modifier
-                        .width(120.dp)
-                        .padding(top = 4.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    thickness = 2.dp
-                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            // --- UI CONTENT ---
+            if (activityData == null) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
             } else {
-                Text(
-                    text = title,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = editTitleSize,
-                    textAlign = TextAlign.Center
-                )
-            }
+                val data = activityData!!
+                val dateString = SimpleDateFormat(
+                    "EEEE dd MMMM yyyy HH:mm a",
+                    Locale.getDefault()
+                ).format(Date(data.timestamp))
 
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = dateString, color = Color.Gray, fontSize = 12.sp)
-            Spacer(modifier = Modifier.height(cardSpacer))
-
-            // Card Form
-            Card(
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                modifier = Modifier.fillMaxWidth()
-            ) {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = cardVerticalPadding),
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background)
+                        .pointerInput(Unit) { detectTapGestures(onTap = { focusManager.clearFocus() }) }
+                        .verticalScroll(rememberScrollState())
+                        .padding(paddingValues)
+                        .padding(horizontal = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    EditableDetailItem(
-                        label = "Categories",
-                        value = if (data.type == ActivityType.FOOD) "Meal" else "Exercise",
-                        isEditable = false,
-                        onValueChange = {})
-                    Spacer(modifier = Modifier.height(elementSpacer))
+                    Spacer(modifier = Modifier.height(headerSpacer))
 
-                    if (data.type == ActivityType.EXERCISE) {
-                        EditableDetailItem(
-                            label = "Distance",
-                            value = distance,
-                            suffix = " km",
-                            isEditable = isEditMode,
-                            onValueChange = { distance = it },
-                            keyboardType = KeyboardType.Number
+                    // Icon
+                    Box(
+                        modifier = Modifier
+                            .size(iconContainerSize)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.onSurface),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        val icon =
+                            if (data.type == ActivityType.FOOD) R.drawable.add_food_icon else R.drawable.walk_icon
+                        Image(
+                            painter = painterResource(id = icon),
+                            contentDescription = "Activity Icon",
+                            modifier = Modifier.size(iconSize),
+                            colorFilter = ColorFilter.tint(Color.White)
                         )
-                        Spacer(modifier = Modifier.height(elementSpacer))
-                        EditableDetailItem(
-                            label = "Duration",
-                            value = duration,
-                            suffix = " min",
-                            isEditable = isEditMode,
-                            onValueChange = { duration = it },
-                            keyboardType = KeyboardType.Number
-                        )
-                        Spacer(modifier = Modifier.height(elementSpacer))
                     }
-                    EditableDetailItem(
-                        label = if (data.type == ActivityType.FOOD) "Calories Intake" else "Calories Burned",
-                        value = calories,
-                        suffix = " kcal",
-                        isEditable = isEditMode,
-                        onValueChange = { calories = it },
-                        keyboardType = KeyboardType.Number
-                    )
+
+                    Spacer(modifier = Modifier.height(if (isTablet) 8.dp else 16.dp))
+
+                    // Title
+                    if (isEditMode) {
+                        BasicTextField(
+                            value = title,
+                            onValueChange = { title = it },
+                            textStyle = TextStyle(
+                                fontSize = editTitleSize,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                textAlign = TextAlign.Center
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary)
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .width(120.dp)
+                                .padding(top = 4.dp),
+                            color = MaterialTheme.colorScheme.primary,
+                            thickness = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = title,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = editTitleSize,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = dateString, color = Color.Gray, fontSize = 12.sp)
+                    Spacer(modifier = Modifier.height(cardSpacer))
+
+                    // Card Form
+                    Card(
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 24.dp, vertical = cardVerticalPadding),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            EditableDetailItem(
+                                label = "Categories",
+                                value = if (data.type == ActivityType.FOOD) "Meal" else "Exercise",
+                                isEditable = false,
+                                onValueChange = {})
+                            Spacer(modifier = Modifier.height(elementSpacer))
+
+                            if (data.type == ActivityType.EXERCISE) {
+                                EditableDetailItem(
+                                    label = "Distance",
+                                    value = distance,
+                                    suffix = " km",
+                                    isEditable = isEditMode,
+                                    onValueChange = { distance = it },
+                                    keyboardType = KeyboardType.Number
+                                )
+                                Spacer(modifier = Modifier.height(elementSpacer))
+                                EditableDetailItem(
+                                    label = "Duration",
+                                    value = duration,
+                                    suffix = " min",
+                                    isEditable = isEditMode,
+                                    onValueChange = { duration = it },
+                                    keyboardType = KeyboardType.Number
+                                )
+                                Spacer(modifier = Modifier.height(elementSpacer))
+                            }
+                            EditableDetailItem(
+                                label = if (data.type == ActivityType.FOOD) "Calories Intake" else "Calories Burned",
+                                value = calories,
+                                suffix = " kcal",
+                                isEditable = isEditMode,
+                                onValueChange = { calories = it },
+                                keyboardType = KeyboardType.Number
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(if (isTablet) 12.dp else 20.dp))
+
+                    // Buttons
+                    if (isEditMode) {
+                        Button(
+                            onClick = {
+                                focusManager.clearFocus()
+                                val updatedItem = data.copy(
+                                    title = title,
+                                    calories = calories.toIntOrNull() ?: 0,
+                                    distance = distance.toDoubleOrNull() ?: 0.0,
+                                    duration = duration.toIntOrNull() ?: 0
+                                ); viewModel.updateActivity(updatedItem); isEditMode = false
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(45.dp),
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text(
+                                text = "Save Changes",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    } else {
+                        Button(
+                            onClick = { showEditConfirmation = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(45.dp),
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text(
+                                text = "Edit Activities",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Button(
+                            onClick = { showDeleteConfirmation = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(45.dp),
+                            shape = RoundedCornerShape(50),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            Text(
+                                text = "Delete Activities",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(if (isTablet) 16.dp else 32.dp))
                 }
             }
-
-            Spacer(modifier = Modifier.height(if (isTablet) 12.dp else 20.dp))
-
-            // Buttons
-            if (isEditMode) {
-                Button(
-                    onClick = {
-                        focusManager.clearFocus();
-                        val updatedItem = data.copy(
-                            title = title,
-                            calories = calories.toIntOrNull() ?: 0,
-                            distance = distance.toDoubleOrNull() ?: 0.0,
-                            duration = duration.toIntOrNull() ?: 0
-                        ); viewModel.updateActivity(updatedItem); isEditMode = false
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(45.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = "Save Changes",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-            } else {
-                Button(
-                    onClick = { showEditConfirmation = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(45.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Text(
-                        text = "Edit Activities",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-                Spacer(modifier = Modifier.height(10.dp))
-                Button(
-                    onClick = { showDeleteConfirmation = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(45.dp),
-                    shape = RoundedCornerShape(50),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    Text(
-                        text = "Delete Activities",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(if (isTablet) 16.dp else 32.dp))
         }
+
     }
+
+
 }
 
 @Composable

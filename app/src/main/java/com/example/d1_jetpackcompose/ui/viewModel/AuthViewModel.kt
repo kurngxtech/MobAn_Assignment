@@ -380,7 +380,7 @@ fun AuthInput(
     var passwordVisible by remember { mutableStateOf(false) }
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
-            modifier = Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.onSurfaceVariant).padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surface).padding(horizontal = 16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {

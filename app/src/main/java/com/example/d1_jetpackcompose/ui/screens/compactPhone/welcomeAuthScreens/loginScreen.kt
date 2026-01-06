@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
+import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
 import com.example.d1_jetpackcompose.ui.viewModel.AuthInput
 import com.example.d1_jetpackcompose.ui.viewModel.AuthResult
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
@@ -32,16 +33,14 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // 💡 ADDED: Focus Manager untuk menutup keyboard
-    val focusManager = LocalFocusManager.current
+    // Deteksi Tablet
+    val isTablet = LocalAppDimens.current.isTablet
 
+    val focusManager = LocalFocusManager.current
     val isLoading by authViewModel.isLoading.collectAsState()
     val loginResult by authViewModel.loginState.collectAsState()
-
-    // OBSERVASI USER UNTUK CEK SURVEY
     val currentUser by authViewModel.currentUser.collectAsState()
 
-    // LOGIKA LOGIN SUKSES
     LaunchedEffect(loginResult, currentUser) {
         if (loginResult is AuthResult.Success) {
             val user = currentUser
@@ -59,7 +58,6 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         }
     }
 
-    // Alert Error
     if (loginResult is AuthResult.Error) {
         val errorMsg = (loginResult as AuthResult.Error).message
         AlertDialog(
@@ -74,20 +72,22 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         )
     }
 
-    // 💡 MODIFIED: Tambahkan pointerInput di root Box
     Box(
         modifier = Modifier
             .fillMaxSize()
+            // Background dipindah ke Box utama agar layar tablet tidak belang
+            .background(MaterialTheme.colorScheme.background)
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
-                    focusManager.clearFocus() // Tutup keyboard saat tap di luar
+                    focusManager.clearFocus()
                 })
-            }
+            },
+        contentAlignment = Alignment.Center // Center content di Tablet
     ) {
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .fillMaxSize()
+                .fillMaxHeight() // Full Height
+                .fillMaxWidth(if (isTablet) 0.6f else 1f) // Lebar 60% di Tablet
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
         ) {
@@ -130,7 +130,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
             PrimaryAuthButton(
                 text = "Log in",
                 onClick = {
-                    focusManager.clearFocus() // Tutup keyboard sebelum proses
+                    focusManager.clearFocus()
                     authViewModel.login(email, password)
                 }
             )

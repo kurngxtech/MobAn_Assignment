@@ -46,7 +46,7 @@ fun BubbleNavigationBar(
     ) {
         Card(
             shape = RoundedCornerShape(50.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
             elevation = CardDefaults.cardElevation(defaultElevation = 15.dp),
             modifier = Modifier.fillMaxWidth().height(60.dp)
         ) {
@@ -123,7 +123,7 @@ fun FloatingNavigationRail(
     ) {
         Card(
             shape = RoundedCornerShape(50.dp), // Bentuk Kapsul Vertikal
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
             elevation = CardDefaults.cardElevation(defaultElevation = 15.dp),
             modifier = Modifier
                 .fillMaxWidth()

@@ -1,5 +1,4 @@
-package com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens // Assuming this is your package
-
+package com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -27,16 +26,24 @@ import androidx.navigation.compose.rememberNavController
 import com.example.d1_jetpackcompose.R
 import com.example.d1_jetpackcompose.ui.components.RoundedButton
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTypography
+import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
 import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
+import com.example.d1_jetpackcompose.ui.theme.SmartFitTypography
 
 @Composable
-fun WelcomePage(modifier: Modifier = Modifier, navController : NavController) {
-    val backgroundImagePainter = painterResource(R.drawable.background_login)
+fun WelcomePage(modifier: Modifier = Modifier, navController: NavController) {
+    // 1. Deteksi Tablet
+    val isTablet = LocalAppDimens.current.isTablet
+
+    // 2. Pilih Background Berdasarkan Device
+    val backgroundRes = if (isTablet) R.drawable.background_login_expanded else R.drawable.background_login
+    val backgroundImagePainter = painterResource(backgroundRes)
 
     Box(
         modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center // Pastikan konten berada di tengah
     ) {
+        // Background tetap Full Screen
         Image(
             painter = backgroundImagePainter,
             contentDescription = "Background Image",
@@ -44,9 +51,11 @@ fun WelcomePage(modifier: Modifier = Modifier, navController : NavController) {
             contentScale = ContentScale.Crop
         )
 
-        Column ( // column untuk wrapper logo,text,button
+        // Wrapper Konten (Dibatasi 60% di Tablet)
+        Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxHeight()
+                .fillMaxWidth(if (isTablet) 0.6f else 1f) // Logic Lebar
                 .padding(20.dp)
                 .padding(top = 20.dp)
         ) {
@@ -110,14 +119,14 @@ fun WelcomePage(modifier: Modifier = Modifier, navController : NavController) {
             }
 
             // button
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.7f)
                     .padding(horizontal = 2.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
-            ){
+            ) {
                 RoundedButton(
                     onClick = {
                         navController.navigate(AppRoutes.LOGIN) {
@@ -130,7 +139,7 @@ fun WelcomePage(modifier: Modifier = Modifier, navController : NavController) {
                 )
             }
 
-            Row (
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(),

@@ -20,15 +20,21 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DarkBackground
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DarkCardColor
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DarkGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DarkerCardGray
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DeleteColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjects
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjectsDark
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.InputFieldDarkTheme
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightBackground
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightCardColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightGray
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.SecondaryGreen
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.TextColor
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.TextColorDarkMode
 
 // =========================================================================
 // 1. REUSABLE DEVICE DETECTOR & DIMENSIONS SYSTEM
@@ -102,7 +108,7 @@ val TabletDimens = AppDimens(
     paddingSmall = 12.dp,
     paddingMedium = 24.dp,
     topPaddingScaffold = 60.dp,
-    startScaffoldPadding = 250.dp
+    startScaffoldPadding = 260.dp
 
 )
 
@@ -127,12 +133,15 @@ private val lightColorScheme = lightColorScheme(
 )
 
 private val darkColorScheme = darkColorScheme(
-    primary = Color(0xFF81C784),
+    primary = DarkGreen,
     onPrimary = Color.Black,
     secondary = SecondaryGreen,
-    background = Color(0xFF121212),
-    surface = Color(0xFF1E1E1E),
-    onSurface = Color.White
+    onBackground = DarkCardColor,
+    background = DarkBackground,
+    surface = HistoryObjectsDark,
+    onSurface = TextColorDarkMode,
+    onSurfaceVariant = InputFieldDarkTheme,
+    surfaceVariant = DeleteColor
 )
 
 @Composable

@@ -28,6 +28,7 @@ import com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens.
 import com.example.d1_jetpackcompose.ui.screens.compactPhone.welcomeAuthScreens.WelcomePage
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
+import com.example.d1_jetpackcompose.ui.viewModel.ThemeViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.TipsViewModel
 
 object AppRoutes {
@@ -61,7 +62,8 @@ fun AppNavHost(
     viewModel: SharedViewModel,
     authViewModel: AuthViewModel,
     tipViewModel: TipsViewModel,
-    startDestination: String
+    startDestination: String,
+    themeViewModel: ThemeViewModel
 ) {
     NavHost(
         modifier = modifier,
@@ -74,31 +76,26 @@ fun AppNavHost(
             val target = targetState.destination.route
 
             if (isBottomNavRoute(initial) && isBottomNavRoute(target)) {
-                // Jika antar Bottom Nav, cek indeksnya
+                // Logic Bottom Nav
                 if (getBottomNavIndex(target) > getBottomNavIndex(initial)) {
-                    // Navigasi ke depan (Kanan): Muncul dari kanan ke kiri
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Left,
-                        tween(ANIM_DURATION)
-                    )
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(ANIM_DURATION))
                 } else {
-                    // Navigasi ke belakang (Kiri): Muncul dari kiri ke kanan
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Right,
-                        tween(ANIM_DURATION)
-                    )
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(ANIM_DURATION))
+                }
+            } else if (isAuthRoute(initial) && isAuthRoute(target)) {
+                // 💡 PERBAIKAN LOGIC AUTH: Cek urutan Welcome -> Login -> Signup
+                if (getAuthIndex(target) > getAuthIndex(initial)) {
+                    // Maju (Login -> Signup): Masuk dari Kanan (Slide Left)
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(ANIM_DURATION))
+                } else {
+                    // Mundur (Signup -> Login): Masuk dari Kiri (Slide Right)
+                    slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(ANIM_DURATION))
                 }
             } else if (isOverlayRoute(target)) {
-                // Halaman Overlay (Add/Detail) muncul dari bawah
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Up,
-                    tween(ANIM_DURATION)
-                )
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Up, tween(ANIM_DURATION))
             } else {
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
-                    tween(ANIM_DURATION)
-                )
+                // Default Slide Left
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(ANIM_DURATION))
             }
         },
 
@@ -109,59 +106,43 @@ fun AppNavHost(
 
             if (isBottomNavRoute(initial) && isBottomNavRoute(target)) {
                 if (getBottomNavIndex(target) > getBottomNavIndex(initial)) {
-                    // Navigasi ke depan: Pergi ke arah kiri
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Left,
-                        tween(ANIM_DURATION)
-                    )
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(ANIM_DURATION))
                 } else {
-                    // Navigasi ke belakang: Pergi ke arah kanan
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Right,
-                        tween(ANIM_DURATION)
-                    )
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(ANIM_DURATION))
+                }
+            } else if (isAuthRoute(initial) && isAuthRoute(target)) {
+                // 💡 PERBAIKAN LOGIC AUTH
+                if (getAuthIndex(target) > getAuthIndex(initial)) {
+                    // Maju: Halaman lama pergi ke Kiri
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(ANIM_DURATION))
+                } else {
+                    // Mundur: Halaman lama pergi ke Kanan
+                    slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(ANIM_DURATION))
                 }
             } else if (isOverlayRoute(initial)) {
-                // Halaman Overlay ditutup ke arah bawah
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Down,
-                    tween(ANIM_DURATION)
-                )
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, tween(ANIM_DURATION))
             } else {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Left,
-                    tween(ANIM_DURATION)
-                )
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Left, tween(ANIM_DURATION))
             }
         },
 
-        // 3. POP ENTER (Kembali ke halaman sebelumnya)
+        // 3. POP ENTER (Kembali ke halaman sebelumnya via Back Button Hardware/System)
         popEnterTransition = {
             val initial = initialState.destination.route
             if (isOverlayRoute(initial)) {
-                // Jika kembali dari overlay, halaman utama tetap diam
                 EnterTransition.None
             } else {
-                slideIntoContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right,
-                    tween(ANIM_DURATION)
-                )
+                slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(ANIM_DURATION))
             }
         },
 
-        // 4. POP EXIT (Halaman saat ini ditutup)
+        // 4. POP EXIT (Halaman saat ini ditutup via Back Button Hardware/System)
         popExitTransition = {
             val initial = initialState.destination.route
             if (isOverlayRoute(initial)) {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Down,
-                    tween(ANIM_DURATION)
-                )
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Down, tween(ANIM_DURATION))
             } else {
-                slideOutOfContainer(
-                    AnimatedContentTransitionScope.SlideDirection.Right,
-                    tween(ANIM_DURATION)
-                )
+                slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Right, tween(ANIM_DURATION))
             }
         }
     ) {
@@ -193,7 +174,7 @@ fun AppNavHost(
         composable(AppRoutes.ACTIVITY) { ActivityLogScreen(navController, viewModel) }
         composable(AppRoutes.EXERCISE) { AddExerciseScreen(navController, viewModel) }
         composable(AppRoutes.FOOD) { AddFoodScreen(navController, viewModel) }
-        composable(AppRoutes.PROFILE) { ProfileScreen(navController, viewModel, authViewModel) }
+        composable(AppRoutes.PROFILE) { ProfileScreen(navController, viewModel, authViewModel,themeViewModel = themeViewModel) }
         composable(AppRoutes.EDIT_PROFILE) { EditProfileScreen(navController, authViewModel) }
         composable(AppRoutes.PERSONAL_INFO) { PersonalInfoScreen(navController, authViewModel) }
         composable(AppRoutes.CHANGE_PASSWORD) { ChangePasswordScreen(navController, authViewModel) }
@@ -221,6 +202,21 @@ fun isBottomNavRoute(route: String?): Boolean {
 fun isOverlayRoute(route: String?): Boolean {
     if (route == null) return false
     return route == AppRoutes.EXERCISE || route == AppRoutes.FOOD || route.startsWith("detail_log")
+}
+
+// 💡 Helper baru untuk mendeteksi rute Auth
+fun isAuthRoute(route: String?): Boolean {
+    return route in listOf(AppRoutes.WELCOME, AppRoutes.LOGIN, AppRoutes.SIGNUP)
+}
+
+// 💡 Helper baru untuk menentukan urutan animasi Auth
+fun getAuthIndex(route: String?): Int {
+    return when (route) {
+        AppRoutes.WELCOME -> 0
+        AppRoutes.LOGIN -> 1
+        AppRoutes.SIGNUP -> 2
+        else -> -1
+    }
 }
 
 fun getBottomNavIndex(route: String?): Int {
