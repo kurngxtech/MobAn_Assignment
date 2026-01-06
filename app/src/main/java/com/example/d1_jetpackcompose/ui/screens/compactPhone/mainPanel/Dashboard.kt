@@ -504,13 +504,13 @@ fun TabletTipsListPanel(
         // Header
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onClose) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Close")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Close", tint = MaterialTheme.colorScheme.onSurface)
             }
             Text(
                 "Recommended for You",
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
@@ -527,7 +527,7 @@ fun TabletTipsListPanel(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onArticleClick(tip) },
-                    colors = CardDefaults.cardColors(containerColor = Color.White) // Background Card Putih
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground) // Background Card Putih
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
@@ -559,7 +559,7 @@ fun TabletTipsListPanel(
                                 tip.title,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 16.sp,
-                                color = Color.Black
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Surface(
@@ -593,13 +593,13 @@ fun TabletTipDetailPanel(tip: HealthTip, onBack: () -> Unit) {
         // Header
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = MaterialTheme.colorScheme.onSurface)
             }
             Text(
                 "Article",
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurface
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
@@ -607,7 +607,7 @@ fun TabletTipDetailPanel(tip: HealthTip, onBack: () -> Unit) {
         // Content (Diadaptasi dari TipDetailScreen)
         Card(
             shape = RoundedCornerShape(32.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.onBackground),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp)

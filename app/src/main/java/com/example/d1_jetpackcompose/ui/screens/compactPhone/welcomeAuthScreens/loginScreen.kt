@@ -63,7 +63,7 @@ fun LoginScreen(navController: NavController, authViewModel: AuthViewModel) {
         AlertDialog(
             onDismissRequest = { authViewModel.resetLoginState() },
             title = { Text("Login Failed") },
-            text = { Text(errorMsg, color = Color.Black) },
+            text = { Text(errorMsg, color = MaterialTheme.colorScheme.onSurface) },
             confirmButton = {
                 TextButton(onClick = { authViewModel.resetLoginState() }) {
                     Text("Try Again", color = Color.Red, fontWeight = FontWeight.Bold)
