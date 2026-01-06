@@ -44,7 +44,7 @@ fun SignUpScreen(navController: NavController, authViewModel: AuthViewModel) {
             text = {
                 Text(
                     if (result is AuthResult.Success) result.message else (result as AuthResult.Error).message,
-                    color = Color.Black
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             },
             confirmButton = {

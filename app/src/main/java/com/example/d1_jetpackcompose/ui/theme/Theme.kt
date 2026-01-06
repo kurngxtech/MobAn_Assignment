@@ -28,6 +28,7 @@ import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.DeleteColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjects
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.HistoryObjectsDark
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.InputFieldDarkTheme
+import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.InputFieldLightTheme
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightBackground
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightCardColor
 import com.example.d1_jetpackcompose.ui.theme.SmartFitColors.LightGray
@@ -129,7 +130,7 @@ private val lightColorScheme = lightColorScheme(
     surface = HistoryObjects,
     onSurface = TextColor,
     surfaceVariant = DeleteColor,
-    onSurfaceVariant = DarkerCardGray
+    onSurfaceVariant = InputFieldLightTheme
 )
 
 private val darkColorScheme = darkColorScheme(

@@ -1,4 +1,4 @@
-package com.example.d1_jetpackcompose.utils
+package com.example.d1_jetpackcompose.common.utils
 
 import java.security.MessageDigest
 

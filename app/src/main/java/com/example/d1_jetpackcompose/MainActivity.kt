@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
                 AppThemeMode.LIGHT -> false
                 AppThemeMode.DARK -> true
                 AppThemeMode.SYSTEM -> isSystemInDarkTheme()
-                else -> {}
+                else -> isSystemInDarkTheme()
             }
 
             // 4. Pass darkTheme boolean to your Theme Wrapper

@@ -33,7 +33,7 @@ import com.example.d1_jetpackcompose.data.local.UserEntity
 import com.example.d1_jetpackcompose.data.repository.ActivityRepository
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.screens.compactPhone.surveyScreen.UserSurveyData
-import com.example.d1_jetpackcompose.utils.SecurityUtils
+import com.example.d1_jetpackcompose.common.utils.SecurityUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -153,7 +153,8 @@ class AuthViewModel(
     private suspend fun copyImageToInternalStorage(context: Context, uri: Uri): String? {
         return withContext(Dispatchers.IO) {
             try {
-                val inputStream = context.contentResolver.openInputStream(uri) ?: return@withContext null
+                val inputStream =
+                    context.contentResolver.openInputStream(uri) ?: return@withContext null
                 val fileName = "profile_${System.currentTimeMillis()}.jpg"
                 val file = File(context.filesDir, fileName)
                 val outputStream = FileOutputStream(file)
@@ -187,7 +188,8 @@ class AuthViewModel(
                     gender = newGender,
                     height = newHeight.toFloatOrNull() ?: user.height,
                     weight = newWeight.toFloatOrNull() ?: user.weight,
-                    bmi = calculateBmiInternal(newHeight.toFloatOrNull(), newWeight.toFloatOrNull()) ?: user.bmi
+                    bmi = calculateBmiInternal(newHeight.toFloatOrNull(), newWeight.toFloatOrNull())
+                        ?: user.bmi
                 )
                 repository.updateUserProfile(updatedUser)
                 if (user.username != newUsername) {
@@ -320,7 +322,13 @@ class AuthViewModel(
             // 🔒 HASH PASSWORD SEBELUM DISIMPAN
             val hashedPass = SecurityUtils.hashPassword(pass)
 
-            val success = repository.registerUser(UserEntity(username = username, email = email, password = hashedPass))
+            val success = repository.registerUser(
+                UserEntity(
+                    username = username,
+                    email = email,
+                    password = hashedPass
+                )
+            )
             delay(1000)
             if (success) _signUpState.value = AuthResult.Success("Account created successfully!")
             else _signUpState.value = AuthResult.Error("Email already registered")
@@ -351,7 +359,8 @@ class AuthViewModel(
             val user = repository.loginUser(email, hashedPass)
 
             if (user != null) {
-                sharedPreferences.edit().putString("USER_NAME", user.username).putBoolean("IS_REMEMBERED", true).apply()
+                sharedPreferences.edit().putString("USER_NAME", user.username)
+                    .putBoolean("IS_REMEMBERED", true).apply()
                 _currentUsername.value = user.username
                 _isSessionValid.value = true
                 _loginState.value = AuthResult.Success("Login Successful! Welcome ${user.username}")
@@ -362,8 +371,13 @@ class AuthViewModel(
         }
     }
 
-    fun resetLoginState() { _loginState.value = null }
-    fun resetSignUpState() { _signUpState.value = null }
+    fun resetLoginState() {
+        _loginState.value = null
+    }
+
+    fun resetSignUpState() {
+        _signUpState.value = null
+    }
 }
 
 sealed class AuthResult {
@@ -399,15 +413,26 @@ fun AuthInput(
     var passwordVisible by remember { mutableStateOf(false) }
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
-            modifier = Modifier.fillMaxWidth().height(56.dp).clip(RoundedCornerShape(16.dp)).background(MaterialTheme.colorScheme.surface).padding(horizontal = 16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Box(modifier = Modifier.weight(1f)) {
                     if (value.isEmpty()) Text(text = label, color = Color.Gray, fontSize = 14.sp)
                     BasicTextField(
                         value = value, onValueChange = onValueChange,
-                        textStyle = TextStyle(fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface),
+                        textStyle = TextStyle(
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        ),
                         keyboardOptions = keyboardOptions,
                         visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
                         singleLine = true, modifier = Modifier.fillMaxWidth()
@@ -433,8 +458,12 @@ fun AuthInput(
 @Composable
 fun PrimaryAuthButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
-        onClick = onClick, modifier = modifier.fillMaxWidth().height(50.dp),
-        shape = RoundedCornerShape(50), colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+        onClick = onClick,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        shape = RoundedCornerShape(50),
+        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
     ) {
         Text(text = text, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
     }

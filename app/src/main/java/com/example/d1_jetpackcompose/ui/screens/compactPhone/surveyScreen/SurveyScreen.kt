@@ -194,7 +194,7 @@ fun SurveyScreen(
                 shape = RoundedCornerShape(50),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = SurveyInputGray, // 💡 Warna Abu-abu saat disabled
+                    disabledContainerColor = MaterialTheme.colorScheme.onSurfaceVariant, // 💡 Warna Abu-abu saat disabled
                     disabledContentColor = Color.White
                 )
             ) {
@@ -234,9 +234,13 @@ fun StepGender(data: MutableState<UserSurveyData>) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         // 💡 MODIFIER DINAMIS: Tablet pakai tinggi tetap, HP pakai ratio 0.7
         val genderModifier = if (isTablet) {
-            Modifier.weight(1f).height(180.dp) // Lebih pendek di tablet
+            Modifier
+                .weight(1f)
+                .height(180.dp) // Lebih pendek di tablet
         } else {
-            Modifier.weight(1f).aspectRatio(0.7f) // Standar HP
+            Modifier
+                .weight(1f)
+                .aspectRatio(0.7f) // Standar HP
         }
 
         GenderCard("Male", data.value.gender == "Male", genderModifier) {
@@ -252,9 +256,24 @@ fun StepGender(data: MutableState<UserSurveyData>) {
 fun StepBodyStats(data: MutableState<UserSurveyData>) {
     StepHeader("Body Matrix", "Help us calculate your BMI and daily needs.")
     SurveyInput("Age (years)", data.value.age, { data.value = data.value.copy(age = it) }, true)
-    SurveyInput("Height (cm)", data.value.height, { data.value = data.value.copy(height = it) }, true)
-    SurveyInput("Current Weight (kg)", data.value.weight, { data.value = data.value.copy(weight = it) }, true)
-    SurveyInput("Target Weight (kg)", data.value.targetWeight, { data.value = data.value.copy(targetWeight = it) }, true)
+    SurveyInput(
+        "Height (cm)",
+        data.value.height,
+        { data.value = data.value.copy(height = it) },
+        true
+    )
+    SurveyInput(
+        "Current Weight (kg)",
+        data.value.weight,
+        { data.value = data.value.copy(weight = it) },
+        true
+    )
+    SurveyInput(
+        "Target Weight (kg)",
+        data.value.targetWeight,
+        { data.value = data.value.copy(targetWeight = it) },
+        true
+    )
 }
 
 @Composable
@@ -365,7 +384,7 @@ fun SurveyInput(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
-                .background(SurveyInputGray)
+                .background(MaterialTheme.colorScheme.onSurfaceVariant)
                 .padding(16.dp)
         )
     }
@@ -382,7 +401,7 @@ fun GenderCard(
     Column(
         modifier
             .clip(RoundedCornerShape(24.dp))
-            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else Color.White)
+            .background(if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface)
             .border(
                 if (isSelected) 2.dp else 1.dp,
                 if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray,
@@ -415,7 +434,7 @@ fun SelectionCard(text: String, subtext: String? = null, isSelected: Boolean, on
         Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(if (isSelected) MaterialTheme.colorScheme.primary else Color.White)
+            .background(if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
             .border(
                 1.dp,
                 if (isSelected) MaterialTheme.colorScheme.primary else Color.LightGray,

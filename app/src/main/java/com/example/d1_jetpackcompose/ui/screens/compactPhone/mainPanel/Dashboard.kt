@@ -102,9 +102,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.offset
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.DetailLogScreen
 
 private val HistoryCardGray = Color(0xFFE8E8E8)

@@ -1,7 +1,6 @@
 package com.example.d1_jetpackcompose.ui.screens.compactPhone.mainPanel
 
 import android.annotation.SuppressLint
-import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -70,7 +69,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -80,16 +78,12 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.d1_jetpackcompose.R
-import com.example.d1_jetpackcompose.data.local.AppDatabase
-import com.example.d1_jetpackcompose.data.repository.ActivityRepository
-import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.navigation.AppRoutes
 import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.ChangePasswordScreen
 import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.EditProfileScreen
 import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.FAQScreen
 import com.example.d1_jetpackcompose.ui.screens.compactPhone.detailPanel.PersonalInfoScreen
 import com.example.d1_jetpackcompose.ui.theme.LocalAppDimens
-import com.example.d1_jetpackcompose.ui.theme.SmartFitTheme
 import com.example.d1_jetpackcompose.ui.viewModel.AuthViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.SharedViewModel
 import com.example.d1_jetpackcompose.ui.viewModel.ThemeViewModel

@@ -44,6 +44,9 @@ android {
 }
 
 dependencies {
+    implementation(libs.material) // Add this line for Material 3 themes
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.core.ktx)
 
     // --- CORE & UTILS ---
     implementation(libs.coil.compose)

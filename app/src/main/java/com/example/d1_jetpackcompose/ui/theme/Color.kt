@@ -25,6 +25,8 @@ object SmartFitColors {
     val SecondaryWhite = Color(0xFFc9d4c9)
     val LightGray = Color(0xFFF5F5F5)
     val DarkerCardGray = Color(0xFFDADADA)
+    val InputFieldLightTheme = Color(0xFFD1D1D1)
+
 
    // Dark Mode
     val DarkGreen = Color(0xFF4F6A4E)
@@ -32,6 +34,6 @@ object SmartFitColors {
     val DarkBackground = Color(0xFF121212)
     val DarkCardColor = Color(0xFF2B2B2B)
     val HistoryObjectsDark = Color(0xFF303030)
-    val InputFieldDarkTheme = Color(0xFFD1D1D1)
+    val InputFieldDarkTheme = Color(0xFF303030)
 
 }

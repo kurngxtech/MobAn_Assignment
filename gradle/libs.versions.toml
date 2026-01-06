@@ -28,6 +28,7 @@ ui = "1.10.0"
 material3 = "1.4.0"
 ksp = "2.0.21-1.0.25"
 accompanist = "0.32.0"
+material = "1.13.0"
 
 [libraries]
 androidx-compose-animation = { module = "androidx.compose.animation:animation" }
@@ -67,6 +68,7 @@ lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockitoCore" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 
 [plugins]
