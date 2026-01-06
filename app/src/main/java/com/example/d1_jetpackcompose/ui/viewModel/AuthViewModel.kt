@@ -33,6 +33,7 @@ import com.example.d1_jetpackcompose.data.local.UserEntity
 import com.example.d1_jetpackcompose.data.repository.ActivityRepository
 import com.example.d1_jetpackcompose.data.repository.AuthRepository
 import com.example.d1_jetpackcompose.ui.screens.compactPhone.surveyScreen.UserSurveyData
+import com.example.d1_jetpackcompose.utils.SecurityUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -76,7 +77,7 @@ class AuthViewModel(
         .flatMapLatest { username -> repository.getCurrentUserFlow(username) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    // --- 💡 FITUR BARU: CHANGE PASSWORD ---
+    // --- 💡 FITUR BARU: CHANGE PASSWORD (HASHED) ---
     fun changePassword(
         currentPass: String,
         newPass: String,
@@ -107,18 +108,24 @@ class AuthViewModel(
                 return@launch
             }
 
-            // 3. Verifikasi Password Lama
-            if (user.password != currentPass) {
+            // 3. Verifikasi Password Lama (Dengan Hashing)
+            // 🔒 Hash input user dulu, baru bandingkan dengan database
+            val hashedCurrentInput = SecurityUtils.hashPassword(currentPass)
+
+            if (user.password != hashedCurrentInput) {
                 delay(1000) // Fake delay untuk keamanan (mencegah brute force cepat)
                 onError("Incorrect current password")
                 _isLoading.value = false
                 return@launch
             }
 
-            // 4. Proses Update Password
+            // 4. Proses Update Password (Dengan Hashing)
             delay(1500) // Simulasi loading sistem
 
-            val updatedUser = user.copy(password = newPass)
+            // 🔒 Hash password baru sebelum disimpan
+            val hashedNewPass = SecurityUtils.hashPassword(newPass)
+            val updatedUser = user.copy(password = hashedNewPass)
+
             repository.updateUserProfile(updatedUser)
 
             _isLoading.value = false
@@ -285,6 +292,7 @@ class AuthViewModel(
         }
     }
 
+    // --- 💡 SIGN UP HASHING ---
     fun signUp(username: String, email: String, pass: String, confirmPass: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -308,7 +316,11 @@ class AuthViewModel(
                 _isLoading.value = false
                 return@launch
             }
-            val success = repository.registerUser(UserEntity(username = username, email = email, password = pass))
+
+            // 🔒 HASH PASSWORD SEBELUM DISIMPAN
+            val hashedPass = SecurityUtils.hashPassword(pass)
+
+            val success = repository.registerUser(UserEntity(username = username, email = email, password = hashedPass))
             delay(1000)
             if (success) _signUpState.value = AuthResult.Success("Account created successfully!")
             else _signUpState.value = AuthResult.Error("Email already registered")
@@ -316,6 +328,7 @@ class AuthViewModel(
         }
     }
 
+    // --- 💡 LOGIN HASHING ---
     fun login(email: String, pass: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -330,7 +343,13 @@ class AuthViewModel(
                 return@launch
             }
             delay(2000)
-            val user = repository.loginUser(email, pass)
+
+            // 🔒 HASH PASSWORD INPUT USER UNTUK PENCOCOKAN
+            val hashedPass = SecurityUtils.hashPassword(pass)
+
+            // Kirim hash ke repository untuk dicocokkan dengan DB
+            val user = repository.loginUser(email, hashedPass)
+
             if (user != null) {
                 sharedPreferences.edit().putString("USER_NAME", user.username).putBoolean("IS_REMEMBERED", true).apply()
                 _currentUsername.value = user.username
