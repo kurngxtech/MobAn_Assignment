@@ -3,6 +3,7 @@ package com.example.d1_jetpackcompose.ui.viewModel
 import android.content.Context
 import android.content.SharedPreferences
 import android.net.Uri
+import android.util.Log // 💡 Import untuk Logcat
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -46,6 +47,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
+import androidx.core.content.edit
 
 class AuthViewModel(
     private val repository: AuthRepository,
@@ -64,7 +66,6 @@ class AuthViewModel(
     val signUpState = _signUpState.asStateFlow()
 
     private val _currentUsername = MutableStateFlow("Guest")
-    val currentUsername = _currentUsername.asStateFlow()
 
     private val _isSessionValid = MutableStateFlow(false)
     val isSessionValid = _isSessionValid.asStateFlow()
@@ -77,7 +78,54 @@ class AuthViewModel(
         .flatMapLatest { username -> repository.getCurrentUserFlow(username) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    // --- 💡 FITUR BARU: CHANGE PASSWORD (HASHED) ---
+    // --- 💡 LOGIN HASHING WITH DEBUG LOGS ---
+    fun login(email: String, pass: String) {
+        viewModelScope.launch {
+            Log.d("AuthViewModel", "login() called, email='$email', loading=true")
+            _isLoading.value = true
+
+            if (email.isEmpty() || pass.isEmpty()) {
+                Log.d("AuthViewModel", "login() validation failed: empty fields")
+                _loginState.value = AuthResult.Error("Please fill in all fields")
+                _isLoading.value = false
+                return@launch
+            }
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Log.d("AuthViewModel", "login() validation failed: invalid email format")
+                _loginState.value = AuthResult.Error("Invalid email format")
+                _isLoading.value = false
+                return@launch
+            }
+
+            delay(2000)
+
+            // Hash password input user untuk pencocokan
+            val hashedPass = SecurityUtils.hashPassword(pass)
+            Log.d("AuthViewModel", "login() password hashed (sha256)")
+
+            Log.d("AuthViewModel", "login() calling repository.loginUser(email='$email')")
+            val user = repository.loginUser(email, hashedPass)
+
+            if (user != null) {
+                Log.d("AuthViewModel", "login() success, user='${user.username}'")
+                sharedPreferences.edit {
+                    putString("USER_NAME", user.username)
+                        .putBoolean("IS_REMEMBERED", true)
+                }
+                _currentUsername.value = user.username
+                _isSessionValid.value = true
+                _loginState.value = AuthResult.Success("Login Successful! Welcome ${user.username}")
+                Log.d("AuthViewModel", "login() navigate to Home effect sent")
+            } else {
+                Log.d("AuthViewModel", "login() failed: wrong credentials")
+                _loginState.value = AuthResult.Error("Wrong email or password")
+            }
+            _isLoading.value = false
+            Log.d("AuthViewModel", "login() finished, loading=false")
+        }
+    }
+
+    // --- CHANGE PASSWORD (HASHED) ---
     fun changePassword(
         currentPass: String,
         newPass: String,
@@ -87,8 +135,6 @@ class AuthViewModel(
     ) {
         viewModelScope.launch {
             _isLoading.value = true
-
-            // 1. Validasi Input Dasar
             if (newPass.length < 6) {
                 onError("New password must be at least 6 characters")
                 _isLoading.value = false
@@ -99,41 +145,29 @@ class AuthViewModel(
                 _isLoading.value = false
                 return@launch
             }
-
-            // 2. Ambil data user saat ini untuk cek password lama
             val user = currentUser.value
             if (user == null) {
                 onError("User session invalid")
                 _isLoading.value = false
                 return@launch
             }
-
-            // 3. Verifikasi Password Lama (Dengan Hashing)
-            // 🔒 Hash input user dulu, baru bandingkan dengan database
             val hashedCurrentInput = SecurityUtils.hashPassword(currentPass)
-
             if (user.password != hashedCurrentInput) {
-                delay(1000) // Fake delay untuk keamanan (mencegah brute force cepat)
+                delay(1000)
                 onError("Incorrect current password")
                 _isLoading.value = false
                 return@launch
             }
-
-            // 4. Proses Update Password (Dengan Hashing)
-            delay(1500) // Simulasi loading sistem
-
-            // 🔒 Hash password baru sebelum disimpan
+            delay(1500)
             val hashedNewPass = SecurityUtils.hashPassword(newPass)
             val updatedUser = user.copy(password = hashedNewPass)
-
             repository.updateUserProfile(updatedUser)
-
             _isLoading.value = false
             onSuccess()
         }
     }
 
-    // --- FUNGSI UPDATE GAMBAR ---
+    // --- UPDATE PROFILE PICTURE ---
     fun updateProfilePicture(context: Context, imageUri: Uri) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -193,7 +227,7 @@ class AuthViewModel(
                 )
                 repository.updateUserProfile(updatedUser)
                 if (user.username != newUsername) {
-                    sharedPreferences.edit().putString("USER_NAME", newUsername).apply()
+                    sharedPreferences.edit { putString("USER_NAME", newUsername) }
                     _currentUsername.value = newUsername
                 }
                 delay(1500)
@@ -213,20 +247,15 @@ class AuthViewModel(
         checkSession()
     }
 
-    // LOGIKA CEK SESI
     private fun checkSession() {
         viewModelScope.launch {
             _isCheckingSession.value = true
-
             try {
                 val savedUsername = sharedPreferences.getString("USER_NAME", null)
                 val isRemembered = sharedPreferences.getBoolean("IS_REMEMBERED", false)
-
                 delay(500)
-
                 if (isRemembered && !savedUsername.isNullOrEmpty()) {
                     val dbUser = repository.getUserByUsername(savedUsername)
-
                     if (dbUser != null) {
                         _currentUsername.value = savedUsername
                         _isSessionValid.value = true
@@ -244,20 +273,12 @@ class AuthViewModel(
         }
     }
 
-    // Hapus Total (User + Aktivitas + Sesi)
     fun deleteAccount(onComplete: () -> Unit) {
         viewModelScope.launch {
             val username = _currentUsername.value
-
-            // 1. Hapus User dari DB
             repository.deleteUser(username)
-
-            // 2. Hapus SEMUA Data Aktivitas (Cascade Manual)
             activityRepository.clearUserData()
-
-            // 3. Bersihkan Sesi Lokal
             logout()
-
             onComplete()
         }
     }
@@ -267,7 +288,7 @@ class AuthViewModel(
     }
 
     fun logout() {
-        sharedPreferences.edit().clear().apply()
+        sharedPreferences.edit { clear() }
         _currentUsername.value = "Guest"
         _isSessionValid.value = false
         _loginState.value = null
@@ -294,9 +315,10 @@ class AuthViewModel(
         }
     }
 
-    // --- 💡 SIGN UP HASHING ---
     fun signUp(username: String, email: String, pass: String, confirmPass: String) {
         viewModelScope.launch {
+            // 💡 Log saat fungsi dipanggil oleh UI
+            Log.d("AuthViewModel", "signUp() TRIGGERED - User: $username, Email: $email")
             _isLoading.value = true
             if (username.isEmpty() || email.isEmpty() || pass.isEmpty()) {
                 _signUpState.value = AuthResult.Error("All fields are required")
@@ -319,54 +341,19 @@ class AuthViewModel(
                 return@launch
             }
 
-            // 🔒 HASH PASSWORD SEBELUM DISIMPAN
+            // 💡 Log proses keamanan
             val hashedPass = SecurityUtils.hashPassword(pass)
+            Log.d("AuthViewModel", "signUp() SUCCESS: Password encrypted via SHA-256")
 
-            val success = repository.registerUser(
-                UserEntity(
-                    username = username,
-                    email = email,
-                    password = hashedPass
-                )
-            )
             delay(1000)
+
+            // 💡 Log interaksi Database
+            Log.d("AuthViewModel", "signUp() EXECUTE: Registering to Database...")
+            val success = repository.registerUser(
+                UserEntity(username = username, email = email, password = hashedPass)
+            )
             if (success) _signUpState.value = AuthResult.Success("Account created successfully!")
             else _signUpState.value = AuthResult.Error("Email already registered")
-            _isLoading.value = false
-        }
-    }
-
-    // --- 💡 LOGIN HASHING ---
-    fun login(email: String, pass: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            if (email.isEmpty() || pass.isEmpty()) {
-                _loginState.value = AuthResult.Error("Please fill in all fields")
-                _isLoading.value = false
-                return@launch
-            }
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                _loginState.value = AuthResult.Error("Invalid email format")
-                _isLoading.value = false
-                return@launch
-            }
-            delay(2000)
-
-            // 🔒 HASH PASSWORD INPUT USER UNTUK PENCOCOKAN
-            val hashedPass = SecurityUtils.hashPassword(pass)
-
-            // Kirim hash ke repository untuk dicocokkan dengan DB
-            val user = repository.loginUser(email, hashedPass)
-
-            if (user != null) {
-                sharedPreferences.edit().putString("USER_NAME", user.username)
-                    .putBoolean("IS_REMEMBERED", true).apply()
-                _currentUsername.value = user.username
-                _isSessionValid.value = true
-                _loginState.value = AuthResult.Success("Login Successful! Welcome ${user.username}")
-            } else {
-                _loginState.value = AuthResult.Error("Wrong email or password")
-            }
             _isLoading.value = false
         }
     }
@@ -440,7 +427,6 @@ fun AuthInput(
                 }
                 if (isPassword) {
                     val iconId = if (passwordVisible) R.drawable.view_pass else R.drawable.hide_pass
-
                     Image(
                         painter = painterResource(id = iconId),
                         contentDescription = "Toggle Password",
